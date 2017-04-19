@@ -1,7 +1,7 @@
 # strato-getting-started
 
 Strato Trials and Getting Started guide
---------------------------------------------------------
+-----------------
 [![BlockApps logo](http://blockapps.net/img/logo_cropped.png)](http://blockapps.net)
 
 *Steps to setup and run STRATO Developer Trial Edition using Docker on your machine*
@@ -21,3 +21,7 @@ Strato Trials and Getting Started guide
 7) For more details: http://developers.blockapps.net/dashboard
 
 8) Reach out to BlockApps team for more info on support and enterprise licensed subscription: http://blockapps.net/learn-more-blockapps-strato-demo/
+
+License Agreement
+-----------------
+TODO
