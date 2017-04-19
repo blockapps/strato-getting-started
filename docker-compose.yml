@@ -1,0 +1,148 @@
+version: "2"
+services:
+  bloc:
+    environment:
+    - apiUrlOverride=${apiUrlOverride}
+    - ssl=${ssl}
+    - stratoHost=${stratoHost}
+    image: registry-aws.blockapps.net:5000/blockapps-repo/silo-bloc:latest
+    restart: always
+  bloch:
+    depends_on:
+    - strato
+    - postgres
+    environment:
+    - cirrusurl=${cirrusurl}
+    - pghost=${pghost}
+    - pgpasswd=${pgpasswd}
+    - pguser=${pguser}
+    - ssl=${ssl}
+    - stratourl=${stratourl}
+    image: registry-aws.blockapps.net:5000/blockapps-repo/silo-bloch:latest
+    ports:
+    - 10001:8000
+    restart: always
+  redis:
+    command: [redis-server, --appendonly, "yes"]
+    image: registry-aws.blockapps.net:5000/blockapps-repo/redis:3.2
+    ports:
+    - 6379:6379
+    restart: always
+  cirrus:
+    image: registry-aws.blockapps.net:5000/blockapps-repo/silo-cirrus:latest
+    links:
+    - strato:strato
+    - postgres-cirrus:postgres
+    restart: always
+  strato:
+    depends_on:
+    - zookeeper
+    - kafka
+    - postgres
+    - redis
+    environment:
+    - statsPrefix=${statsPrefix}
+    - blockTime=${blockTime}
+    - genesis=${genesis}
+    - lazyBlocks=${lazyBlocks}
+    - miningAlgorithm=${miningAlgorithm}
+    - miningThreads=${miningThreads}
+    - networkID=${networkID}
+    - statsHost=${statsHost}
+    - statsSuffix=${statsSuffix}
+    - bootnode=${bootnode}
+    - debugFail=${debugFail}
+    - genesisBlock=${genesisBlock}
+    - statsFlush=${statsFlush}
+    - statsPort=${statsPort}
+    - addBootnodes=${addBootnodes}
+    - minBlockDifficulty=${minBlockDifficulty}
+    - redisBDBNumber=${redisBDBNumber}
+    - backupblocks=${backupblocks}
+    - statsEnable=${statsEnable}
+    - useSyncMode=${useSyncMode}
+    image: registry-aws.blockapps.net:5000/blockapps-repo/silo-strato:latest
+    links:
+    - zookeeper
+    - kafka
+    - postgres
+    - redis
+    ports:
+    - 30303:30303
+    - 30303:30303/udp
+    - 33000:3000
+    restart: always
+  postgres-cirrus:
+    environment:
+    - PG_ENV_POSTGRES_DB=cirrus
+    - PG_ENV_POSTGRES_USER=postgres
+    - POSTGRES_DB=cirrus
+    - POSTGRES_USER=postgres
+    image: registry-aws.blockapps.net:5000/blockapps-repo/postgres:9.6
+    ports:
+    - 5434:5432
+  postgrest:
+    environment:
+    - PG_ENV_POSTGRES_USER=postgres
+    - PG_PORT_5433_TCP_PORT=5432
+    - POSTGRES_DB=cirrus
+    - POSTGRES_USER=postgres
+    - PG_ENV_POSTGRES_DB=cirrus
+    image: registry-aws.blockapps.net:5000/blockapps-repo/silo-postgrest:latest
+    links:
+    - postgres-cirrus:postgres
+    ports:
+    - 3001:3001
+    restart: always
+  postgres:
+    image: registry-aws.blockapps.net:5000/blockapps-repo/silo-postgres:latest
+    restart: always
+  explorer:
+    environment:
+    - peers=${peers}
+    image: registry-aws.blockapps.net:5000/blockapps-repo/silo-explorer:latest
+    links:
+    - strato:strato
+    - bloc:bloc
+    ports:
+    - 9000:9000
+    restart: always
+  nginx:
+    depends_on:
+    - strato
+    - bloc
+    - cirrus
+    - postgrest
+    - explorer
+    environment:
+    - ssl=${ssl}
+    image: registry-aws.blockapps.net:5000/blockapps-repo/silo-nginx:latest
+    ports:
+    - 443:443
+    - 80:80
+    volumes:
+    - /etc/ssl/private:/etc/ssl/private
+    - /etc/ssl/certs:/etc/ssl/certs
+    restart: always
+  zookeeper:
+    environment:
+    - ZOO_MY_ID=1
+    image: registry-aws.blockapps.net:5000/blockapps-repo/zookeeper:3.4.9
+    ports:
+    - 2181:2181
+    restart: always
+  kafka:
+    environment:
+    - KAFKA_LOG_RETENTION_HOURS=2147483647
+    - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+    - KAFKA_ADVERTISED_HOST_NAME=kafka
+    - KAFKA_ADVERTISED_PORT=9092
+    - KAFKA_DELETE_TOPIC_ENABLE=true
+    - KAFKA_LOG_CLEANER_ENABLE=false
+    image: registry-aws.blockapps.net:5000/blockapps-repo/silo-kafka:latest
+    links:
+    - zookeeper
+    ports:
+    - 9092:9092
+    restart: always
+

@@ -6,7 +6,7 @@ Strato Trials and Getting Started guide
 
 *Steps to setup and run STRATO Developer Trial Edition using Docker on your machine*
 
-1) Register for access to STRATO Developer Edition trial image here: http://developers.blockapps.net/trial
+1) Register for access to STRATO Developer Edition trial here: http://developers.blockapps.net/trial
 
 2) Clone this repo using git clone.
 
