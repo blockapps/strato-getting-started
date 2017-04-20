@@ -24,4 +24,4 @@ Strato Trials and Getting Started guide
 
 License Agreement
 -----------------
-TODO
+See [BlockApps’ Developer Trial Edition Terms of Use](http://developers.blockapps.net/trial-license)
