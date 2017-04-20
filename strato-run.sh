@@ -13,9 +13,9 @@ echo "
                               /_/   /_/
 "
 
-if ! docker -v &> /dev/null
+if ! docker ps &> /dev/null
 then
-    echo 'Error: docker is required: https://www.docker.com/'
+    echo 'Error: docker is required to be installed and configured for non-root users: https://www.docker.com/'
     exit 1
 fi
 
@@ -37,7 +37,7 @@ then
     exit 0
 else
     echo "Please login to BlockApps Public Registry first:
-1) Register for access to STRATO Developer Edition trial here: http://developers.blockapps.net/trial;
+1) Register for access to STRATO Developer Edition trial here: http://developers.blockapps.net/trial
 2) Follow the instructions from the registration email to login to BlockApps Public Registry;
 3) Run this script again"
     exit 3
