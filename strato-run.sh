@@ -27,14 +27,9 @@ fi
 
 if grep -q "${registry}" ~/.docker/config.json
 then
-    genesisBlock=$(< gb.json) \
-    lazyBlocks=false \
-    miningAlgorithm=SHA \
-    apiUrlOverride=http://strato:3000 \
-    blockTime=2 \
-    minBlockDifficulty=8192 \
-    docker-compose up -d
-    exit 0
+    export genesisBlock=$(< gb.json)
+    export stratoHost=nginx
+    exec docker-compose up -d
 else
     echo "Please login to BlockApps Public Registry first:
 1) Register for access to STRATO Developer Edition trial here: http://developers.blockapps.net/trial
