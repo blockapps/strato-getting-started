@@ -29,6 +29,7 @@ if grep -q "${registry}" ~/.docker/config.json
 then
     export genesisBlock=$(< gb.json)
     export stratoHost=nginx
+    export ssl=false
     exec docker-compose up -d
 else
     echo "Please login to BlockApps Public Registry first:

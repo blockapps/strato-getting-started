@@ -118,12 +118,7 @@ services:
     - ssl=${ssl}
     image: registry-aws.blockapps.net:5000/blockapps-repo/silo-nginx:latest
     ports:
-    - 443:443
     - 80:80
-    volumes:
-    - /etc/ssl/private:/etc/ssl/private
-    - /etc/ssl/certs:/etc/ssl/certs
-    restart: always
   zookeeper:
     environment:
     - ZOO_MY_ID=1
