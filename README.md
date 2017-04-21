@@ -33,11 +33,11 @@ docker login -u <USER> -p <PASSWORD> <REGISTRY>
 4) Launch STRATO services:
 
 **For Linux/UNIX/MacOSX users:**
-Run: 
+- Run: 
 ```bash
 chmod +x strato-run.sh 
 ```
-Then run the script: 
+- Then run the script: 
 ```bash
 ./strato-run.sh
 ```
