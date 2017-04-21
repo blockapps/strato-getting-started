@@ -15,9 +15,14 @@ Strato Trials and Getting Started guide
 
 3) Configure docker registry access using: docker login -u <> -p <> <registry> (from the registration email)
 
-4) Run: chmod +x strato-run.sh 
-
-5) Run the script: strato-run.sh
+4) Run: 
+```bash
+chmod +x strato-run.sh 
+```
+5) Run the script: 
+```bash
+./strato-run.sh
+```
 
 6) Check if STRATO services are running (using 'docker ps')
 
