@@ -24,29 +24,42 @@ Strato Trials and Getting Started guide
 
 1) Register for access to STRATO Developer Edition trial here: http://developers.blockapps.net/trial
 
-2) Clone this repo using git clone.
+2) Clone this repo using git clone. And `chdir` or `cd` into that folder.
 
 3) Configure docker registry login using the credentials [USER, PASSWORD, REGISTRY] you received via email after your registration for trial: 
 ```bash
 docker login -u <USER> -p <PASSWORD> <REGISTRY> 
 ```
-
-4) Run: 
+4) Launch STRATO services from within the: 
+** For Linux/UNIX/MacOSX users:
+Run: 
 ```bash
 chmod +x strato-run.sh 
 ```
-5) Run the script: 
+Then run the script: 
 ```bash
 ./strato-run.sh
 ```
+** For WIN users:
+- Make sure you're in the git cloned folder `strato-getting-started`
+- From command shell: 
+```bash
+SET /p genesisBlock=<gb.json
+SET stratoHost=nginx
+SET ssl=false
+```
+- Then from the same shell execute:
+```bash
+docker-compose up -d
+```
+ 
+5) Check if STRATO services are running (using `docker ps`)
 
-6) Check if STRATO services are running (using 'docker ps')
+6) Refer documentation here to get started with developing a sample app: https://github.com/blockapps/pizza-demo
 
-7) Refer documentation here to get started with developing a sample app: https://github.com/blockapps/pizza-demo
+7) For more details: http://developers.blockapps.net/dashboard
 
-8) For more details: http://developers.blockapps.net/dashboard
-
-9) Reach out to BlockApps team for more info on support and enterprise licensed subscription: http://blockapps.net/learn-more-blockapps-strato-demo/
+8) Reach out to BlockApps team for more info on support and enterprise licensed subscription: http://blockapps.net/learn-more-blockapps-strato-demo/
 
 *Steps to shutdown a running instance of STRATO Developer Trial Edition on your machine (you will lose state of any  transactions/data created in the blockchain)*
 - Run this command (from within the git cloned `getting-started` folder)
