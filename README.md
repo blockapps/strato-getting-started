@@ -26,7 +26,10 @@ Strato Trials and Getting Started guide
 
 2) Clone this repo using git clone.
 
-3) Configure docker registry access using: docker login -u <> -p <> <registry> (from the registration email)
+3) Configure docker registry login using the credentials [USER, PASSWORD, REGISTRY] you received via email after your registration for trial: 
+```bash
+docker login -u <USER> -p <PASSWORD> <REGISTRY> 
+```
 
 4) Run: 
 ```bash
