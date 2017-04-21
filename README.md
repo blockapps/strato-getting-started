@@ -31,7 +31,8 @@ Strato Trials and Getting Started guide
 docker login -u <USER> -p <PASSWORD> <REGISTRY> 
 ```
 4) Launch STRATO services:
-*For Linux/UNIX/MacOSX users:*
+
+**For Linux/UNIX/MacOSX users:**
 Run: 
 ```bash
 chmod +x strato-run.sh 
@@ -40,7 +41,8 @@ Then run the script:
 ```bash
 ./strato-run.sh
 ```
-*For WIN users:*
+
+**For WIN users:**
 - Make sure you're in the git cloned folder `strato-getting-started`
 - From command shell: 
 ```bash
