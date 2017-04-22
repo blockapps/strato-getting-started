@@ -20,7 +20,7 @@ Strato Trials and Getting Started guide
 :9092 (for Kafka)
 ```
 
-*Steps to setup and run STRATO Developer Trial Edition using Docker on your machine*
+*Steps to setup and run STRATO Developer Edition using Docker on your machine*
 
 1) Register for access to STRATO Developer Edition trial here: http://developers.blockapps.net/trial
 
@@ -63,7 +63,7 @@ docker-compose up -d
 
 8) Reach out to BlockApps team for more info on support and enterprise licensed subscription: http://blockapps.net/learn-more-blockapps-strato-demo/
 
-*Steps to shutdown a running instance of STRATO Developer Trial Edition on your machine (you will lose state of any  transactions/data created in the blockchain)*
+*Steps to shutdown a running instance of STRATO Developer Edition on your machine (you will lose state of any  transactions/data created in the blockchain)*
 - Run this command (from within the git cloned `getting-started` folder)
 ```bash
 docker-compose down -v 
@@ -75,4 +75,4 @@ docker-compose kill
 
 License Agreement
 -----------------
-See [BlockApps’ Developer Trial Edition Terms of Use](http://developers.blockapps.net/trial-license)
+See [BlockApps’ Developer Edition Terms of Use](http://developers.blockapps.net/trial-license)
