@@ -5,6 +5,7 @@ Strato Trials and Getting Started guide
 [![BlockApps logo](http://blockapps.net/img/logo_cropped.png)](http://blockapps.net)
 
 *Pre-requisites for the setup*
+- This Developer Trial Edition only works on Linux/MacOSX with Docker installed.
 - Install Docker on your machine: https://www.docker.com/community-edition
 - Install docker-compose on your machine: https://docs.docker.com/compose/install/
 - STRATO services need the following ports to be available on the machine (refer docker-compose.yml for details)
@@ -31,8 +32,6 @@ Strato Trials and Getting Started guide
 docker login -u <USER> -p <PASSWORD> <REGISTRY> 
 ```
 4) Launch STRATO services:
-
-**For Linux/UNIX/MacOSX users:**
 - Run: 
 ```bash
 chmod +x strato-run.sh 
@@ -40,19 +39,6 @@ chmod +x strato-run.sh
 - Then run the script: 
 ```bash
 ./strato-run.sh
-```
-
-**For WIN users:**
-- Make sure you're in the git cloned folder `strato-getting-started`
-- From command shell: 
-```bash
-SET /p genesisBlock=<gb.json
-SET stratoHost=nginx
-SET ssl=false
-```
-- Then from the same shell execute:
-```bash
-docker-compose up -d
 ```
  
 5) Check if STRATO services are running (using `docker ps`)
