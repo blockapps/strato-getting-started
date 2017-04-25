@@ -62,3 +62,6 @@ docker-compose kill
 License Agreement
 -----------------
 See [BlockApps’ Developer Edition Terms of Use](http://developers.blockapps.net/trial-license)
+
+** STRATO Architecture **
+![Alt text](STRATO-Architecture.png?raw=true "STRATO-Architecture")
