@@ -17,7 +17,7 @@ services:
     - pgpasswd=${pgpasswd}
     - pguser=${pguser}
     - ssl=${ssl}
-    - stratourl=${stratourl}
+    - stratourl=${stratoHost}
     image: registry-aws.blockapps.net:5000/blockapps-repo/silo-bloch:latest
     ports:
     - 10001:8000
