@@ -28,6 +28,7 @@ fi
 if grep -q "${registry}" ~/.docker/config.json
 then
     export genesisBlock=$(< gb.json)
+    export cirrusurl=http://cirrus:3000
     export stratoHost=nginx
     export ssl=false
     exec docker-compose up -d
