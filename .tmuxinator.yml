@@ -176,4 +176,3 @@ windows:
                 - while true; do docker exec -it silo_redis_1 bash -c 'redis-cli info'; sleep 2; done
             - postgres-cirrus:
                 - while true; do docker exec -it silo_postgres-cirrus_1 bash -c 'su - postgres; pg_top cirrus'; sleep 2; done
-
