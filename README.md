@@ -59,6 +59,20 @@ docker-compose down -v
 docker-compose kill
 ```
 
+Debug view
+----------
+
+First do 
+```bash
+sudo apt-get install -y tmux tmuxinator
+```
+
+then you can get an overview of all processes using
+
+```bash
+tmuxinator start strato
+```
+
 License Agreement
 -----------------
 See [BlockApps’ Developer Edition Terms of Use](http://developers.blockapps.net/trial-license)
