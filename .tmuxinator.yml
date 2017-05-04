@@ -1,0 +1,173 @@
+# ~/.tmuxinator/strato-dashboard.yml
+
+name: strato
+root: . 
+
+# Optional tmux socket
+# socket_name: foo
+
+# Runs before everything. Use it to start daemons etc.
+pre: sudo apt install -y sysstat iftop htop jq ; sudo sh -c "curl -s https://raw.githubusercontent.com/holman/spark/master/spark -o /usr/local/bin/spark && chmod +x /usr/local/bin/spark"
+
+# Runs in each window and pane before window/pane specific commands. Useful for setting up interpreter versions.
+# pre_window: rbenv shell 2.0.0-p247
+
+# Pass command line options to tmux. Useful for specifying a different tmux.conf.
+#tmux_options:  
+
+# Change the command to call tmux.  This can be used by derivatives/wrappers like byobu.
+#tmux_command: byobu
+
+# Specifies (by name or index) which window will be selected on project startup. If not set, the first window is used.
+#startup_window: backbone
+
+# Controls whether the tmux session should be attached to automatically. Defaults to true.
+#attach: false
+
+# Runs after everything. Use it to attach to tmux with custom options etc.
+# post: tmux -CC attach -t strato
+
+windows:
+    - backbone:
+        layout: even-vertical
+        panes:
+            - sequencer:
+                - docker exec -it silo_strato_1 tail -f -n 1000 /var/lib/strato/logs/strato-sequencer
+            - vm:
+                - docker exec -it silo_strato_1 tail -f -n 1000 /var/lib/strato/logs/ethereum-vm
+            - adit:
+                - docker exec -it silo_strato_1 tail -f -n 1000 /var/lib/strato/logs/strato-adit
+
+    - indexers:
+        layout: even-vertical
+        panes:
+            - api-indexer:
+                - docker exec -it silo_strato_1 tail -f -n 1000 /var/lib/strato/logs/strato-api-indexer
+            - p2p-indexer:
+                - docker exec -it silo_strato_1 tail -f -n 1000 /var/lib/strato/logs/strato-p2p-indexer
+            - statediff-indexer:
+                - docker exec -it silo_strato_1 tail -f -n 1000 /var/lib/strato/logs/strato-statediff-indexer
+
+    - network:
+        layout: tiled 
+        panes:
+            - ethereum-discover:
+                - docker exec -it silo_strato_1 tail -f -n 1000 /var/lib/strato/logs/ethereum-discover
+            - peers:
+                - watch -n 1 "curl -s localhost/strato-api/eth/v1.2/peers | jq '.'"
+            - p2p-client:
+                - docker exec -it silo_strato_1 tail -f -n 1000 /var/lib/strato/logs/strato-p2p-client
+            - p2p-server:
+                - docker exec -it silo_strato_1 tail -f -n 1000 /var/lib/strato/logs/strato-p2p-server
+
+    - strato-api:
+        layout: tiled
+        panes:
+            - strato-api-get:
+                - docker logs -ft --tail 1000 silo_strato_1 | grep -A4 -B1 GET
+            - strato-api-post:
+                - docker logs -ft --tail 1000 silo_strato_1 | grep -A4 -B1 POST
+            
+    - misc-api:
+        layout: tiled
+        panes: 
+            - strato-api:
+                - docker logs -ft --tail 1000 silo_strato_1
+            - bloc:
+                - docker logs -ft --tail 1000 silo_bloc_1
+            - cirrus:
+                - docker logs -ft --tail 1000 silo_cirrus_1
+            - postgrest:
+                - docker logs -ft --tail 1000 silo_postgrest_1
+
+    - explorer:
+        layout: tiled 
+        panes:
+            - bestblock:
+                - watch -c -n 1 "curl -s localhost/strato-api/eth/v1.2/block/last/1 | jq -C '.'"
+            - lasttx:
+                - watch -c -n 1 "curl -s localhost/strato-api/eth/v1.2/transaction/last/1 | jq -C '.'"
+            - version:
+                - watch -c -n 60 "curl -s localhost/strato-api/version | jq -C '.'"
+            - coinbase:
+                - watch -c -n 5 "curl -s localhost/strato-api/eth/v1.2/block/last/100 | jq -C '.[] | {blockData}| .[].coinbase' | sort | uniq -c"
+
+    - graphs:
+        layout: even-vertical
+        panes:
+            - blocktimes:
+                - watch -n 20 ./watcher.sh explorer-blocktimes
+            - numtxs:
+                - watch -n 20 ./watcher.sh explorer-numtxs
+            - numuncles:
+                - watch -n 20 ./watcher.sh explorer-numuncles
+
+    - stream_blocks:
+        layout: even-horizontal
+        panes:
+            - dumpkafkablocks:
+                - docker exec -it silo_strato_1 bash -c 'cd /var/lib/strato; queryStrato dumpkafkablocks'
+            - dumpkafkaunminedblocks:
+                - docker exec -it silo_strato_1 bash -c 'cd /var/lib/strato; queryStrato dumpkafkaunminedblocks'
+    - stream_seq:
+        layout: even-horizontal
+        panes:
+            - dumpkafkaunsequencer:
+                - docker exec -it silo_strato_1 bash -c 'cd /var/lib/strato; queryStrato dumpkafkaunsequencer'
+            - dumpkafkasequencer:
+                - docker exec -it silo_strato_1 bash -c 'cd /var/lib/strato; queryStrato dumpkafkasequencer'
+            - dumpkafkastatediff:
+                - docker exec -it silo_strato_1 bash -c 'cd /var/lib/strato; queryStrato dumpkafkastatediff'
+
+    - stream_dbs:
+        layout : even-horizontal
+        panes:
+            - dumpredis:
+                - watch -n 1 "docker exec -it silo_strato_1 bash -c 'cd /var/lib/strato; queryStrato dumpredis 1'"
+
+    - checkpoints:
+        layout: even-vertical
+        panes:
+            - sequencer:
+                - watch -n 1 "docker exec -it silo_strato_1 bash -c 'cd /var/lib/strato; queryStrato checkpoints -s sequencer -o get'"
+            - evm:
+                - watch -n 1 "docker exec -it silo_strato_1 bash -c 'cd /var/lib/strato; queryStrato checkpoints -s evm -o get'"
+            - api-indexer:
+                - watch -n 1 "docker exec -it silo_strato_1 bash -c 'cd /var/lib/strato; queryStrato checkpoints -s apiindexer -o get'"
+            - p2p-indexer:
+                - watch -n 1 "docker exec -it silo_strato_1 bash -c 'cd /var/lib/strato; queryStrato checkpoints -s p2pindexer -o get'"
+
+    - cirrus:
+        layout: even-horizontal 
+        panes:
+            - contracts:
+                - watch -c -n 1 "curl -s localhost/cirrus/search/ | jq '.'"
+            - counts:
+                - watch -c -n 1 ./watcher.sh cirrus-count 
+    - monitor:
+        layout: tiled
+        panes:
+            - htop:
+                - htop
+            - iftop:
+                - sudo iftop
+            - iostat:
+                - iostat -N 1 
+
+    - databases:
+        layout: tiled
+        panes:
+            - postgres:
+                - env ETHDB = docker exec -it silo_strato_1 bash -c 'cd /var/lib/strato; queryStrato psql | cut -d \' \' -f2'
+                - docker exec -it silo_postgres_1 pg_top -d $ETHDB
+            - redis:
+                - docker exec -it silo_redis_1 bash -c 'redis-cli info'
+            - postgres-cirrus:
+                - docker exec -it silo_postgres-cirrus_1 bash -c 'su - postgres; pg_top cirrus'
+
+    - host:
+        layout: tiled
+        panes:
+            - bash:
+                - bash
+
