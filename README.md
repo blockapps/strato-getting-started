@@ -52,11 +52,11 @@ chmod +x strato-run.sh
 *Steps to shutdown a running instance of STRATO Developer Edition on your machine (you will lose state of any  transactions/data created in the blockchain)*
 - Run this command (from within the git cloned `getting-started` folder)
 ```bash
-docker-compose down -v 
+docker-compose -p silo down -v 
 ```
 - To force kill all the running STRATO services (docker containers) run this command:
 ```bash
-docker-compose kill
+docker-compose -p silo kill
 ```
 
 Debug view
