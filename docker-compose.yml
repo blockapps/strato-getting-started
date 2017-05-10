@@ -22,6 +22,20 @@ services:
     ports:
     - 10001:8000
     restart: always
+  bloch-docs-21:
+    environment:
+    - API_URL=http://bloch:8000/bloc/v2.1/swagger.json
+    image: swaggerapi/swagger-ui:v3.0.8
+    ports:
+    - 8080:8080
+    restart: always
+  bloch-docs-20:
+    environment:
+    - API_URL=http://bloch:8000/bloc/v2.0/swagger.json
+    image: swaggerapi/swagger-ui:v3.0.8
+    ports:
+    - 8081:8080
+    restart: always
   redis:
     command: [redis-server, --appendonly, "yes"]
     image: redis:3.2
@@ -114,6 +128,9 @@ services:
     - cirrus
     - postgrest
     - explorer
+    - bloch
+    - bloch-docs-20
+    - bloch-docs-21
     environment:
     - ssl=${ssl}
     image: registry-aws.blockapps.net:5000/blockapps-repo/silo-nginx:latest
