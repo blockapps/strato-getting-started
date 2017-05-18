@@ -1,4 +1,4 @@
-version: "2"
+version: "2.1"
 services:
   bloc:
     environment:
@@ -12,6 +12,7 @@ services:
     - strato
     - postgres
     environment:
+    - stratourl=${stratourl}
     - cirrusurl=${cirrusurl}
     - pghost=${pghost}
     - pgpasswd=${pgpasswd}
@@ -22,27 +23,31 @@ services:
     ports:
     - 10001:8000
     restart: always
-  bloch-docs-21:
-    environment:
-    - API_URL=http://bloch:8000/bloc/v2.1/swagger.json
-    image: swaggerapi/swagger-ui:v3.0.8
-    ports:
-    - 8080:8080
-    restart: always
-  bloch-docs-20:
-    environment:
-    - API_URL=http://bloch:8000/bloc/v2.0/swagger.json
-    image: swaggerapi/swagger-ui:v3.0.8
-    ports:
-    - 8081:8080
-    restart: always
   redis:
     command: [redis-server, --appendonly, "yes"]
     image: redis:3.2
     ports:
     - 6379:6379
     restart: always
+  strato-sync:
+    environment:
+    - ENV=${env}
+    - PORT=9001
+    image: registry-aws.blockapps.net:5000/blockapps-repo/silo-strato-sync:latest
+    ports:
+    - 9001:9001
+    - 3000:3000
+    restart: always
   cirrus:
+    environment:
+    - postgres_host=${cirrus_pg_host:-postgres}
+    - postgres_password=${cirrus_pg_password}
+    - postgres_port=${cirrus_pg_port:-5432}
+    - postgres_user=${cirrus_pg_user:-postgres}
+    - stateDiffTopic=${stateDiffTopic}
+    - stratourl=${stratourl}
+    - zookeeper_conn=${cirrus_zookeeper_conn}
+    - postgres_db=${cirrus_pg_db:-cirrus}
     image: registry-aws.blockapps.net:5000/blockapps-repo/silo-cirrus:latest
     links:
     - strato:strato
@@ -55,26 +60,28 @@ services:
     - postgres
     - redis
     environment:
-    - statsPrefix=${statsPrefix}
-    - blockTime=${blockTime}
-    - genesis=${genesis}
     - lazyBlocks=${lazyBlocks}
-    - miningAlgorithm=${miningAlgorithm}
+    - statsEnable=${statsEnable}
+    - statsPort=${statsPort}
+    - backupblocks=${backupblocks}
+    - blockTime=${blockTime}
+    - statsFlush=${statsFlush}
+    - minBlockDifficulty=${minBlockDifficulty}
     - miningThreads=${miningThreads}
+    - genesisBlock=${genesisBlock}
+    - useSyncMode=${useSyncMode}
+    - addBootnodes=${addBootnodes}
+    - explorerHost=${explorerHost}
+    - explorerAdvertise=${explorerAdvertise}
+    - genesis=${genesis}
+    - miningAlgorithm=${miningAlgorithm}
     - networkID=${networkID}
+    - redisBDBNumber=${redisBDBNumber}
     - statsHost=${statsHost}
-    - statsSuffix=${statsSuffix}
     - bootnode=${bootnode}
     - debugFail=${debugFail}
-    - genesisBlock=${genesisBlock}
-    - statsFlush=${statsFlush}
-    - statsPort=${statsPort}
-    - addBootnodes=${addBootnodes}
-    - minBlockDifficulty=${minBlockDifficulty}
-    - redisBDBNumber=${redisBDBNumber}
-    - backupblocks=${backupblocks}
-    - statsEnable=${statsEnable}
-    - useSyncMode=${useSyncMode}
+    - statsPrefix=${statsPrefix}
+    - statsSuffix=${statsSuffix}
     image: registry-aws.blockapps.net:5000/blockapps-repo/silo-strato:latest
     links:
     - zookeeper
@@ -97,14 +104,13 @@ services:
     - 5434:5432
   postgrest:
     environment:
+    - PG_ENV_POSTGRES_PASSWORD=
+    - POSTGREST_LISTEN_PORT=3001
     - PG_ENV_POSTGRES_USER=postgres
-    - PG_PORT_5433_TCP_PORT=5432
-    - POSTGRES_DB=cirrus
-    - POSTGRES_USER=postgres
+    - PG_PORT_5432_TCP_PORT=5432
     - PG_ENV_POSTGRES_DB=cirrus
+    - PG_ENV_POSTGRES_HOST=postgres-cirrus
     image: registry-aws.blockapps.net:5000/blockapps-repo/silo-postgrest:latest
-    links:
-    - postgres-cirrus:postgres
     ports:
     - 3001:3001
     restart: always
@@ -128,14 +134,16 @@ services:
     - cirrus
     - postgrest
     - explorer
-    - bloch
-    - bloch-docs-20
-    - bloch-docs-21
     environment:
     - ssl=${ssl}
     image: registry-aws.blockapps.net:5000/blockapps-repo/silo-nginx:latest
     ports:
+    - 443:443
     - 80:80
+    volumes:
+    - /etc/ssl/private:/etc/ssl/private
+    - /etc/ssl/certs:/etc/ssl/certs
+    restart: always
   zookeeper:
     environment:
     - ZOO_MY_ID=1
@@ -143,14 +151,28 @@ services:
     ports:
     - 2181:2181
     restart: always
+  bloch-docs-21:
+    environment:
+    - API_URL=http://bloch:8000/bloc/v2.1/swagger.json
+    image: swaggerapi/swagger-ui
+    ports:
+    - 8080:8080
+    restart: always
+  bloch-docs-20:
+    environment:
+    - API_URL=http://bloch:8000/bloc/v2.0/swagger.json
+    image: swaggerapi/swagger-ui
+    ports:
+    - 8081:8080
+    restart: always
   kafka:
     environment:
-    - KAFKA_LOG_RETENTION_HOURS=2147483647
-    - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
     - KAFKA_ADVERTISED_HOST_NAME=kafka
     - KAFKA_ADVERTISED_PORT=9092
     - KAFKA_DELETE_TOPIC_ENABLE=true
     - KAFKA_LOG_CLEANER_ENABLE=false
+    - KAFKA_LOG_RETENTION_HOURS=2147483647
+    - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
     image: registry-aws.blockapps.net:5000/blockapps-repo/silo-kafka:latest
     links:
     - zookeeper
