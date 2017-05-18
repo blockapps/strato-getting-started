@@ -111,6 +111,8 @@ services:
     - PG_ENV_POSTGRES_DB=cirrus
     - PG_ENV_POSTGRES_HOST=postgres-cirrus
     image: registry-aws.blockapps.net:5000/blockapps-repo/silo-postgrest:latest
+  depends_on:
+    - postgres-cirrus
     ports:
     - 3001:3001
     restart: always
