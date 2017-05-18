@@ -31,7 +31,9 @@ then
     export cirrusurl=http://cirrus:3000
     export stratoHost=nginx
     export ssl=false
-    exec docker-compose -p silo up -d
+    export explorerHost=http://explorer:9000
+    export explorerAdvertise=http://localhost
+    docker-compose -p silo up -d
 else
     echo "Please login to BlockApps Public Registry first:
 1) Register for access to STRATO Developer Edition trial here: http://developers.blockapps.net/trial
