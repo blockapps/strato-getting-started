@@ -29,7 +29,6 @@ if grep -q "${registry}" ~/.docker/config.json
 then
     export genesisBlock=$(< gb.json)
     export cirrusurl=nginx/cirrus
-    export stratourl=nginx/strato-api
     export stratoHost=nginx
     export ssl=false
     export explorerHost=http://explorer:9000
