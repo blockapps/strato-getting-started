@@ -11,6 +11,7 @@ Strato Trials and Getting Started guide
 - STRATO services need the following ports to be available on the machine (refer docker-compose.yml for details)
 ```bash
 :80 (for NGINX)
+:8080 (for API docs)
 :5432 (for Postgresql)
 :10001 (for Bloc API service)
 :6379 (for Redis)

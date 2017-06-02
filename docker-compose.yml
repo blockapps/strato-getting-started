@@ -150,19 +150,12 @@ services:
     ports:
     - 2181:2181
     restart: always
-  bloch-docs-21:
+  blockapps-docs:
     environment:
-    - API_URL=http://bloch:8000/bloc/v2.1/swagger.json
-    image: swaggerapi/swagger-ui
+    - API_URL=/strato-api/eth/v1.2/swagger.json
+    image: registry-aws.blockapps.net:5000/blockapps-repo/silo-blockapps-docs:latest
     ports:
     - 8080:8080
-    restart: always
-  bloch-docs-20:
-    environment:
-    - API_URL=http://bloch:8000/bloc/v2.0/swagger.json
-    image: swaggerapi/swagger-ui
-    ports:
-    - 8081:8080
     restart: always
   kafka:
     environment:
