@@ -43,6 +43,9 @@ chmod +x strato-run.sh
 ```
  
 5) Check if STRATO services are running (using `docker ps`) & view the explorer at http://localhost/
+API docs are available at these endpoints directly:
+strato-api: http://localhost/strato-api/eth/v1.2/docs
+bloc api: http://localhost/bloc/v2.1/docs
 
 6) Refer documentation here to get started with developing a sample app: https://github.com/blockapps/pizza-demo
 
