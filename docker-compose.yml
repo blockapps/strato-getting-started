@@ -136,6 +136,7 @@ services:
     - cirrus
     - postgrest
     - explorer
+    - blockapps-docs
     environment:
     - ssl=${ssl}
     image: registry-aws.blockapps.net:5000/blockapps-repo/silo-nginx:latest
