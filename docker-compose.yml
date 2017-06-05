@@ -138,6 +138,7 @@ services:
     - explorer
     environment:
     - ssl=${ssl}
+    - uiPassword=${uiPassword}
     image: registry-aws.blockapps.net:5000/blockapps-repo/silo-nginx:latest
     ports:
     - 443:443
