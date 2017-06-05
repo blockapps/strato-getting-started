@@ -136,6 +136,7 @@ services:
     - cirrus
     - postgrest
     - explorer
+    - blockapps-docs
     environment:
     - ssl=${ssl}
     - uiPassword=${uiPassword}
