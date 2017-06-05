@@ -49,6 +49,11 @@ chmod +x strato-run.sh
 strato-api: http://localhost/strato-api/eth/v1.2/docs
 bloc api: http://localhost/bloc/v2.1/docs
 ```
+Default credentials for UI web pages:
+```
+username: admin
+password: admin
+```
 
 6) Refer documentation here to get started with developing a sample app: https://github.com/blockapps/pizza-demo
 
