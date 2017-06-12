@@ -4,7 +4,7 @@ services:
     environment:
     - NODE_NAME=${NODE_NAME}
     - NODE_URL=${NODE_URL}
-    image: registry-aws.blockapps.net:5000/blockapps-repo/smd-ui:latest
+    image: registry-aws.blockapps.net:5000/blockapps-repo/silo-smd-ui:latest
     ports:
     - 3002:3002
     restart: always
