@@ -1,11 +1,12 @@
 version: "2.1"
 services:
-  bloc:
+  smd-ui:
     environment:
-    - apiUrlOverride=${apiUrlOverride}
-    - ssl=${ssl}
-    - stratoHost=${stratoHost}
-    image: registry-aws.blockapps.net:5000/blockapps-repo/silo-bloc:latest
+    - NODE_NAME=${NODE_NAME}
+    - NODE_URL=${NODE_URL}
+    image: registry-aws.blockapps.net:5000/blockapps-repo/smd-ui:latest
+    ports:
+    - 3002:3002
     restart: always
   bloch:
     depends_on:
@@ -125,17 +126,16 @@ services:
     image: registry-aws.blockapps.net:5000/blockapps-repo/silo-explorer:latest
     links:
     - strato:strato
-    - bloc:bloc
     ports:
     - 9000:9000
     restart: always
   nginx:
     depends_on:
     - strato
-    - bloc
+    - smd-ui 
+    - bloch
     - cirrus
     - postgrest
-    - explorer
     - blockapps-docs
     environment:
     - ssl=${ssl}
