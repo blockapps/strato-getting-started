@@ -28,6 +28,8 @@ fi
 if grep -q "${registry}" ~/.docker/config.json
 then
     export genesisBlock=$(< gb.json)
+    export NODE_NAME=localhost
+    export NODE_URL=http://localhost/
     export cirrusurl=nginx/cirrus
     export stratoHost=nginx
     export ssl=false
