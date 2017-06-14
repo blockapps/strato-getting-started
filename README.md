@@ -55,7 +55,7 @@ username: admin
 password: admin
 ```
 
-6) Refer documentation here to get started with developing a sample app: https://github.com/blockapps/pizza-demo
+6) Refer documentation here to get started with developing a sample app: <TBD>
 
 7) For more details: http://developers.blockapps.net/dashboard
 
