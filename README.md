@@ -55,11 +55,9 @@ username: admin
 password: admin
 ```
 
-6) Refer documentation here to get started with developing a sample app: <TBD>
+6) Refer documentation here to get started with developing a sample app: **updated demo app link to be announced 6/16/2017**
 
-7) For more details: http://developers.blockapps.net/dashboard
-
-8) Reach out to BlockApps team for more info on support and enterprise licensed subscription: http://blockapps.net/learn-more-blockapps-strato-demo/
+7) Reach out to BlockApps team for more info on support and enterprise licensed subscription: http://blockapps.net/learn-more-blockapps-strato-demo/
 
 *Steps to shutdown a running instance of STRATO Developer Edition on your machine (you will lose state of any  transactions/data created in the blockchain)*
 - Run this command (from within the git cloned `getting-started` folder)
