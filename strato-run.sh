@@ -29,12 +29,13 @@ if grep -q "${registry}" ~/.docker/config.json
 then
     export genesisBlock=$(< gb.json)
     export NODE_NAME=localhost
-    export NODE_URL=http://localhost/
+    export BLOC_URL=http://localhost/bloc/v2.1
+    export BLOC_DOC_URL=http://localhost/docs/?url=/bloc/v2.1/swagger.json
+    export STRATO_URL=http://localhost/strato-api/eth/v1.2
+    export STRATO_DOC_URL=http://localhost/docs/?url=/strato-api/eth/v1.2/swagger.json
     export cirrusurl=nginx/cirrus
     export stratoHost=nginx
     export ssl=false
-    export explorerHost=http://explorer:9000
-    export explorerAdvertise=http://localhost
     docker-compose pull && docker-compose -p silo up -d
 else
     echo "Please login to BlockApps Public Registry first:

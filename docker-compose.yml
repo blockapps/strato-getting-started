@@ -1,9 +1,15 @@
 version: "2.1"
 services:
   smd-ui:
+    depends_on:
+    - strato
+    - bloch
     environment:
     - NODE_NAME=${NODE_NAME}
-    - NODE_URL=${NODE_URL}
+    - BLOC_URL=${BLOC_URL}
+    - BLOC_DOC_URL=${BLOC_DOC_URL}
+    - STRATO_URL=${STRATO_URL}
+    - STRATO_DOC_URL=${STRATO_DOC_URL}
     image: registry-aws.blockapps.net:5000/blockapps-repo/silo-smd-ui:latest
     ports:
     - 3002:3002
@@ -13,13 +19,13 @@ services:
     - strato
     - postgres
     environment:
-    - stratourl=${stratourl}
-    - cirrusurl=${cirrusurl}
     - pghost=${pghost}
     - pgpasswd=${pgpasswd}
     - pguser=${pguser}
     - ssl=${ssl}
     - stratoHost=${stratoHost}
+    - stratourl=${stratourl}
+    - cirrusurl=${cirrusurl}
     image: registry-aws.blockapps.net:5000/blockapps-repo/silo-bloch:latest
     ports:
     - 10001:8000
@@ -41,14 +47,14 @@ services:
     restart: always
   cirrus:
     environment:
-    - postgres_host=${cirrus_pg_host:-postgres}
-    - postgres_password=${cirrus_pg_password}
-    - postgres_port=${cirrus_pg_port:-5432}
     - postgres_user=${cirrus_pg_user:-postgres}
     - stateDiffTopic=${stateDiffTopic}
     - stratourl=${stratourl}
     - zookeeper_conn=${cirrus_zookeeper_conn}
     - postgres_db=${cirrus_pg_db:-cirrus}
+    - postgres_host=${cirrus_pg_host:-postgres}
+    - postgres_password=${cirrus_pg_password}
+    - postgres_port=${cirrus_pg_port:-5432}
     image: registry-aws.blockapps.net:5000/blockapps-repo/silo-cirrus:latest
     links:
     - strato:strato
@@ -61,28 +67,28 @@ services:
     - postgres
     - redis
     environment:
-    - lazyBlocks=${lazyBlocks}
-    - statsEnable=${statsEnable}
-    - statsPort=${statsPort}
+    - addBootnodes=${addBootnodes}
     - backupblocks=${backupblocks}
     - blockTime=${blockTime}
-    - statsFlush=${statsFlush}
-    - minBlockDifficulty=${minBlockDifficulty}
-    - miningThreads=${miningThreads}
-    - genesisBlock=${genesisBlock}
-    - useSyncMode=${useSyncMode}
-    - addBootnodes=${addBootnodes}
-    - explorerHost=${explorerHost}
-    - explorerAdvertise=${explorerAdvertise}
-    - genesis=${genesis}
-    - miningAlgorithm=${miningAlgorithm}
-    - networkID=${networkID}
-    - redisBDBNumber=${redisBDBNumber}
-    - statsHost=${statsHost}
     - bootnode=${bootnode}
     - debugFail=${debugFail}
+    - explorerAdvertise=${explorerAdvertise}
+    - explorerHost=${explorerHost}
+    - genesis=${genesis}
+    - genesisBlock=${genesisBlock}
+    - lazyBlocks=${lazyBlocks}
+    - minBlockDifficulty=${minBlockDifficulty}
+    - miningAlgorithm=${miningAlgorithm}
+    - miningThreads=${miningThreads}
+    - networkID=${networkID}
+    - redisBDBNumber=${redisBDBNumber}
+    - statsEnable=${statsEnable}
+    - statsFlush=${statsFlush}
+    - statsHost=${statsHost}
+    - statsPort=${statsPort}
     - statsPrefix=${statsPrefix}
     - statsSuffix=${statsSuffix}
+    - useSyncMode=${useSyncMode}
     image: registry-aws.blockapps.net:5000/blockapps-repo/silo-strato:latest
     links:
     - zookeeper
@@ -105,12 +111,11 @@ services:
     - 5434:5432
   postgrest:
     environment:
-    - PG_ENV_POSTGRES_PASSWORD=
-    - POSTGREST_LISTEN_PORT=3001
     - PG_ENV_POSTGRES_USER=postgres
     - PG_PORT_5432_TCP_PORT=5432
     - PG_ENV_POSTGRES_DB=cirrus
     - PG_ENV_POSTGRES_HOST=postgres-cirrus
+    - PG_ENV_POSTGRES_PASSWORD=
     image: registry-aws.blockapps.net:5000/blockapps-repo/silo-postgrest:latest
     depends_on:
     - postgres-cirrus
@@ -132,11 +137,10 @@ services:
   nginx:
     depends_on:
     - strato
-    - smd-ui 
+    - smd-ui
     - bloch
     - cirrus
     - postgrest
-    - blockapps-docs
     environment:
     - ssl=${ssl}
     - uiPassword=${uiPassword}
@@ -161,12 +165,12 @@ services:
     restart: always
   kafka:
     environment:
-    - KAFKA_ADVERTISED_HOST_NAME=kafka
     - KAFKA_ADVERTISED_PORT=9092
     - KAFKA_DELETE_TOPIC_ENABLE=true
     - KAFKA_LOG_CLEANER_ENABLE=false
     - KAFKA_LOG_RETENTION_HOURS=2147483647
     - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+    - KAFKA_ADVERTISED_HOST_NAME=kafka
     image: registry-aws.blockapps.net:5000/blockapps-repo/silo-kafka:latest
     links:
     - zookeeper
