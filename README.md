@@ -42,9 +42,11 @@ chmod +x strato-run.sh
 ./strato-run.sh
 ```
  
-5) Check if STRATO services are running (using `docker ps`) & view the explorer at http://localhost/
+5) Check if STRATO services are running (using `docker ps`) & view the Strato Management Dashboard at http://localhost/
 
-- API docs are available at these endpoints directly:
+- Explore the Bloc and STRATO API docs via the top right link on the Dashboard 
+
+API Docs can also be accessed at these endpoints directly:
 ```
 strato-api: http://localhost/strato-api/eth/v1.2/docs
 bloc api: http://localhost/bloc/v2.1/docs
@@ -55,7 +57,7 @@ username: admin
 password: admin
 ```
 
-6) Refer documentation here to get started with developing a sample app: **updated demo app link to be announced 6/16/2017**
+6) Refer documentation here to get started with developing a sample app: https://github.com/blockapps/blockapps-ba
 
 7) Reach out to BlockApps team for more info on support and enterprise licensed subscription: http://blockapps.net/learn-more-blockapps-strato-demo/
 
