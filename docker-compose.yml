@@ -36,15 +36,6 @@ services:
     ports:
     - 6379:6379
     restart: always
-  strato-sync:
-    environment:
-    - ENV=${env}
-    - PORT=9001
-    image: registry-aws.blockapps.net:5000/blockapps-repo/silo-strato-sync:latest
-    ports:
-    - 9001:9001
-    - 3000:3000
-    restart: always
   cirrus:
     environment:
     - postgres_user=${cirrus_pg_user:-postgres}
