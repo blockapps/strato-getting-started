@@ -44,6 +44,8 @@ chmod +x strato-run.sh
  
 5) Check if STRATO services are running (using `docker ps`) & view the Strato Management Dashboard at http://localhost/
 
+![Alt text](SMD.png?raw=true "STRATO Management Dashboard")
+
 - Explore the Bloc and STRATO API docs via the top right link on the Dashboard 
 
 API Docs can also be accessed at these endpoints directly:
