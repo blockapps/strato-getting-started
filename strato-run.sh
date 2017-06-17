@@ -4,6 +4,33 @@ set -e
 
 registry="registry-aws.blockapps.net:5000"
 
+function wipe {
+    echo "Stopping STRATO containers"
+    docker-compose -p silo kill
+    docker-compose -p silo down -v
+}
+
+function stop {
+    echo "Stopping STRATO containers"
+    docker-compose -p silo kill
+    docker-compose -p silo down
+}
+
+case $1 in
+ "-stop")
+     echo "Stopping STRATO containers"
+     stop
+     exit 0
+     ;;
+ "-wipe")
+     echo "Stopping STRATO containers and wiping out volumes"
+     wipe
+     exit 0
+     ;;
+   *)
+     ;;
+ esac
+ 
 echo "
     ____  __           __   ___
    / __ )/ /___  _____/ /__/   |  ____  ____  _____
