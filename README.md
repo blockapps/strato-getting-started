@@ -63,14 +63,21 @@ password: admin
 
 7) Reach out to BlockApps team for more info on support and enterprise licensed subscription: http://blockapps.net/learn-more-blockapps-strato-demo/
 
-*Steps to shutdown a running instance of STRATO Developer Edition on your machine (you will lose state of any  transactions/data created in the blockchain)*
-- Run this command (from within the git cloned `getting-started` folder)
+Stopping STRATO
+---------------
+*To stop a running instance of STRATO Developer Edition on your machine, run this command (from within the git cloned `getting-started` folder)*
 ```bash
-docker-compose -p silo down -v 
+./strato-run.sh -stop 
+```
+
+*To stop and wipe out a running instance of STRATO Developer Edition on your machine, run this command (from within the git cloned `getting-started` folder)(you will lose state of any  transactions/data created in the blockchain)*
+```bash
+./strato-run.sh -wipe 
 ```
 - To force kill all the running STRATO services (docker containers) run this command:
 ```bash
 docker-compose -p silo kill
+docker-compose -p silo down -v
 ```
 
 Debug view
