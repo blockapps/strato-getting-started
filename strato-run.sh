@@ -1,19 +1,24 @@
 #!/usr/bin/env bash
 
+# Optional arguments:
+# `-stop` - stop STRATO containers
+# `-wipe` - stop STRATO containers and wipe out volumes
+# `-stable` - run stable STRATO version (latest is by default)
+
 set -e
 
 registry="registry-aws.blockapps.net:5000"
 
 function wipe {
     echo "Stopping STRATO containers"
-    docker-compose -p silo kill
-    docker-compose -p silo down -v
+    docker-compose -f docker-compose.latest.yml -p strato kill 2> /dev/null || docker-compose -f docker-compose.release.yml -p strato kill
+    docker-compose -f docker-compose.latest.yml -p strato down -v 2> /dev/null || docker-compose -f docker-compose.release.yml -p strato down -v
 }
 
 function stop {
     echo "Stopping STRATO containers"
-    docker-compose -p silo kill
-    docker-compose -p silo down
+    docker-compose -f docker-compose.latest.yml -p strato kill 2> /dev/null || docker-compose -f docker-compose.release.yml -p strato kill
+    docker-compose -f docker-compose.latest.yml strato down 2> /dev/null || docker-compose -f docker-compose.release.yml strato down
 }
 
 case $1 in
@@ -63,7 +68,14 @@ then
     export cirrusurl=nginx/cirrus
     export stratoHost=nginx
     export ssl=false
-    docker-compose pull && docker-compose -p silo up -d
+    if [ $1 == "-stable" ]
+    then
+      curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | egrep -o '/blockapps/strato-getting-started/releases/download/build-[0-9]*/docker-compose.release.yml' | wget --base=http://github.com/ -i - -O docker-compose.release.yml
+      docker-compose -f docker-compose.release.yml -p strato up -d
+    else
+      curl -L https://github.com/blockapps/strato-getting-started/releases/download/build-latest/docker-compose.latest.yml -O
+      docker-compose -f docker-compose.latest.yml pull && docker-compose -f docker-compose.latest.yml -p strato up -d
+    fi
 else
     echo "Please login to BlockApps Public Registry first:
 1) Register for access to STRATO Developer Edition trial here: http://developers.blockapps.net/trial
