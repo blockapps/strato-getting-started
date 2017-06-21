@@ -10,16 +10,16 @@ Strato Trials and Getting Started guide
 - Install docker-compose on your machine: https://docs.docker.com/compose/install/
 - STRATO services need the following ports to be available on the machine (refer docker-compose.yml for details)
 ```bash
-:80 (for NGINX)
-:8080 (for API docs)
-:5432 (for Postgresql)
-:10001 (for Bloc API service)
-:6379 (for Redis)
-:30303 and :33000 (for Strato)
-:3001 (for Postgrest)
-:9000 (for Explorer)
+:80, :443 (for Nginx)
 :2181 (for Zookeeper)
+:3001 (for Postgrest)
+:3002 (for SMD UI)
+:5432, :5434 (for Postgresql)
+:6379 (for Redis)
+:8080 (for API docs)
 :9092 (for Kafka)
+:10001 (for Bloc API service)
+:30303, :30303 UDP, :33000 (for Strato)
 ```
 
 *Steps to setup and run STRATO Developer Edition using Docker on your machine*
@@ -37,11 +37,15 @@ docker login -u <USER> -p <PASSWORD> <REGISTRY>
 ```bash
 chmod +x strato-run.sh 
 ```
-- Then run the script: 
+- Then run the script (runs `latest` STRATO version by default):
 ```bash
 ./strato-run.sh
 ```
- 
+
+or to run `stable` version:
+```bash
+./strato-run.sh -stable
+```
 5) Check if STRATO services are running (using `docker ps`) & view the Strato Management Dashboard at http://localhost/
 
 ![Alt text](SMD.png?raw=true "STRATO Management Dashboard")
@@ -73,11 +77,6 @@ Stopping STRATO
 *To stop and wipe out a running instance of STRATO Developer Edition on your machine, run this command (from within the git cloned `getting-started` folder)(you will lose state of any  transactions/data created in the blockchain)*
 ```bash
 ./strato-run.sh -wipe 
-```
-- To force kill all the running STRATO services (docker containers) run this command:
-```bash
-docker-compose -p silo kill
-docker-compose -p silo down -v
 ```
 
 Debug view
