@@ -18,7 +18,7 @@ function wipe {
 function stop {
     echo "Stopping STRATO containers"
     docker-compose -f docker-compose.latest.yml -p strato kill 2> /dev/null || docker-compose -f docker-compose.release.yml -p strato kill
-    docker-compose -f docker-compose.latest.yml strato down 2> /dev/null || docker-compose -f docker-compose.release.yml strato down
+    docker-compose -f docker-compose.latest.yml -p strato down 2> /dev/null || docker-compose -f docker-compose.release.yml -p strato down
 }
 
 case $1 in
