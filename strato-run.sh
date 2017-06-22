@@ -68,7 +68,7 @@ then
     export cirrusurl=nginx/cirrus
     export stratoHost=nginx
     export ssl=false
-    if [ $1 == "-stable" ]
+    if [ "$1" = "-stable" ]
     then
       curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | egrep -o '/blockapps/strato-getting-started/releases/download/build-[0-9]*/docker-compose.release.yml' | wget --base=http://github.com/ -i - -O docker-compose.release.yml
       docker-compose -f docker-compose.release.yml -p strato up -d
