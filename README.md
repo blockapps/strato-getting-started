@@ -5,6 +5,7 @@ Strato Trials and Getting Started guide
 [![BlockApps logo](http://blockapps.net/img/logo_cropped.png)](http://blockapps.net)
 
 *Pre-requisites for the setup*
+- *Microsoft Windows users see [here](stratodev-instance.md)*
 - This Developer Trial Edition only works on Linux/MacOSX with Docker installed.
 - Install Docker on your machine: https://www.docker.com/community-edition
 - Install docker-compose on your machine: https://docs.docker.com/compose/install/
