@@ -59,7 +59,6 @@ fi
 
 if grep -q "${registry}" ~/.docker/config.json
 then
-    export genesisBlock=$(< gb.json)
     export NODE_NAME=localhost
     export BLOC_URL=http://localhost/bloc/v2.1
     export BLOC_DOC_URL=http://localhost/docs/?url=/bloc/v2.1/swagger.json

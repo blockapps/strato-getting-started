@@ -4,8 +4,8 @@ Strato Trials and Getting Started guide
 -----------------
 [![BlockApps logo](http://blockapps.net/img/logo_cropped.png)](http://blockapps.net)
 
-*Pre-requisites for the setup*
-- *Microsoft Windows users see [here](stratodev-instance.md)*
+#### Pre-requisites for the setup
+- *Microsoft Windows users see [here](windows-README.md)*
 - This Developer Trial Edition only works on Linux/MacOSX with Docker installed.
 - Install Docker on your machine: https://www.docker.com/community-edition
 - Install docker-compose on your machine: https://docs.docker.com/compose/install/
@@ -29,14 +29,14 @@ Strato Trials and Getting Started guide
 
 2) Clone this repo using git clone. And `chdir` or `cd` into that folder.
 
-3) Configure docker registry login using the credentials [USER, PASSWORD, REGISTRY] you received via email after your registration for trial: 
+3) Configure docker registry login using the credentials [USER, PASSWORD, REGISTRY] you received via email after your registration for trial:
 ```bash
-docker login -u <USER> -p <PASSWORD> <REGISTRY> 
+docker login -u <USER> -p <PASSWORD> <REGISTRY>
 ```
 4) Launch STRATO services:
-- Run: 
+- Run:
 ```bash
-chmod +x strato-run.sh 
+chmod +x strato-run.sh
 ```
 - Then run the script (runs `latest` STRATO version by default):
 ```bash
@@ -51,7 +51,7 @@ or to run `stable` version:
 
 ![Alt text](SMD.png?raw=true "STRATO Management Dashboard")
 
-- Explore the Bloc and STRATO API docs via the top right link on the Dashboard 
+- Explore the Bloc and STRATO API docs via the top right link on the Dashboard
 
 API Docs can also be accessed at these endpoints directly:
 ```
@@ -72,18 +72,18 @@ Stopping STRATO
 ---------------
 *To stop a running instance of STRATO Developer Edition on your machine, run this command (from within the git cloned `getting-started` folder)*
 ```bash
-./strato-run.sh -stop 
+./strato-run.sh -stop
 ```
 
 *To stop and wipe out a running instance of STRATO Developer Edition on your machine, run this command (from within the git cloned `getting-started` folder)(you will lose state of any  transactions/data created in the blockchain)*
 ```bash
-./strato-run.sh -wipe 
+./strato-run.sh -wipe
 ```
 
 Debug view
 ----------
 
-First do 
+First do
 ```bash
 sudo apt-get install -y tmux tmuxinator
 ```
