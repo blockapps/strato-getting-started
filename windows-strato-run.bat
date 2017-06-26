@@ -12,4 +12,4 @@ set STRATO_DOC_URL=http://localhost/docs/?url=/strato-api/eth/v1.2/swagger.json
 set cirrusurl=nginx/cirrus
 set stratoHost=nginx
 set ssl=false
-docker-compose -f docker-compose.latest.yml up -d
+docker-compose -f docker-compose.latest.yml -p strato up -d
