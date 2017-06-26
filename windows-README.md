@@ -7,10 +7,9 @@
 
 ### Run steps:
 
-1. Clone STRATO Getting Started repo or download with .zip file
-2. Download **docker-compose.<version>.yml** from one of STRATO Getting Started releases (https://github.com/blockapps/strato-getting-started/releases)
-3. Save it to STRATO Getting Started folder as **docker-compose.yml**
-4. Run CMD (Command Prompt) and execute .\windows-strato-run.bat from the Strato Getting Started folder.
+1. Clone STRATO Getting Started repo or download repo .zip file and unpack.
+2. Download [docker-compose.latest.yml](https://github.com/blockapps/strato-getting-started/releases/download/build-latest/docker-compose.latest.yml) to the same folder (which should also contain **windows-strato-run.bat** file)
+3. Run CMD (Command Prompt), navigate to the folder and execute .\windows-strato-run.bat
 
 Check if no errors occured and `docker ps` shows the docker containers up and running.
 
