@@ -1,6 +1,4 @@
-# strato-getting-started
-
-# Strato Trials and Getting Started guide
+# STRATO Developer Edition - Getting Started guide
 
 [![BlockApps logo](http://blockapps.net/img/logo_cropped.png)](http://blockapps.net)
 
