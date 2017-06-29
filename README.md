@@ -4,9 +4,10 @@
 
 [![BlockApps logo](http://blockapps.net/img/logo_cropped.png)](http://blockapps.net)
 
+### *Microsoft Windows users see [here](windows-README.md)*
+
+The rest of this README is for setting up STRATO Developer Edition on Linux/MacOSX machines with Docker installed.
 ### Pre-requisites for the setup
-- *Microsoft Windows users see [here](windows-README.md)*
-- This Developer Trial Edition only works on Linux/MacOSX with Docker installed.
 - Install Docker on your machine: https://www.docker.com/community-edition
 - Install docker-compose on your machine: https://docs.docker.com/compose/install/
 - STRATO services need the following ports to be available on the machine (refer docker-compose.yml for details)
