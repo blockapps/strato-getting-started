@@ -1,6 +1,6 @@
-# STRATO Developer Edition - Getting Started guide
-
 [![BlockApps logo](http://blockapps.net/img/logo_cropped.png)](http://blockapps.net)
+
+# STRATO Developer Edition - Getting Started guide
 
 ### *Microsoft Windows users see [here](windows-README.md)*
 
