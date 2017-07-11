@@ -59,11 +59,11 @@ fi
 
 if grep -q "${registry}" ~/.docker/config.json
 then
-    export NODE_NAME=localhost
-    export BLOC_URL=http://localhost/bloc/v2.1
-    export BLOC_DOC_URL=http://localhost/docs/?url=/bloc/v2.1/swagger.json
-    export STRATO_URL=http://localhost/strato-api/eth/v1.2
-    export STRATO_DOC_URL=http://localhost/docs/?url=/strato-api/eth/v1.2/swagger.json
+    export NODE_NAME=${NODE_NAME:-localhost}
+    export BLOC_URL=${BLOC_URL:-http://localhost/bloc/v2.1}
+    export BLOC_DOC_URL=${BLOC_DOC_URL:-http://localhost/docs/?url=/bloc/v2.1/swagger.json}
+    export STRATO_URL=${STRATO_URL:-http://localhost/strato-api/eth/v1.2}
+    export STRATO_DOC_URL=${STRATO_DOC_URL:-http://localhost/docs/?url=/strato-api/eth/v1.2/swagger.json}
     export cirrusurl=nginx/cirrus
     export stratoHost=nginx
     export ssl=false
