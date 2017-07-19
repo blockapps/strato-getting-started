@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 # Optional arguments:
-# `-stop` - stop STRATO containers
-# `-wipe` - stop STRATO containers and wipe out volumes
-# `-stable` - run stable STRATO version (latest is by default)
+# `--stop` - stop STRATO containers
+# `--wipe` - stop STRATO containers and wipe out volumes
+# `--stable` - run stable STRATO version (latest is by default)
 
 set -e
 
@@ -21,21 +21,35 @@ function stop {
     docker-compose -f docker-compose.latest.yml -p strato down 2> /dev/null || docker-compose -f docker-compose.release.yml -p strato down
 }
 
-case $1 in
- "-stop")
-     echo "Stopping STRATO containers"
-     stop
-     exit 0
-     ;;
- "-wipe")
-     echo "Stopping STRATO containers and wiping out volumes"
-     wipe
-     exit 0
-     ;;
-   *)
-     ;;
- esac
- 
+mode=${STRATO_GS_MODE:="0"}
+stable=false
+
+while [ ${#} -gt 0 ]; do
+  case "${1}" in
+  --stop|-stop)
+    echo "Stopping STRATO containers"
+    stop
+    exit 0
+    ;;
+  --wipe|-wipe)
+    echo "Stopping STRATO containers and wiping out volumes"
+    wipe
+    exit 0
+    ;;
+  --stable|-stable)
+    echo "Deploying the stable version"
+    stable=true
+    ;;
+  -m)
+    echo "Mode is set to $2"
+    mode="$2"
+    shift
+    ;;
+  esac
+
+  shift 1
+done
+
 echo "
     ____  __           __   ___
    / __ )/ /___  _____/ /__/   |  ____  ____  _____
@@ -67,7 +81,9 @@ then
     export cirrusurl=nginx/cirrus
     export stratoHost=nginx
     export ssl=false
-    if [ "$1" = "-stable" ]
+    export STRATO_GS_MODE=${mode}
+    if [ "$mode" != "1" ] ; then curl http://api.mixpanel.com/track/?data=ewogICAgImV2ZW50IjogInN0cmF0b19nc19pbml0IiwKICAgICJwcm9wZXJ0aWVzIjogewogICAgICAgICJ0b2tlbiI6ICJkYWYxNzFlOTAzMGFiYjNlMzAyZGY5ZDc4YjZiMWFhMCIKICAgIH0KfQ==&ip=1 ;fi
+    if [ "$stable" = true ]
     then
       curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | egrep -o '/blockapps/strato-getting-started/releases/download/build-[0-9]*/docker-compose.release.yml' | wget --base=http://github.com/ -i - -O docker-compose.release.yml
       docker-compose -f docker-compose.release.yml -p strato up -d
