@@ -5,11 +5,11 @@
 ### Pre-requisites
 
 **Linux/MacOSX:**
-- Install Docker on your machine: https://www.docker.com/community-edition
-- Install Docker Compose on your machine: https://docs.docker.com/compose/install/
+- [Install Docker](https://www.docker.com/community-edition) on your machine
+- [Install Docker Compose](https://docs.docker.com/compose/install/) on your machine
 
 **Windows:**
-- Install Docker Toolbox ("Docker for Windows" is not currently supported): https://www.docker.com/products/docker-toolbox
+- [Install Docker Toolbox](https://www.docker.com/products/docker-toolbox) ("Docker for Windows" is not currently supported)
 
 STRATO services need the following ports to be available on the machine (refer docker-compose.yml for details):
 
@@ -30,7 +30,7 @@ STRATO services need the following ports to be available on the machine (refer d
 
 **Steps to setup and run STRATO Developer Edition using Docker on your machine:**
 
-1. Register for access to STRATO Developer Edition trial here: http://developers.blockapps.net/trial
+1. Register for access to STRATO Developer Edition trial here: [http://developers.blockapps.net/trial](http://developers.blockapps.net/trial)
 2. Clone [STRATO Getting Started repo](https://github.com/blockapps/strato-getting-started) using ```git clone``` or download and extract .zip archive. And `chdir` or `cd` into that folder.
 3. Configure docker registry login using the credentials [USER, PASSWORD, REGISTRY] you received via email after your registration for trial:
     ```bash
