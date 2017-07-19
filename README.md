@@ -5,10 +5,12 @@
 ### Pre-requisites
 
 **Linux/MacOSX:**
+
 - [Install Docker](https://www.docker.com/community-edition) on your machine
 - [Install Docker Compose](https://docs.docker.com/compose/install/) on your machine
 
 **Windows:**
+
 - [Install Docker Toolbox](https://www.docker.com/products/docker-toolbox) ("Docker for Windows" is not currently supported)
 
 STRATO services need the following ports to be available on the machine (refer docker-compose.yml for details):
