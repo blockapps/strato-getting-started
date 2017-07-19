@@ -51,9 +51,9 @@ STRATO services need the following ports to be available on the machine (refer d
         ```
 5. Check if STRATO services are running (using `docker ps`) & view the Strato Management Dashboard at http://localhost/
 
-    >Windows users should always use Docker virtual machine IP address instead of `localhost`, in most cases: `192.168.99.100`
+    >Windows users should always use Docker Machine IP address instead of `localhost`, in most cases: `192.168.99.100`
 
-    - Explore the Bloc and STRATO API docs via the top right link on the Dashboard (http://localhost)
+6. Explore the Bloc and STRATO API docs via the top right link on the Dashboard (http://localhost)
         ![STRATO Management Dashboard](SMD.png?raw=true "STRATO Management Dashboard")
 
     - Default credentials for UI web pages:
