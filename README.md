@@ -19,7 +19,6 @@ STRATO services need the following ports to be available on the machine (refer d
 :80 (for Nginx)
 :2181 (for Zookeeper)
 :3001 (for Postgrest)
-:3002 (for SMD UI)
 :5432, :5434 (for Postgresql)
 :6379 (for Redis)
 :8080 (for API docs)
@@ -106,6 +105,10 @@ then you can get an overview of all processes using:
 ```bash
 tmuxinator start strato
 ```
+
+For tmux usage refer to [tmux guide](http://man.openbsd.org/OpenBSD-current/man1/tmux.1).
+
+Consider using the tmux mouse mode plugins for better experience.
 
 ## License Agreement
 
