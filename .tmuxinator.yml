@@ -1,7 +1,7 @@
 # ~/.tmuxinator/strato-dashboard.yml
 
 name: strato
-root: . 
+root: .
 
 # Optional tmux socket
 # socket_name: foo
@@ -13,10 +13,10 @@ pre: sudo apt install -y sysstat iftop htop jq ; sudo sh -c "curl -s https://raw
 # pre_window: rbenv shell 2.0.0-p247
 
 # Pass command line options to tmux. Useful for specifying a different tmux.conf.
-#tmux_options:  
+#tmux_options:
 
 # Change the command to call tmux.  This can be used by derivatives/wrappers like byobu.
-tmux_command: tmux 
+tmux_command: tmux
 
 # Specifies (by name or index) which window will be selected on project startup. If not set, the first window is used.
 #startup_window: backbone
@@ -42,7 +42,7 @@ windows:
         layout: even-vertical
         panes:
             - sequencer:
-                - while true; do docker exec -it strato_strato_1 tail -f -n 1000 /var/lib/strato/logs/strato-sequencer; sleep 2; done 
+                - while true; do docker exec -it strato_strato_1 tail -f -n 1000 /var/lib/strato/logs/strato-sequencer; sleep 2; done
             - vm:
                 - while true; do docker exec -it strato_strato_1 tail -f -n 1000 /var/lib/strato/logs/ethereum-vm; sleep 2; done
             - adit:
@@ -84,7 +84,7 @@ windows:
             - strato-api:
                 - while true; do docker logs -ft --tail 1000 strato_strato_1; sleep 2; done
             - bloc:
-                - while true; do docker logs -ft --tail 1000 strato_bloc_1; sleep 2; done
+                - while true; do docker logs -ft --tail 1000 strato_bloch_1; sleep 2; done
             - cirrus:
                 - while true; do docker logs -ft --tail 1000 strato_cirrus_1; sleep 2; done
             - postgrest:
