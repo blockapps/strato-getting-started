@@ -2,6 +2,8 @@
 
 # STRATO Developer Edition - Getting Started guide
 
+To use this guide you will need to have signed up for our Developer Edition Trial, if you have not already done so sign up here: [http://developers.blockapps.net/trial](http://developers.blockapps.net/trial)
+
 ### Pre-requisites
 
 **Linux/MacOSX:**
@@ -13,31 +15,18 @@
 
 - [Install Docker Toolbox](https://www.docker.com/products/docker-toolbox) ("Docker for Windows" is not currently supported)
 
-STRATO services need the following ports to be available on the machine (refer docker-compose.yml for details):
-
-```bash
-:80 (for Nginx)
-:2181 (for Zookeeper)
-:3001 (for Postgrest)
-:5432, :5434 (for Postgresql)
-:6379 (for Redis)
-:8080 (for API docs)
-:9092 (for Kafka)
-:10001 (for Bloc API service)
-:30303, :30303 UDP, :33000 (for Strato)
-```
+*[The list of the ports](#ports-used) required to be available on the machine*
 
 ### Setup
 
 **Steps to setup and run STRATO Developer Edition using Docker on your machine:**
 
-1. Register for access to STRATO Developer Edition trial here: [http://developers.blockapps.net/trial](http://developers.blockapps.net/trial)
-2. Clone [STRATO Getting Started repo](https://github.com/blockapps/strato-getting-started) using ```git clone``` or download and extract .zip archive. And `chdir` or `cd` into that folder.
-3. Configure docker registry login using the credentials [USER, PASSWORD, REGISTRY] you received via email after your registration for trial:
+1. Clone [STRATO Getting Started repo](https://github.com/blockapps/strato-getting-started) using ```git clone``` or download and extract .zip archive. And `chdir` or `cd` into that folder.
+2. Configure docker registry login using the credentials [USER, PASSWORD, REGISTRY] you received via email after your registration for trial:
     ```bash
     docker login -u <USER> -p <PASSWORD> <REGISTRY>
     ```
-4. Launch STRATO services:
+3. Launch STRATO services:
     - Run:
         ```bash
         chmod +x strato-run.sh
@@ -50,11 +39,11 @@ STRATO services need the following ports to be available on the machine (refer d
         ```bash
         ./strato-run.sh --stable
         ```
-5. Check if STRATO services are running (using `docker ps`) & view the Strato Management Dashboard at http://localhost/
+4. Check if STRATO services are running (using `docker ps`) & view the Strato Management Dashboard at http://localhost/
 
     >Windows users should always use Docker Machine IP address instead of `localhost`, in most cases: `192.168.99.100`
 
-6. Explore the Bloc and STRATO API docs via the top right link on the Dashboard (http://localhost)
+5. Explore the Bloc and STRATO API docs via the top right link on the Dashboard (http://localhost)
         ![STRATO Management Dashboard](SMD.png?raw=true "STRATO Management Dashboard")
 
     - Default credentials for UI web pages:
@@ -92,6 +81,22 @@ http://stratodev.blockapps.net/
 >User (for Web and API Docs): *admin*
 
 >Password: *W3b@dm!n*
+
+### Ports used
+
+STRATO services need the following ports to be available on the machine (refer docker-compose.yml for details):
+
+```
+:80 (for Nginx)
+:2181 (for Zookeeper)
+:3001 (for Postgrest)
+:5432, :5434 (for Postgresql)
+:6379 (for Redis)
+:8080 (for API docs)
+:9092 (for Kafka)
+:10001 (for Bloc API service)
+:30303, :30303 UDP, :33000 (for Strato)
+```
 
 ### Debug view
 
