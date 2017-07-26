@@ -2,6 +2,8 @@
 
 # STRATO Developer Edition - Getting Started guide
 
+### Sign-up for trial
+
 To use this guide you will need to have signed up for our Developer Edition Trial, if you have not already done so sign up here: [http://developers.blockapps.net/trial](http://developers.blockapps.net/trial)
 
 ### Pre-requisites
