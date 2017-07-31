@@ -78,6 +78,7 @@ then
     export BLOC_DOC_URL=${BLOC_DOC_URL:-http://localhost/docs/?url=/bloc/v2.1/swagger.json}
     export STRATO_URL=${STRATO_URL:-http://localhost/strato-api/eth/v1.2}
     export STRATO_DOC_URL=${STRATO_DOC_URL:-http://localhost/docs/?url=/strato-api/eth/v1.2/swagger.json}
+    export CIRRUS_URL=${CIRRUS_URL:-http://localhost/cirrus/search}
     export cirrusurl=nginx/cirrus
     export stratoHost=nginx
     export ssl=false
