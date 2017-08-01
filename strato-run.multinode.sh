@@ -3,7 +3,6 @@
 # Optional arguments:
 # `--stop` - stop STRATO containers
 # `--wipe` - stop STRATO containers and wipe out volumes
-# `--stable` - run stable STRATO version (latest is by default)
 
 set -e
 
@@ -11,14 +10,14 @@ registry="registry-aws.blockapps.net:5000"
 
 function wipe {
     echo "Stopping STRATO containers"
-    docker-compose -f docker-compose.latest.yml -p strato kill 2> /dev/null || docker-compose -f docker-compose.release.yml -p strato kill
-    docker-compose -f docker-compose.latest.yml -p strato down -v 2> /dev/null || docker-compose -f docker-compose.release.yml -p strato down -v
+    docker-compose -f docker-compose.release.multinode.yml -p strato kill
+    docker-compose -f docker-compose.release.multinode.yml -p strato down -v
 }
 
 function stop {
     echo "Stopping STRATO containers"
-    docker-compose -f docker-compose.latest.yml -p strato kill 2> /dev/null || docker-compose -f docker-compose.release.yml -p strato kill
-    docker-compose -f docker-compose.latest.yml -p strato down 2> /dev/null || docker-compose -f docker-compose.release.yml -p strato down
+    docker-compose -f docker-compose.release.multinode.yml -p strato kill
+    docker-compose -f docker-compose.release.multinode.yml -p strato down
 }
 
 mode=${STRATO_GS_MODE:="0"}
@@ -125,8 +124,9 @@ then
     # enable MixPanel metrics
     if [ "$mode" != "1" ] ; then curl http://api.mixpanel.com/track/?data=ewogICAgImV2ZW50IjogInN0cmF0b19nc19pbml0IiwKICAgICJwcm9wZXJ0aWVzIjogewogICAgICAgICJ0b2tlbiI6ICJkYWYxNzFlOTAzMGFiYjNlMzAyZGY5ZDc4YjZiMWFhMCIKICAgIH0KfQ==&ip=1 ;fi
 
-    curl -L https://github.com/blockapps/strato-getting-started/releases/download/build-latest/docker-compose.latest.yml -O
-    docker-compose -f docker-compose.release.yml -p strato up -d
+    # This docker compose file has been created by manually copying the desired
+    # release version directly from the _releases_ tab on the GitHub page.
+    docker-compose -f docker-compose.release.multinode.yml -p strato up -d
 else
     echo "Please login to BlockApps Public Registry first:
 1) Register for access to STRATO Developer Edition trial here: http://developers.blockapps.net/trial
