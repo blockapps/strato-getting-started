@@ -114,7 +114,7 @@ then
     # multinode peer configuration
     if [ -e "gb.json" ]
     then
-      export genesisBlock=$(< gb.json)
+      export genesisBlock=$(< gb.multinode.json)
       echo "--------------------------------"
       echo " Genesis Block"
       echo "--------------------------------"
