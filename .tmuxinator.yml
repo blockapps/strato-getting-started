@@ -3,55 +3,59 @@
 name: strato
 root: .
 
+# Optional tmux socket
+# socket_name: foo
+
 # Runs before everything. Use it to start daemons etc.
 pre: sudo apt install -y sysstat iftop htop jq ; sudo sh -c "curl -s https://raw.githubusercontent.com/holman/spark/master/spark -o /usr/local/bin/spark && chmod +x /usr/local/bin/spark"
 
+# Runs in each window and pane before window/pane specific commands. Useful for setting up interpreter versions.
+# pre_window: rbenv shell 2.0.0-p247
+
+# Pass command line options to tmux. Useful for specifying a different tmux.conf.
+#tmux_options:
+
 # Change the command to call tmux.  This can be used by derivatives/wrappers like byobu.
 tmux_command: tmux
+
+# Specifies (by name or index) which window will be selected on project startup. If not set, the first window is used.
+#startup_window: backbone
+
+# Controls whether the tmux session should be attached to automatically. Defaults to true.
+#attach: false
+
+# Runs after everything. Use it to attach to tmux with custom options etc.
+# post: tmux -CC attach -t strato
 
 windows:
     - host:
         layout: tiled
         panes:
             - bash:
-                # This is our playground pane. Issue queries and commands to
-                # whatever the heck you like from here.
                 - bash
                 - echo 'the world is your oyster'
                 - echo 'update interval is <%= @settings["delay"] || 5 %>'
             - strato:
-                # It appears that we are simply pinging the `strato` container as a health check here
                 - while true; do docker exec -it strato_strato_1 /bin/bash -c 'cd /var/lib/strato'; sleep 2; done
 
     - backbone:
         layout: even-vertical
         panes:
             - sequencer:
-                # Monitor sequencer logs
-                # What useful information are we looking at here?
-                # What should I be able to correlate between this and the `adit` logs or other node logs?
                 - while true; do docker exec -it strato_strato_1 tail -f -n 1000 /var/lib/strato/logs/strato-sequencer; sleep 2; done
             - vm:
-                # Monitor VM logs
-                # What useful information are we looking at here?
                 - while true; do docker exec -it strato_strato_1 tail -f -n 1000 /var/lib/strato/logs/ethereum-vm; sleep 2; done
             - adit:
-                # Monitor miner logs
-                # From here we can determine if our node is successfully mining blocks.
-                # This is useful when we find variance between coinbases in the explorer#coinbase pane
                 - while true; do docker exec -it strato_strato_1 tail -f -n 1000 /var/lib/strato/logs/strato-adit; sleep 2; done
 
     - indexers:
         layout: even-vertical
         panes:
             - api-indexer:
-                # Are we watching anything useful here?
                 - while true; do docker exec -it strato_strato_1 tail -f -n 1000 /var/lib/strato/logs/strato-api-indexer; sleep 2; done
             - p2p-indexer:
-                # Are we watching anything useful here?
                 - while true; do docker exec -it strato_strato_1 tail -f -n 1000 /var/lib/strato/logs/strato-p2p-indexer; sleep 2; done
             - statediff-indexer:
-                # Not working. Delete?
                 - while true; do docker exec -it strato_strato_1 tail -f -n 1000 /var/lib/strato/logs/strato-statediff-indexer; sleep 2; done
 
     - network:
@@ -60,76 +64,52 @@ windows:
             - ethereum-discover:
                 - while true; do docker exec -it strato_strato_1 tail -f -n 1000 /var/lib/strato/logs/ethereum-discover; sleep 2; done
             - peers:
-                # Tracks connected server and client peer node connection details
                 - watch -c -n 1 "curl -s localhost/strato-api/eth/v1.2/peers | jq -C '.'; ./watcher.sh network-best"
             - p2p-client:
-                # Monitor p2p client logs
-                # Lots of `ERROR` messages. Any cause for concern?
                 - while true; do docker exec -it strato_strato_1 tail -f -n 1000 /var/lib/strato/logs/strato-p2p-client; sleep 2; done
             - p2p-server:
-                # Monitor p2p server logs
                 - while true; do docker exec -it strato_strato_1 tail -f -n 1000 /var/lib/strato/logs/strato-p2p-server; sleep 2; done
 
     - strato-api:
         layout: tiled
         panes:
             - strato-api-get:
-                # API queries
                 - while true; do docker logs -ft --tail 1000 strato_strato_1 | grep -A4 -B1 GET; sleep 2; done
             - strato-api-post:
-                # API commands
                 - while true; do docker logs -ft --tail 1000 strato_strato_1 | grep -A4 -B1 POST; sleep 2; done
 
     - misc-api:
         layout: tiled
         panes:
             - strato-api:
-                # Tail of STRATO API.
-                # Pretty noisy because of SMD queries. Useful? Deletable?
                 - while true; do docker logs -ft --tail 1000 strato_strato_1; sleep 2; done
             - bloc:
-                # Bloch logs.
-                # Useful to monitor while running network tests. (e.g. silo/tests/network.send.js)
                 - while true; do docker logs -ft --tail 1000 strato_bloch_1; sleep 2; done
             - cirrus:
-                # Monitor Kafka offsets
-                # Doesn't seem particularly useful. Delete?
                 - while true; do docker logs -ft --tail 1000 strato_cirrus_1; sleep 2; done
             - postgrest:
-                # Monitor postgREST logs
-                # Doesn't seem particularly useful. Delete?
                 - while true; do docker logs -ft --tail 1000 strato_postgrest_1; sleep 2; done
 
     - explorer:
         layout: tiled
         panes:
             - bestblock:
-                # The current best block
-                # Can we correlate this with the other nodes? Should be eventually consistent, right?
                 - watch -c -n <%= @settings["delay"] || 5 %> "curl -s localhost/strato-api/eth/v1.2/block/last/1 | jq -C '.'"
             - lasttx:
-                # The most recent submitted transaction
                 - watch -c -n <%= @settings["delay"] || 5 %> "curl -s localhost/strato-api/eth/v1.2/transaction/last/1 | jq -C '.'"
             - version:
-                # The current running version of STRATO
                 - watch -c -n 60 "curl -s localhost/strato-api/version | jq -C '.'"
             - coinbase:
-                # Monitor counts of mined blocks per coinbase
-                # Expect 1 entry per connected peer and the distribution of mined blocks
-                # to be approximately equally distributed
                 - watch -c -n 10 "curl -s localhost/strato-api/eth/v1.2/block/last/100 | jq -C '.[] | {blockData}| .[].coinbase' | sort | uniq -c"
 
     - graphs:
         layout: even-vertical
         panes:
             - blocktimes:
-                # doesn't seem to work. should check the `watcher.sh` script
                 - watch -n 20 ./watcher.sh explorer-blocktimes
             - numtxs:
-                # doesn't seem to work. should check the `watcher.sh` script
                 - watch -n 20 ./watcher.sh explorer-numtxs
             - numuncles:
-                # doesn't seem to work. should check the `watcher.sh` script
                 - watch -n 20 ./watcher.sh explorer-numuncles
 
     - stream_blocks:
