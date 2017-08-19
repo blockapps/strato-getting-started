@@ -28,20 +28,20 @@ To use this guide you will need to have signed up for our Developer Edition Tria
 
 1. Clone [STRATO Getting Started repo](https://github.com/blockapps/strato-getting-started) using ```git clone``` or download and extract .zip archive. And `chdir` or `cd` into that folder.
 2. Configure docker registry login using the credentials [USER, PASSWORD, REGISTRY] you received via email after your registration for trial:
-    ```bash
+    ```
     docker login -u <USER> -p <PASSWORD> <REGISTRY>
     ```
 3. Launch STRATO services:
     - Run:
-        ```bash
+        ```
         chmod +x strato-run.sh
         ```
     - Then run the script (runs `latest` STRATO version by default):
-        ```bash
+        ```
         ./strato-run.sh
         ```
         or to run `stable` version:
-        ```bash
+        ```
         ./strato-run.sh --stable
         ```
 4. Check if STRATO services are running (using `docker ps`) & view the Strato Management Dashboard at http://localhost/
@@ -68,12 +68,12 @@ To use this guide you will need to have signed up for our Developer Edition Tria
 
 ### Stopping STRATO
 *To stop a running instance of STRATO Developer Edition on your machine, run this command (from within the git cloned `getting-started` folder)*
-```bash
+```
 ./strato-run.sh --stop
 ```
 
 *To stop and wipe out a running instance of STRATO Developer Edition on your machine, run this command (from within the git cloned `getting-started` folder)(you will lose state of any  transactions/data created in the blockchain)*
-```bash
+```
 ./strato-run.sh --wipe
 ```
 
@@ -106,13 +106,13 @@ STRATO services need the following ports to be available on the machine (refer d
 ### Debug view
 
 First do:
-```bash
+```
 sudo apt-get install -y tmux tmuxinator
 ```
 
 then you can get an overview of all processes using:
 
-```bash
+```
 tmuxinator start strato
 ```
 
