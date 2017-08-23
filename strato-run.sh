@@ -34,10 +34,6 @@ while [ ${#} -gt 0 ]; do
     wipe
     exit 0
     ;;
-  --upgrade|-upgrade)
-    upgrade
-    exit 0
-    ;;
   --stable|-stable)
     echo "Deploying the stable version"
     stable=true
