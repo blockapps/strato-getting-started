@@ -134,4 +134,4 @@ See [BlockApps’ Developer Edition Terms of Use](http://developers.blockapps.ne
 
 ## STRATO Architecture
 
-![STRATO-Architecture](STRATO-Architecture.png?raw=true "STRATO-Architecture")
+![STRATO-Architecture](STRATO-Architecture-1.png?raw=true "STRATO-Architecture")
