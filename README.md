@@ -13,13 +13,15 @@ To use this guide you will need to have signed up for our Developer Edition Tria
 - [Install Docker](https://www.docker.com/community-edition) on your machine
 - [Install Docker Compose](https://docs.docker.com/compose/install/) on your machine
 
-- For Mac users:
+- For Mac users: Install `wget` using [Homebrew](https://brew.sh/) (use the steps below):
 
-    Install `wget` using [Homebrew](https://brew.sh/) (use the steps below):
+    - Homebrew:
 
-    - Homebrew: ```ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"```
+        ```ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"```
 
-    - wget: ```brew install wget --with-libressl```
+    - wget:
+
+        ```brew install wget --with-libressl```
 
 **Windows:**
 
