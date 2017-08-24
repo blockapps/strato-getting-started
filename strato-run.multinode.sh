@@ -87,6 +87,7 @@ then
     export lazyBlocks=false
     export explorerHost="http://explorer:9000"
     export explorerAdvertise="https://$NODE_HOST"
+    export noMinPeers=true
 
     echo "--------------------------------"
     echo " Common Config"
