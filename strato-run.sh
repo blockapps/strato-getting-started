@@ -10,7 +10,7 @@ set -e
 registry="registry-aws.blockapps.net:5000"
 
 function wipe {
-    echo "Stopping STRATO containers"
+    echo "Stopping STRATO containers and wiping out volumes"
     docker-compose -f docker-compose.latest.yml -p strato kill 2> /dev/null || docker-compose -f docker-compose.release.yml -p strato kill
     docker-compose -f docker-compose.latest.yml -p strato down -v 2> /dev/null || docker-compose -f docker-compose.release.yml -p strato down -v
 }
@@ -27,12 +27,10 @@ stable=false
 while [ ${#} -gt 0 ]; do
   case "${1}" in
   --stop|-stop)
-    echo "Stopping STRATO containers"
     stop
     exit 0
     ;;
   --wipe|-wipe)
-    echo "Stopping STRATO containers and wiping out volumes"
     wipe
     exit 0
     ;;
@@ -86,7 +84,13 @@ then
     if [ "$mode" != "1" ] ; then curl http://api.mixpanel.com/track/?data=ewogICAgImV2ZW50IjogInN0cmF0b19nc19pbml0IiwKICAgICJwcm9wZXJ0aWVzIjogewogICAgICAgICJ0b2tlbiI6ICJkYWYxNzFlOTAzMGFiYjNlMzAyZGY5ZDc4YjZiMWFhMCIKICAgIH0KfQ==&ip=1 ;fi
     if [ "$stable" = true ]
     then
-      curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | egrep -o '/blockapps/strato-getting-started/releases/download/build-[0-9]*/docker-compose.release.yml' | wget --base=http://github.com/ -i - -O docker-compose.release.yml
+      if [ ! -f docker-compose.release.yml ]
+      then
+        echo "Getting stable release docker-compose.release.yml from latest release tag: https://github.com/blockapps/strato-getting-started/releases/latest"
+        curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | egrep -o '/blockapps/strato-getting-started/releases/download/build-[0-9]*/docker-compose.release.yml' | wget --base=http://github.com/ -i - -O docker-compose.release.yml
+      else
+        echo "docker-compose.release.yml exists - using it for current --stable run"
+      fi
       docker-compose -f docker-compose.release.yml -p strato up -d
     else
       curl -L https://github.com/blockapps/strato-getting-started/releases/download/build-latest/docker-compose.latest.yml -O
