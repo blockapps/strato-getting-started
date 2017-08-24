@@ -127,8 +127,6 @@ then
     # enable MixPanel metrics
     if [ "$mode" != "1" ] ; then curl http://api.mixpanel.com/track/?data=ewogICAgImV2ZW50IjogInN0cmF0b19nc19pbml0IiwKICAgICJwcm9wZXJ0aWVzIjogewogICAgICAgICJ0b2tlbiI6ICJkYWYxNzFlOTAzMGFiYjNlMzAyZGY5ZDc4YjZiMWFhMCIKICAgIH0KfQ==&ip=1 ;fi
 
-    # This docker compose file has been created by manually copying the desired
-    # release version directly from the _releases_ tab on the GitHub page.
     curl -L https://github.com/blockapps/strato-getting-started/releases/download/build-latest/docker-compose.latest.yml -o docker-compose.release.multinode.yml
     docker-compose -f docker-compose.release.multinode.yml -p strato up -d
 else
