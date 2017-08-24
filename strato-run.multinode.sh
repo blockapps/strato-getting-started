@@ -87,6 +87,7 @@ then
     export lazyBlocks=false
     export explorerHost="http://explorer:9000"
     export explorerAdvertise="https://$NODE_HOST"
+    # do not attempt to connect to random nodes. Sets minAvailablePeers to 0.
     export noMinPeers=true
 
     echo "--------------------------------"
@@ -104,6 +105,7 @@ then
     if [ -n "$BOOT_NODE_HOST" ]
     then
       export bootnode=$BOOT_NODE_HOST
+      # sync before mining
       export useSyncMode=true
       echo "--------------------------------"
       echo " Multinode Config"
