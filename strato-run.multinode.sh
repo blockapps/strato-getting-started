@@ -103,7 +103,7 @@ then
     if [ -n "$BOOT_NODE_HOST" ]
     then
       export bootnode=$BOOT_NODE_HOST
-      export syncMode=true
+      export useSyncMode=true
       echo "--------------------------------"
       echo " Multinode Config"
       echo "--------------------------------"
