@@ -127,7 +127,7 @@ then
 
     # This docker compose file has been created by manually copying the desired
     # release version directly from the _releases_ tab on the GitHub page.
-    curl -L https://github.com/blockapps/strato-getting-started/releases/download/build-6/docker-compose.release.yml -o docker-compose.release.multinode.yml
+    curl -L https://github.com/blockapps/strato-getting-started/releases/download/build-latest/docker-compose.latest.yml -o docker-compose.release.multinode.yml
     docker-compose -f docker-compose.release.multinode.yml -p strato up -d
 else
     echo "Please login to BlockApps Public Registry first:
