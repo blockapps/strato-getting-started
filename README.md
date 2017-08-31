@@ -47,7 +47,8 @@ To use this guide you will need to have signed up for our Developer Edition Tria
         ```
         ./strato-run.sh
         ```
-        >Windows users should always provide the DOMAIN_NAME variable with the docker machine IP address (in most cases it is `192.168.99.100`) when running the STRATO: 
+        >Windows users should always provide the DOMAIN_NAME variable with the docker machine IP address when running the STRATO 
+(in most cases it is `192.168.99.100`) : 
             ```DOMAIN_NAME=192.168.99.100 ./strato-run.sh```
 
         or to run `stable` version:
@@ -57,7 +58,7 @@ To use this guide you will need to have signed up for our Developer Edition Tria
         
 4. Check if STRATO services are running (using `docker ps`) & view the Strato Management Dashboard at http://localhost/
 
-    >Windows users should always use the domain name (docker machine IP) provided in previous step instead of `localhost`
+    >Windows users should always use the domain name (docker machine IP) from the previous step instead of `localhost`
 
 5. Explore the Bloc and STRATO API docs via the top right link on the Dashboard (http://localhost)
         ![STRATO Management Dashboard](SMD.png?raw=true "STRATO Management Dashboard")
