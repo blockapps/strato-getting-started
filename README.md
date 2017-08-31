@@ -47,10 +47,8 @@ To use this guide you will need to have signed up for our Developer Edition Tria
         ```
         ./strato-run.sh
         ```
-        >Windows users should always provide the DOMAIN_NAME variable with the docker machine IP address when running the STRATO 
-(in most cases it is `192.168.99.100`) : 
-
-        >```DOMAIN_NAME=192.168.99.100 ./strato-run.sh```
+        
+        >Windows users should always provide the DOMAIN_NAME variable with the docker machine IP address (in most cases it is `192.168.99.100`) when running the STRATO: ```DOMAIN_NAME=192.168.99.100 ./strato-run.sh```
 
         or to run `stable` version:
         ```
