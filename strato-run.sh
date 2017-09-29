@@ -80,7 +80,7 @@ then
     export cirrusurl=nginx/cirrus
     export stratoHost=nginx
     export ssl=false
-    export authBasic=false
+    export authBasic=true
     export STRATO_GS_MODE=${mode}
     if [ "$mode" != "1" ] ; then curl http://api.mixpanel.com/track/?data=ewogICAgImV2ZW50IjogInN0cmF0b19nc19pbml0IiwKICAgICJwcm9wZXJ0aWVzIjogewogICAgICAgICJ0b2tlbiI6ICJkYWYxNzFlOTAzMGFiYjNlMzAyZGY5ZDc4YjZiMWFhMCIKICAgIH0KfQ==&ip=1 ;fi
     if [ "$stable" = true ]
