@@ -131,11 +131,9 @@ then
       if [ ! -f docker-compose.release.multinode.yml ]
       then
         echo "Getting stable release docker-compose.release.yml from latest release tag"
-        curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | egrep -o '/blockapps/strato-getting-started/releases/download/build-[0-9]*/docker-compose.release.yml' | wget --base=http://github.com/ -i - -O docker-compose.multinode.release.yml
-      else
-        echo "docker-compose.release.multinode.yml exists. Using it for current --stable run."
-        docker-compose -f docker-compose.release.multinode.yml -p strato up -d
+        curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | egrep -o '/blockapps/strato-getting-started/releases/download/build-[0-9]*/docker-compose.release.yml' | wget --base=http://github.com/ -i - -O docker-compose.release.multinode.ym
       fi
+      docker-compose -f docker-compose.release.multinode.yml -p strato up -d
     else
       curl -L https://github.com/blockapps/strato-getting-started/releases/download/build-latest/docker-compose.latest.yml -O
       docker-compose -f docker-compose.release.multinode.yml pull && docker-compose -f docker-compose.release.multinode.yml -p strato up -d
