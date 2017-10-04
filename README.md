@@ -2,6 +2,10 @@
 
 # STRATO Developer Edition - Getting Started guide
 
+### Architecture
+
+![STRATO-Architecture](STRATO-Architecture.png?raw=true "STRATO-Architecture")
+
 ### Sign-up for trial
 
 To use this guide you will need to have signed up for our Developer Edition Trial, if you have not already done so sign up here: [http://developers.blockapps.net/trial](http://developers.blockapps.net/trial)
@@ -135,7 +139,3 @@ Consider using the tmux mouse mode plugins for better experience.
 
 See [BlockApps’ Developer Edition Terms of Use](http://developers.blockapps.net/trial-license)
 
-
-## STRATO Architecture
-
-![STRATO-Architecture](STRATO-Architecture.png?raw=true "STRATO-Architecture")
