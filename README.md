@@ -6,6 +6,12 @@
 
 ![STRATO-Architecture](STRATO-Architecture.png?raw=true "STRATO-Architecture")
 
+#### Key components to note
+- Bloc API: User/Account Management and Smart-contracts management via API.
+- STRATO API: Blockchain API for blocks and transactions.
+- Cirrus: Index and search smart-contracts, SQL-like query API for looking up smart-contracts and state changes.
+- STRATO Management Dashboard (SMD): Web based UI for your Private Ethereum Blockchain Network using Bloc/STRATO API for User and Contracts management & offering SQL like query interface for smart-contracts.
+
 ### Sign-up for trial
 
 To use this guide you will need to have signed up for our Developer Edition Trial, if you have not already done so sign up here: [http://developers.blockapps.net/trial](http://developers.blockapps.net/trial)
