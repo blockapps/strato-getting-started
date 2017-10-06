@@ -141,6 +141,21 @@ For tmux usage refer to [tmux guide](http://man.openbsd.org/OpenBSD-current/man1
 
 Consider using the tmux mouse mode plugins for better experience.
 
+## Multinode Network (Public STRATO Testnet)
+
+- *In early alpha, bootnode may go down and blockchain data wiped out during refreshes and upgrades* 
+- *Use only for testing* 
+
+You can now run your local STRATO node peering it to the main bootnode and experience a multinode blockchain test network.
+
+Here's the command to start your local node to connect and sync with our bootnode:
+
+```
+BOOT_NODE_HOST=52.87.251.111 ./strato-multinode-run.sh --stable
+```
+- The bootnode is: stratodev.blockapps.net 
+- Bootnode Dashboard: http://stratodev.blockapps.net/
+
 ## License Agreement
 
 See [BlockApps’ Developer Edition Terms of Use](http://developers.blockapps.net/trial-license)
