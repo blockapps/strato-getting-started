@@ -156,6 +156,25 @@ BOOT_NODE_HOST=52.87.251.111 ./strato-multinode-run.sh --stable
 - The bootnode is: stratodev.blockapps.net 
 - Bootnode Dashboard: http://stratodev.blockapps.net/
 
+## Multinode Network (Local setup - 1 Bootnode and 2 Peers)
+*Recommended VM capacity: 4vcpu, 16G*
+
+- *In early alpha, blockchain data wiped out during refreshes and upgrades* 
+- *Use only for testing* 
+
+You can now run your local STRATO multi-node test network.
+Here's the command to start your local multi-node network:
+
+```
+BOOT_NODE_HOST=strato ./strato-multinode-run.sh -local
+```
+To wipe out and stop the local multinode network (volumes wiped so you'll lose state)
+```
+./strato-multinode-run.sh -local -wipe
+```
+Here's a quick screenshot of local multinode network dashboard with 2 peers:
+![STRATO-local-multinode](strato-local-multi.png?raw=true "STRATO-Local-Multinode")
+
 ## License Agreement
 
 See [BlockApps’ Developer Edition Terms of Use](http://developers.blockapps.net/trial-license)
