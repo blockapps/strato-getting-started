@@ -3,6 +3,7 @@
 # Optional arguments:
 # `--stop` - stop STRATO containers
 # `--wipe` - stop STRATO containers and wipe out volumes
+# `--local` - Run local multinode setup with 3 nodes (1 bootnode and 2 peers) 
 
 set -e
 
@@ -10,18 +11,31 @@ registry="registry-aws.blockapps.net:5000"
 
 function wipe {
     echo "Stopping STRATO containers"
-    docker-compose -f docker-compose.release.multinode.yml -p strato kill
-    docker-compose -f docker-compose.release.multinode.yml -p strato down -v
+    if [ "$localMulti" = true ]
+    then 
+     docker-compose -f docker-compose.localmultinode.yml -p strato kill
+     docker-compose -f docker-compose.localmultinode.yml -p strato down -v
+    else 
+     docker-compose -f docker-compose.release.multinode.yml -p strato kill
+     docker-compose -f docker-compose.release.multinode.yml -p strato down -v
+    fi
 }
 
 function stop {
     echo "Stopping STRATO containers"
-    docker-compose -f docker-compose.release.multinode.yml -p strato kill
-    docker-compose -f docker-compose.release.multinode.yml -p strato down
+    if [ "$localMulti" = true ]
+    then
+     docker-compose -f docker-compose.localmultinode.yml -p strato kill
+     docker-compose -f docker-compose.localmultinode.yml -p strato down 
+    else
+     docker-compose -f docker-compose.release.multinode.yml -p strato kill
+     docker-compose -f docker-compose.release.multinode.yml -p strato down
+    fi
 }
 
 mode=${STRATO_GS_MODE:="0"}
 stable=false
+localMulti=false
 
 while [ ${#} -gt 0 ]; do
   case "${1}" in
@@ -38,6 +52,10 @@ while [ ${#} -gt 0 ]; do
   --stable|-stable)
     echo "Deploying the stable version"
     stable=true
+    ;;
+  --local|-local)
+    echo "Deploying multinode local on this machine"
+    localMulti=true
     ;;
   -m)
     echo "Mode is set to $2"
@@ -126,6 +144,13 @@ then
 
     # enable MixPanel metrics
     if [ "$mode" != "1" ] ; then curl http://api.mixpanel.com/track/?data=ewogICAgImV2ZW50IjogInN0cmF0b19nc19pbml0IiwKICAgICJwcm9wZXJ0aWVzIjogewogICAgICAgICJ0b2tlbiI6ICJkYWYxNzFlOTAzMGFiYjNlMzAyZGY5ZDc4YjZiMWFhMCIKICAgIH0KfQ==&ip=1 ;fi
+
+    if [ "$localMulti" = true ]
+    then
+     docker-compose -f docker-compose.localmultinode.yml -p strato up -d  
+     exit 0;
+    fi
+
     if [ "$stable" = true ]
     then
       if [ ! -f docker-compose.release.multinode.yml ]
