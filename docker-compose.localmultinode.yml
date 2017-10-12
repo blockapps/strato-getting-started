@@ -15,7 +15,7 @@ services:
     - CIRRUS_URL=${CIRRUS_URL}
     - NODE_NAME=${NODE_NAME}
     - STRATO_DOC_URL=${STRATO_DOC_URL}
-    image: registry-aws.blockapps.net:5000/blockapps-repo/silo-smd-ui:b8d3708 
+    image: registry-aws.blockapps.net:5000/blockapps-repo/silo-smd-ui:latest 
     restart: always
   bloch:
     depends_on:
