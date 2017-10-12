@@ -106,8 +106,6 @@ then
     export STRATO_GS_MODE=${mode}
     export miningAlgorithm="SHA"
     export lazyBlocks=false
-    export explorerHost="http://explorer:9000"
-    export explorerAdvertise="https://$NODE_HOST"
     # do not attempt to connect to random nodes. Sets minAvailablePeers to 0.
     export noMinPeers=true
 
