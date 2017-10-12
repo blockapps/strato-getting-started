@@ -58,7 +58,7 @@ To use this guide you will need to have signed up for our Developer Edition Tria
         ./strato-run.sh
         ```
         
-        >Windows users should always provide the DOMAIN_NAME variable with the docker machine IP address (in most cases it is `192.168.99.100`) when running the STRATO: ```DOMAIN_NAME=192.168.99.100 ./strato-run.sh```
+        >Windows users should always provide the NODE_HOST variable with the docker machine IP address (in most cases it is `192.168.99.100`) when running the STRATO: ```NODE_HOST=192.168.99.100 ./strato-run.sh```
 
         or to run `stable` version:
         ```
@@ -141,6 +141,7 @@ For tmux usage refer to [tmux guide](http://man.openbsd.org/OpenBSD-current/man1
 
 Consider using the tmux mouse mode plugins for better experience.
 
+<!--MKDOCS_DOC_DIVIDER_MULTINODE-->
 ## Multinode Network (Public STRATO Testnet)
 
 - *In early alpha, bootnode may go down and blockchain data wiped out during refreshes and upgrades* 
@@ -175,6 +176,7 @@ To wipe out and stop the local multinode network (volumes wiped so you'll lose s
 Here's a quick screenshot of local multinode network dashboard with 2 peers:
 ![STRATO-local-multinode](strato-local-multi.png?raw=true "STRATO-Local-Multinode")
 
+<!--MKDOCS_DOC_DIVIDER_LICENSE-->
 ## License Agreement
 
 See [BlockApps’ Developer Edition Terms of Use](http://developers.blockapps.net/trial-license)
