@@ -74,8 +74,8 @@ if grep -q "${registry}" ~/.docker/config.json
 then
     export NODE_HOST=${NODE_HOST:-localhost}
     export NODE_NAME=${NODE_NAME:-$NODE_HOST}
-    export BLOC_URL=${BLOC_URL:-http://$NODE_HOST/bloc/v2.1}
-    export BLOC_DOC_URL=${BLOC_DOC_URL:-http://$NODE_HOST/docs/?url=/bloc/v2.1/swagger.json}
+    export BLOC_URL=${BLOC_URL:-http://$NODE_HOST/bloc/v2.2}
+    export BLOC_DOC_URL=${BLOC_DOC_URL:-http://$NODE_HOST/docs/?url=/bloc/v2.2/swagger.json}
     export STRATO_URL=${STRATO_URL:-http://$NODE_HOST/strato-api/eth/v1.2}
     export STRATO_DOC_URL=${STRATO_DOC_URL:-http://$NODE_HOST/docs/?url=/strato-api/eth/v1.2/swagger.json}
     export CIRRUS_URL=${CIRRUS_URL:-http://$NODE_HOST/cirrus/search}
