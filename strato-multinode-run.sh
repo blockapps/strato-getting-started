@@ -106,7 +106,6 @@ then
     export explorerHost="http://explorer:9000"
     export explorerAdvertise="https://$NODE_HOST"
     # do not attempt to connect to random nodes. Sets minAvailablePeers to 0.
-    export BOOT_NODE_HOST=strato
     export noMinPeers=true
 
     echo "--------------------------------"
