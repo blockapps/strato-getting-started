@@ -159,9 +159,10 @@ then
         curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | egrep -o '/blockapps/strato-getting-started/releases/download/build-[0-9]*/docker-compose.release.yml' | wget --base=http://github.com/ -i - -O docker-compose.release.multinode.yml
       fi
       docker-compose -f docker-compose.release.multinode.yml -p strato up -d
+      exit 0;
     else
-      curl -L https://github.com/blockapps/strato-getting-started/releases/download/build-latest/docker-compose.latest.yml -O
-      docker-compose -f docker-compose.release.multinode.yml pull && docker-compose -f docker-compose.release.multinode.yml -p strato up -d
+      echo "Multinode can only be ran with --stable flag"
+      exit 4
     fi
 
 else
