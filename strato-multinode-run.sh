@@ -9,6 +9,9 @@ set -e
 
 registry="registry-aws.blockapps.net:5000"
 
+RED='\033[0;31m'
+NC='\033[0m'
+
 function wipe {
     echo "Stopping STRATO containers"
     if [ "$localMulti" = true ]
@@ -161,7 +164,7 @@ then
       docker-compose -f docker-compose.release.multinode.yml -p strato up -d
       exit 0;
     else
-      echo "Multinode can only be ran with --stable flag"
+      echo -e "${RED}Multinode can only be ran with --stable flag. Exiting the script ${NC}"
       exit 4
     fi
 
