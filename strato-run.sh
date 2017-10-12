@@ -72,8 +72,8 @@ fi
 if grep -q "${registry}" ~/.docker/config.json
 then
     export NODE_NAME=${DOMAIN_NAME:-localhost}
-    export BLOC_URL=http://${DOMAIN_NAME:-localhost}/bloc/v2.1
-    export BLOC_DOC_URL=http://${DOMAIN_NAME:-localhost}/docs/?url=/bloc/v2.1/swagger.json
+    export BLOC_URL=http://${DOMAIN_NAME:-localhost}/bloc/v2.2
+    export BLOC_DOC_URL=http://${DOMAIN_NAME:-localhost}/docs/?url=/bloc/v2.2/swagger.json
     export STRATO_URL=http://${DOMAIN_NAME:-localhost}/strato-api/eth/v1.2
     export STRATO_DOC_URL=http://${DOMAIN_NAME:-localhost}/docs/?url=/strato-api/eth/v1.2/swagger.json
     export CIRRUS_URL=http://${DOMAIN_NAME:-localhost}/cirrus/search
