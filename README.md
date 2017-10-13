@@ -113,15 +113,8 @@ http://stratodev.blockapps.net/
 STRATO services need the following ports to be available on the machine (refer docker-compose.yml for details):
 
 ```
-:80 (for Nginx)
-:2181 (for Zookeeper)
-:3001 (for Postgrest)
-:5432, :5434 (for Postgresql)
-:6379 (for Redis)
-:8080 (for API docs)
-:9092 (for Kafka)
-:10001 (for Bloc API service)
-:30303, :30303 UDP, :33000 (for Strato)
+:80, :443 (for Nginx)
+:30303, :30303/UDP (for Strato P2P)
 ```
 
 ### Debug view
