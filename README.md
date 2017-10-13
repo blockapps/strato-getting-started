@@ -175,8 +175,8 @@ To wipe out and stop the local multinode network (volumes wiped so you'll lose s
 ```
 Here's a quick screenshot of local multinode network dashboard with 2 peers:
 ![STRATO-local-multinode](strato-local-multi.png?raw=true "STRATO-Local-Multinode")
+<!--MKDOCS_DOC_DIVIDER_MULTINODE_END-->
 
-<!--MKDOCS_DOC_DIVIDER_LICENSE-->
 ## License Agreement
 
 See [BlockApps’ Developer Edition Terms of Use](http://developers.blockapps.net/trial-license)
