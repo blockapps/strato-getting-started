@@ -100,6 +100,7 @@ then
     export STRATO_URL=${STRATO_URL:-http://$NODE_HOST/strato-api/eth/v1.2}
     export STRATO_DOC_URL=${STRATO_DOC_URL:-http://$NODE_HOST/docs/?url=/strato-api/eth/v1.2/swagger.json}
     export CIRRUS_URL=${CIRRUS_URL:-http://$NODE_HOST/cirrus/search}
+    export XAPI_URL=${XAPI_URL:-http://$NODE_HOST/x-api}
     export cirrusurl=nginx/cirrus
     export stratoHost=nginx
     export ssl=false
