@@ -57,6 +57,7 @@ To use this guide you will need to have signed up for our Developer Edition Tria
         ```
         ./strato-run.sh
         ```
+        
         >If running on the remote machine, provide the NODE_HOST variable with the machine's external IP address or domain (reachable through the network) when running the STRATO: ```NODE_HOST=example.com ./strato-run.sh```
         
         >Windows users should always provide the NODE_HOST variable with the docker machine IP address (in most cases it is `192.168.99.100`) when running the STRATO: ```NODE_HOST=192.168.99.100 ./strato-run.sh```
