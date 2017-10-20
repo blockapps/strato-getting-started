@@ -59,7 +59,7 @@ To use this guide you will need to have signed up for our Developer Edition Tria
         ```
         
         >If running on the remote machine, provide the NODE_HOST variable with the machine's external IP address or domain (reachable through the network) when running the STRATO: ```NODE_HOST=example.com ./strato-run.sh```
-        
+
         >Windows users should always provide the NODE_HOST variable with the docker machine IP address (in most cases it is `192.168.99.100`) when running the STRATO: ```NODE_HOST=192.168.99.100 ./strato-run.sh```
 
         or to run `stable` version:
@@ -67,9 +67,9 @@ To use this guide you will need to have signed up for our Developer Edition Tria
         ./strato-run.sh --stable
         ```
         
-4. Check if STRATO services are running (using `docker ps`) & view the Strato Management Dashboard at http://localhost/
+4. Check if STRATO services are running (using `docker ps`) & view the Strato Management Dashboard at http://localhost/ (or http://<remote_node_host>/ when running on remote machine)
 
-    >Windows users should always use the domain name (docker machine IP) from the previous step instead of `localhost`
+    >If `NODE_HOST` is set in step 3, use it's value instead of the `localhost` hereinafter
 
 5. Explore the Bloc and STRATO API docs via the top right link on the Dashboard (http://localhost)
         ![STRATO Management Dashboard](SMD.png?raw=true "STRATO Management Dashboard")
