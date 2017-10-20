@@ -67,7 +67,7 @@ To use this guide you will need to have signed up for our Developer Edition Tria
         ./strato-run.sh --stable
         ```
         
-4. Check if STRATO services are running (using `docker ps`) & view the Strato Management Dashboard at http://localhost/ (or http://<remote_node_host>/ when running on remote machine)
+4. Check if STRATO services are running (using `docker ps`) & view the Strato Management Dashboard at `http://localhost/` (or `http://<remote_node_host>/` when running on remote machine)
 
     >If `NODE_HOST` is set in step 3, use it's value instead of the `localhost` hereinafter
 
