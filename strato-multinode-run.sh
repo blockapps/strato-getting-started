@@ -107,8 +107,8 @@ then
     export STRATO_GS_MODE=${mode}
     export miningAlgorithm="SHA"
     export lazyBlocks=false
-    # do not attempt to connect to random nodes. Sets minAvailablePeers to 0.
-    export noMinPeers=true
+    export noMinPeers=true # Legacy 0.3.5 support
+    export numMinPeers=${numMinPeers:-5}
 
     echo "--------------------------------"
     echo " Common Config"
