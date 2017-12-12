@@ -101,9 +101,6 @@ then
     export STRATO_DOC_URL=${STRATO_DOC_URL:-http://$NODE_HOST/docs/?url=/strato-api/eth/v1.2/swagger.json}
     export CIRRUS_URL=${CIRRUS_URL:-http://$NODE_HOST/cirrus/search}
     export APEX_URL=${APEX_URL:-http://$NODE_HOST/apex-api}
-    export cirrusurl=nginx/cirrus
-    export stratoHost=nginx
-    export ssl=false
     export STRATO_GS_MODE=${mode}
     export miningAlgorithm="SHA"
     export lazyBlocks=false
@@ -118,8 +115,6 @@ then
     echo "BLOC_DOC_URL: $BLOC_DOC_URL"
     echo "STRATO_URL: $STRATO_URL"
     echo "STRATO_DOC_URL: $STRATO_DOC_URL"
-    echo "cirrusurl: $cirrusurl"
-    echo "stratoHost: $stratoHost"
 
     # multinode peer configuration
     if [ -n "$BOOT_NODE_HOST" ]
