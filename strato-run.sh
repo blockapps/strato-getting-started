@@ -79,7 +79,8 @@ then
     export STRATO_DOC_URL=${STRATO_DOC_URL:-http://$NODE_HOST/docs/?url=/strato-api/eth/v1.2/swagger.json}
     export CIRRUS_URL=${CIRRUS_URL:-http://$NODE_HOST/cirrus/search}
     export APEX_URL=${APEX_URL:-http://$NODE_HOST/apex-api}
-    export authBasic={authBasic:-true}
+    export authBasic=${authBasic:-true}
+    export uiPassword=${uiPassword:-}
     export STRATO_GS_MODE=${mode}
     export SINGLE_NODE=true
     if [ "$mode" != "1" ] ; then curl http://api.mixpanel.com/track/?data=ewogICAgImV2ZW50IjogInN0cmF0b19nc19pbml0IiwKICAgICJwcm9wZXJ0aWVzIjogewogICAgICAgICJ0b2tlbiI6ICJkYWYxNzFlOTAzMGFiYjNlMzAyZGY5ZDc4YjZiMWFhMCIKICAgIH0KfQ==&ip=1 ;fi
