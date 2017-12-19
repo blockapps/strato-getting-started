@@ -4,7 +4,7 @@
 
 ### Architecture
 
-![STRATO-Architecture]("Firstrough (1).png"?raw=true "STRATO-Architecture")
+![STRATO-Architecture](STRATOArc.png?raw=true "STRATO-Architecture")
 
 #### Key components to note
 - Bloc API: User/Account Management and Smart-contracts management via API.
