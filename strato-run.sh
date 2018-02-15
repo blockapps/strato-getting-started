@@ -83,6 +83,8 @@ then
     export uiPassword=${uiPassword:-}
     export STRATO_GS_MODE=${mode}
     export SINGLE_NODE=true
+    export ssl=${ssl:-false}
+
     if [ "$mode" != "1" ] ; then curl http://api.mixpanel.com/track/?data=ewogICAgImV2ZW50IjogInN0cmF0b19nc19pbml0IiwKICAgICJwcm9wZXJ0aWVzIjogewogICAgICAgICJ0b2tlbiI6ICJkYWYxNzFlOTAzMGFiYjNlMzAyZGY5ZDc4YjZiMWFhMCIKICAgIH0KfQ==&ip=1 ;fi
     if [ "$stable" = true ]
     then

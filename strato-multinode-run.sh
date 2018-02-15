@@ -108,6 +108,7 @@ then
     export lazyBlocks=false
     export noMinPeers=true # Legacy 0.3.5 support
     export numMinPeers=${numMinPeers:-5}
+    export ssl=${ssl:-false}
 
     echo "--------------------------------"
     echo " Common Config"
