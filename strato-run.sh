@@ -74,6 +74,7 @@ then
     export NODE_HOST=${NODE_HOST:-localhost}
     export ssl=${ssl:-false}
     if [ "$ssl" = true ] ; then export http_protocol=https; else export http_protocol=http; fi
+    export sslCertFileType=${sslCertFileType:-crt}
     export NODE_NAME=${NODE_NAME:-$NODE_HOST}
     export BLOC_URL=${http_protocol}://$NODE_HOST/bloc/v2.2
     export BLOC_DOC_URL=${http_protocol}://$NODE_HOST/docs/?url=/bloc/v2.2/swagger.json
