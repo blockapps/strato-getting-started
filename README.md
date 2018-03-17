@@ -82,7 +82,7 @@ To use this guide you will need to have signed up for our Developer Edition Tria
     - API Docs can also be accessed at these endpoints directly:
         ```
         strato-api: http://localhost/strato-api/eth/v1.2/docs
-        bloc api: http://localhost/bloc/v2.1/docs
+        bloc api: http://localhost/bloc/v2.2/docs
         ```
 
 6. Refer documentation here to get started with developing a sample app: https://github.com/blockapps/blockapps-ba
