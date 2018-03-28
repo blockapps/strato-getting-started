@@ -132,7 +132,6 @@ For tmux usage refer to [tmux guide](http://man.openbsd.org/OpenBSD-current/man1
 
 Consider using the tmux mouse mode plugins for better experience.
 
-<!--MKDOCS_DOC_DIVIDER_MULTINODE-->
 ## Multinode Network (Public STRATO Testnet)
 
 - *In early alpha, bootnode may go down and blockchain data wiped out during refreshes and upgrades* 
@@ -147,8 +146,6 @@ BOOT_NODE_HOST=52.179.13.55 ./strato-multinode-run.sh --stable
 ```
 - The bootnode is: stratodev.blockapps.net
 - Bootnode Dashboard: https://stratodev.blockapps.net/
-
-<!--MKDOCS_DOC_DIVIDER_MULTINODE_END-->
 
 ## License Agreement
 
