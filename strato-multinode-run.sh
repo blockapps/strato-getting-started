@@ -3,7 +3,6 @@
 # Optional arguments:
 # `--stop` - stop STRATO containers
 # `--wipe` - stop STRATO containers and wipe out volumes
-# `--local` - Run local multinode setup with 3 nodes (1 bootnode and 2 peers) 
 
 set -e
 
@@ -14,31 +13,18 @@ NC='\033[0m'
 
 function wipe {
     echo "Stopping STRATO containers"
-    if [ "$localMulti" = true ]
-    then 
-     docker-compose -f docker-compose.localmultinode.yml -p strato kill
-     docker-compose -f docker-compose.localmultinode.yml -p strato down -v
-    else 
-     docker-compose -f docker-compose.release.multinode.yml -p strato kill
-     docker-compose -f docker-compose.release.multinode.yml -p strato down -v
-    fi
+    docker-compose -f docker-compose.release.multinode.yml -p strato kill
+    docker-compose -f docker-compose.release.multinode.yml -p strato down -v
 }
 
 function stop {
     echo "Stopping STRATO containers"
-    if [ "$localMulti" = true ]
-    then
-     docker-compose -f docker-compose.localmultinode.yml -p strato kill
-     docker-compose -f docker-compose.localmultinode.yml -p strato down 
-    else
-     docker-compose -f docker-compose.release.multinode.yml -p strato kill
-     docker-compose -f docker-compose.release.multinode.yml -p strato down
-    fi
+    docker-compose -f docker-compose.release.multinode.yml -p strato kill
+    docker-compose -f docker-compose.release.multinode.yml -p strato down
 }
 
 mode=${STRATO_GS_MODE:="0"}
 stable=false
-localMulti=false
 
 while [ ${#} -gt 0 ]; do
   case "${1}" in
@@ -55,10 +41,6 @@ while [ ${#} -gt 0 ]; do
   --stable|-stable)
     echo "Deploying the stable version"
     stable=true
-    ;;
-  --local|-local)
-    echo "Deploying multinode local on this machine"
-    localMulti=true
     ;;
   -m)
     echo "Mode is set to $2"
@@ -122,9 +104,10 @@ then
     echo "STRATO_DOC_URL: $STRATO_DOC_URL"
 
     # multinode peer configuration
-    if [ -n "$BOOT_NODE_HOST" ]
+    BOOT_NODE_IP=${BOOT_NODE_IP:-${BOOT_NODE_HOST}} # Backwards compatibility for old deprecated BOOT_NODE_HOST var name
+    if [ -n "$BOOT_NODE_IP" ]
     then
-      export bootnode=$BOOT_NODE_HOST
+      export bootnode=${BOOT_NODE_IP}
       # sync before mining
       export useSyncMode=true
       echo "--------------------------------"
@@ -146,13 +129,6 @@ then
 
     # enable MixPanel metrics
     if [ "$mode" != "1" ] ; then curl http://api.mixpanel.com/track/?data=ewogICAgImV2ZW50IjogInN0cmF0b19nc19pbml0IiwKICAgICJwcm9wZXJ0aWVzIjogewogICAgICAgICJ0b2tlbiI6ICJkYWYxNzFlOTAzMGFiYjNlMzAyZGY5ZDc4YjZiMWFhMCIKICAgIH0KfQ==&ip=1 ;fi
-
-    if [ "$localMulti" = true ]
-    then
-     docker-compose -f docker-compose.localmultinode.yml -p strato up -d  
-     exit 0;
-    fi
-
     if [ "$stable" = true ]
     then
       if [ ! -f docker-compose.release.multinode.yml ]
