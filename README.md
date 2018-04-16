@@ -51,21 +51,17 @@ To use this guide you will need to have signed up for our Developer Edition Tria
 3. Launch STRATO services:
     - Run:
         ```
-        chmod +x strato-run.sh
+        chmod +x strato.sh
         ```
-    - Then run the script (runs `latest` STRATO version by default):
+    - Then run the script:
         ```
-        ./strato-run.sh
+        ./strato.sh --single
         ```
         
-        >If running on the remote machine, provide the NODE_HOST variable with the machine's external IP address or domain (reachable through the network) when running the STRATO: ```NODE_HOST=example.com ./strato-run.sh```
+        >If running on the remote machine, provide the NODE_HOST variable with the machine's external IP address or domain (reachable through the network) when running the STRATO: ```NODE_HOST=example.com ./strato.sh --single```
 
-        >Windows users should always provide the NODE_HOST variable with the docker machine IP address (in most cases it is `192.168.99.100`) when running the STRATO: ```NODE_HOST=192.168.99.100 ./strato-run.sh```
+        >Windows users should always provide the NODE_HOST variable with the docker machine IP address (in most cases it is `192.168.99.100`) when running the STRATO: ```NODE_HOST=192.168.99.100 ./strato.sh --single```
 
-        or to run `stable` version:
-        ```
-        ./strato-run.sh --stable
-        ```
         
 4. Check if STRATO services are running (using `docker ps`) & view the Strato Management Dashboard at `http://localhost/` (or `http://<remote_node_host>/` when running on remote machine)
 
@@ -82,7 +78,7 @@ To use this guide you will need to have signed up for our Developer Edition Tria
     - API Docs can also be accessed at these endpoints directly:
         ```
         strato-api: http://localhost/strato-api/eth/v1.2/docs
-        bloc api: http://localhost/bloc/v2.1/docs
+        bloc api: http://localhost/bloc/v2.2/docs
         ```
 
 6. Refer documentation here to get started with developing a sample app: https://github.com/blockapps/blockapps-ba
@@ -92,12 +88,12 @@ To use this guide you will need to have signed up for our Developer Edition Tria
 ### Stopping STRATO
 *To stop a running instance of STRATO Developer Edition on your machine, run this command (from within the git cloned `getting-started` folder)*
 ```
-./strato-run.sh --stop
+./strato.sh --stop
 ```
 
 *To stop and wipe out a running instance of STRATO Developer Edition on your machine, run this command (from within the git cloned `getting-started` folder)(you will lose state of any  transactions/data created in the blockchain)*
 ```
-./strato-run.sh --wipe
+./strato.sh --wipe
 ```
 
 ### Public STRATO instance
@@ -115,23 +111,6 @@ STRATO services need the following ports to be available on the machine (refer d
 :30303, :30303/UDP (for Strato P2P)
 ```
 
-### Debug view
-
-First do:
-```
-sudo apt-get install -y tmux tmuxinator
-```
-
-then you can get an overview of all processes using:
-
-```
-tmuxinator start strato
-```
-
-For tmux usage refer to [tmux guide](http://man.openbsd.org/OpenBSD-current/man1/tmux.1).
-
-Consider using the tmux mouse mode plugins for better experience.
-
 ## Multinode Network (Public STRATO Testnet)
 
 - *In early alpha, bootnode may go down and blockchain data wiped out during refreshes and upgrades* 
@@ -142,7 +121,7 @@ You can now run your local STRATO node peering it to the main bootnode and exper
 Here's the command to start your local node to connect and sync with our bootnode:
 
 ```
-BOOT_NODE_HOST=52.179.13.55 ./strato-multinode-run.sh --stable
+BOOT_NODE_IP=52.179.13.55 ./strato.sh
 ```
 - The bootnode is: stratodev.blockapps.net
 - Bootnode Dashboard: https://stratodev.blockapps.net/
