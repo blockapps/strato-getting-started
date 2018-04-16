@@ -121,7 +121,7 @@ You can now run your local STRATO node peering it to the main bootnode and exper
 Here's the command to start your local node to connect and sync with our bootnode:
 
 ```
-BOOT_NODE_HOST=52.179.13.55 ./strato.sh
+BOOT_NODE_IP=52.179.13.55 ./strato.sh
 ```
 - The bootnode is: stratodev.blockapps.net
 - Bootnode Dashboard: https://stratodev.blockapps.net/
