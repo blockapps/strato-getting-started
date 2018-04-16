@@ -164,7 +164,8 @@ if [ "$mode" != "1" ] ; then curl http://api.mixpanel.com/track/?data=ewogICAgIm
 if [ ! -f docker-compose.yml ]
 then
   echo "Getting docker-compose.yml from the latest stable release"
-  curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | egrep -o '/blockapps/strato-getting-started/releases/download/build-[0-9]*/docker-compose.yml' | wget --base=http://github.com/ -i - -O docker-compose.yml
+  # TODO: change docker-compose.release.yml to docker-compose.yml
+  curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | egrep -o '/blockapps/strato-getting-started/releases/download/build-[0-9]*/docker-compose.release.yml' | wget --base=http://github.com/ -i - -O docker-compose.yml
 else
   echo -e "${RED}Using the existing docker-compose.yml (to download the latest - remove the file and restart the script)${NC}"
 fi
