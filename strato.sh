@@ -142,7 +142,7 @@ else
     export bootnode=${BOOT_NODE_IP}
     export useSyncMode=true # sync before mining
     echo "bootnode: $bootnode"
-    echo "syncMode: $useSyncMode"
+    echo "useSyncMode: $useSyncMode"
   fi
   if [ -e "genesis-block.json" ]
   then
