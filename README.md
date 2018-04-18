@@ -128,5 +128,5 @@ BOOT_NODE_IP=52.179.13.55 ./strato.sh
 
 ## License Agreement
 
-See [BlockApps’ Developer Edition Terms of Use](http://developers.blockapps.net/trial-license)
+See [BlockApps’ Developer Edition Terms of Use](https://signup.blockapps.net/trial-license)
 
