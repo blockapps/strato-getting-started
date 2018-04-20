@@ -4,6 +4,8 @@
 # `--single` - run the single node with lazy mining
 # `--stop` - stop STRATO containers
 # `--wipe` - stop STRATO containers and wipe out volumes
+# `--compose` - fetch the latest stable docker-compose.yml
+# `--pull` - pull images used in docker-compose.yml
 
 set -e
 
@@ -15,13 +17,22 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 function wipe {
-    echo "Removing STRATO containers and wiping out volumes"
-    docker-compose -f docker-compose.yml -p strato down -v -t 0
+  echo "Removing STRATO containers and wiping out volumes"
+  docker-compose -f docker-compose.yml -p strato down -v -t 0
 }
 
 function stop {
-    echo "Gently stopping and removing STRATO containers"
-    docker-compose -f docker-compose.yml -p strato down
+  echo "Gently stopping and removing STRATO containers"
+  docker-compose -f docker-compose.yml -p strato down
+}
+
+function getCompose {
+  echo "Getting docker-compose.yml from the latest stable release"
+  curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | egrep -o '/blockapps/strato-getting-started/releases/download/build-[0-9]*/docker-compose.yml' | wget --base=http://github.com/ -i - -O docker-compose.yml
+}
+
+function pullImages {
+  docker-compose pull
 }
 
 if ! docker ps &> /dev/null
@@ -63,9 +74,15 @@ while [ ${#} -gt 0 ]; do
   --single|-single)
     single=true
     ;;
-
+  --compose|-compose)
+    getCompose
+    exit 0
+    ;;
+  --pull|-pull)
+    pullImages
+    exit 0
+    ;;
   esac
-
   shift 1
 done
 
@@ -101,6 +118,7 @@ export APEX_URL=${APEX_URL:-${http_protocol}://$NODE_HOST/apex-api}
 export authBasic=${authBasic:-true}
 export uiPassword=${uiPassword:-}
 export STRATO_GS_MODE=${mode}
+export SMD_MODE=${SMD_MODE}
 
 echo "" && echo "*** Common Config ***"
 echo "NODE_HOST: $NODE_HOST"
@@ -114,8 +132,9 @@ echo "STRATO_DOC_URL: $STRATO_DOC_URL"
 echo "CIRRUS_URL: $CIRRUS_URL"
 echo "APEX_URL: $APEX_URL"
 echo "authBasic: $authBasic"
-echo "uiPassword: $(if [ -z ${uiPassword} ]; then echo "not set (default)"; else echo "is set"; fi)"
+echo "uiPassword: $(if [ -z ${uiPassword} ]; then echo "not set (using default)"; else echo "is set"; fi)"
 echo "STRATO_GS_MODE: $STRATO_GS_MODE"
+echo "SMD_MODE: $(if [ -z ${SMD_MODE} ]; then echo "not set (using default)"; else echo "${SMD_MODE}"; fi)"
 
 if [ ${single} = true ]
 then
@@ -161,8 +180,7 @@ fi
 if [ "$mode" != "1" ] ; then curl http://api.mixpanel.com/track/?data=ewogICAgImV2ZW50IjogInN0cmF0b19nc19pbml0IiwKICAgICJwcm9wZXJ0aWVzIjogewogICAgICAgICJ0b2tlbiI6ICJkYWYxNzFlOTAzMGFiYjNlMzAyZGY5ZDc4YjZiMWFhMCIKICAgIH0KfQ==&ip=1 ;fi
 if [ ! -f docker-compose.yml ]
 then
-  echo "Getting docker-compose.yml from the latest stable release"
-  curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | egrep -o '/blockapps/strato-getting-started/releases/download/build-[0-9]*/docker-compose.yml' | wget --base=http://github.com/ -i - -O docker-compose.yml
+  getCompose
 else
   echo -e "${RED}Using the existing docker-compose.yml (to download the latest - remove the file and restart the script)${NC}"
 fi
