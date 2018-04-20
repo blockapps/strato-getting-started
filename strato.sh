@@ -16,8 +16,7 @@ NC='\033[0m'
 
 function wipe {
     echo "Removing STRATO containers and wiping out volumes"
-    docker-compose -f docker-compose.yml -p strato kill
-    docker-compose -f docker-compose.yml -p strato down -v
+    docker-compose -f docker-compose.yml -p strato down -v -t 0
 }
 
 function stop {
