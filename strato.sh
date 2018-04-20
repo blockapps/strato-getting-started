@@ -20,8 +20,7 @@ function wipe {
 }
 
 function stop {
-    echo "Removing STRATO containers"
-    docker-compose -f docker-compose.yml -p strato kill
+    echo "Gently stopping and removing STRATO containers"
     docker-compose -f docker-compose.yml -p strato down
 }
 
