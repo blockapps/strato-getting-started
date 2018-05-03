@@ -139,9 +139,9 @@ echo "SMD_MODE: $(if [ -z ${SMD_MODE} ]; then echo "not set (using default)"; el
 if [ ${single} = true ]
 then
   echo "" && echo -e "${RED}Running single node with lazy mining${NC}"
-  SINGLE_MODE=true
+  export SINGLE_NODE=true
   echo "*** Single-node Config ***"
-  echo "SINGLE_MODE: $SINGLE_MODE"
+  echo "SINGLE_MODE: $SINGLE_NODE"
 else
   # Multi-node config
   export miningAlgorithm="SHA"
