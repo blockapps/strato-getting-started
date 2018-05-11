@@ -44,9 +44,9 @@ To use this guide you will need to have signed up for our Developer Edition Tria
 **Steps to setup and run STRATO Developer Edition using Docker on your machine:**
 
 1. Clone [STRATO Getting Started repo](https://github.com/blockapps/strato-getting-started) using ```git clone``` or download and extract .zip archive. And `chdir` or `cd` into that folder.
-2. Configure docker registry login using the credentials [USER, PASSWORD, REGISTRY] you received via email after your registration for trial:
+2. Copy and paste these credentials into your terminal to login to the Docker container: 
     ```
-    docker login -u <USER> -p <PASSWORD> <REGISTRY>
+    docker login -u blockapps-repo -p P@ssw0rd registry-aws.blockapps.net:5000
     ```
 3. Launch STRATO services:
     - Run:
