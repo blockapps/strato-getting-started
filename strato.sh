@@ -161,7 +161,7 @@ else
     echo "bootnode: $bootnode"
     echo "useSyncMode: $useSyncMode"
   fi
-  if [ -e "genesis-block.json" && -z $genesis ]
+  if [[ -e "genesis-block.json" && -z ${genesis+x} ]]
   then
     export genesisBlock=$(< genesis-block.json)
   fi
