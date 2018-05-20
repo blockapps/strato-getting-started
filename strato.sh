@@ -27,7 +27,7 @@ function stop {
 }
 
 function getCompose {
-  echo "Getting docker-compose.yml from the latest stable release"
+  echo "Downloading the latest stable version of docker-compose.yml"
   curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | egrep -o '/blockapps/strato-getting-started/releases/download/build-[0-9]*/docker-compose.yml' | wget --base=http://github.com/ -i - -O docker-compose.yml
 }
 
@@ -182,7 +182,7 @@ if [ ! -f docker-compose.yml ]
 then
   getCompose
 else
-  echo -e "${RED}Using the existing docker-compose.yml (to download the latest - remove the file and restart the script)${NC}"
+  echo -e "${RED}Using the existing docker-compose.yml (to download the most recent stable version - remove the file and restart the script)${NC}"
 fi
 docker-compose -f docker-compose.yml -p strato up -d
 exit 0;
