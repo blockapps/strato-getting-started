@@ -28,7 +28,7 @@ function stop {
 
 function getCompose {
   echo "Downloading the latest stable version of docker-compose.yml"
-  curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | egrep -o '/blockapps/strato-getting-started/releases/download/build-[0-9]*/docker-compose.yml' | wget --base=http://github.com/ -i - -O docker-compose.yml
+  curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | egrep -o '/blockapps/strato-getting-started/releases/download/.*/docker-compose.yml' | wget --base=http://github.com/ -i - -O docker-compose.yml
 }
 
 function pullImages {
