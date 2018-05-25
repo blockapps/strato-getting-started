@@ -1,20 +1,48 @@
 #!/usr/bin/env bash
-
-# Optional arguments:
-# `--single` - run the single node with lazy mining
-# `--stop` - stop STRATO containers
-# `--wipe` - stop STRATO containers and wipe out volumes
-# `--compose` - fetch the latest stable docker-compose.yml
-# `--pull` - pull images used in docker-compose.yml
-
 set -e
+
+Red='\033[0;31m'
+Yellow='\033[0;33m'
+BYellow='\033[1;33m'
+NC='\033[0m'
 
 mode=${STRATO_GS_MODE:="0"}
 registry="registry-aws.blockapps.net:5000"
 single=false
 
-RED='\033[0;31m'
-NC='\033[0m'
+function outputLogo {
+echo "
+    ____  __           __   ___
+   / __ )/ /___  _____/ /__/   |  ____  ____  _____
+  / __  / / __ \/ ___/ //_/ /| | / __ \/ __ \/ ___/
+ / /_/ / / /_/ / /__/ ,< / ___ |/ /_/ / /_/ (__  )
+/_____/_/\____/\___/_/|_/_/  |_/ .___/ .___/____/
+                              /_/   /_/
+"
+}
+
+function help {
+  outputLogo
+  echo -e "${BYellow}STRATO run script${NC}
+Kickstart the STRATO node.
+
+${Yellow}Optional flags:${NC}
+--help    - this help;
+--single  - run the single node with lazy mining;
+--stop    - stop and remove STRATO containers, keep volumes;
+--wipe    - stop and remove STRATO containers and wipe out volumes;
+--compose - fetch the latest stable docker-compose.yml;
+--pull    - pull images used in docker-compose.yml;
+
+${Yellow}Environment variables:${NC}
+NODE_HOST       - (default: localhost) the hostname or IP of the machine (used for APIs and Dashoboard);
+BOOT_NODE_IP    - IP address of the boot node to connect to (required for secondary node to discover other peers), ignored when used with --single flag;
+ssl             - (default: false) [true|false] to run the node with SSL/TLS;
+sslCertFileType - (default: crt) [pem|crt] the SSL certificate type and file extension (should be accessible in ./ssl/certs/ while deploying);
+authBasic       - (default: true) [true|false] use basic access authentication for dashboard and APIs;
+uiPassword      - (default: admin) the basic auth password for 'admin' user, ignored when used with authBasic=false;
+"
+}
 
 function wipe {
   echo "Removing STRATO containers and wiping out volumes"
@@ -49,12 +77,16 @@ fi
 
 if [[ -f docker-compose.release.yml || -f docker-compose.release.multinode.yml ]]
 then
-  echo -e "${RED}docker-compose.release.yml and docker-compose.release.multinode.yml are deprecated. Please remove or rename to docker-compose.yml. Exiting.${NC}"
+  echo -e "${Red}docker-compose.release.yml and docker-compose.release.multinode.yml are deprecated. Please remove or rename to docker-compose.yml. Exiting.${NC}"
   exit 5
 fi
 
 while [ ${#} -gt 0 ]; do
   case "${1}" in
+  --help|-h)
+    help
+    exit 0
+    ;;
   --stop|-stop)
     stop
     exit 0
@@ -64,7 +96,7 @@ while [ ${#} -gt 0 ]; do
     exit 0
     ;;
   --stable|-stable)
-    echo -e "${RED}--stable flag is now deprecated and is set by default.${NC}"
+    echo -e "${Red}--stable flag is now deprecated and is set by default.${NC}"
     ;;
   -m)
     echo "Mode is set to $2"
@@ -86,14 +118,7 @@ while [ ${#} -gt 0 ]; do
   shift 1
 done
 
-echo "
-    ____  __           __   ___
-   / __ )/ /___  _____/ /__/   |  ____  ____  _____
-  / __  / / __ \/ ___/ //_/ /| | / __ \/ __ \/ ___/
- / /_/ / / /_/ / /__/ ,< / ___ |/ /_/ / /_/ (__  )
-/_____/_/\____/\___/_/|_/_/  |_/ .___/ .___/____/
-                              /_/   /_/
-"
+outputLogo
 
 if ! grep -q "${registry}" ~/.docker/config.json
 then
@@ -138,7 +163,7 @@ echo "SMD_MODE: $(if [ -z ${SMD_MODE} ]; then echo "not set (using default)"; el
 
 if [ ${single} = true ]
 then
-  echo "" && echo -e "${RED}Running single node with lazy mining${NC}"
+  echo "" && echo -e "${BYellow}Running single node with lazy mining${NC}"
   export SINGLE_NODE=true
   echo "*** Single-node Config ***"
   echo "SINGLE_MODE: $SINGLE_NODE"
@@ -182,7 +207,7 @@ if [ ! -f docker-compose.yml ]
 then
   getCompose
 else
-  echo -e "${RED}Using the existing docker-compose.yml (to download the most recent stable version - remove the file and restart the script)${NC}"
+  echo -e "${BYellow}Using the existing docker-compose.yml (to download the most recent stable version - remove the file and restart the script)${NC}"
 fi
 docker-compose -f docker-compose.yml -p strato up -d
 exit 0;
