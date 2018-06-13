@@ -63,6 +63,11 @@ function pullImages {
   docker-compose pull
 }
 
+if [ ! -f $(pwd)/strato.sh ]; then
+    echo -e "${Red}Should be run from within the strato-getting-started directory. Exiting.${NC}"
+    exit 4
+fi
+
 if ! docker ps &> /dev/null
 then
     echo 'Error: docker is required to be installed and configured for non-root users: https://www.docker.com/'
