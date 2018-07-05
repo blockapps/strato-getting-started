@@ -149,6 +149,8 @@ export authBasic=${authBasic:-true}
 export uiPassword=${uiPassword:-}
 export STRATO_GS_MODE=${mode}
 export SMD_MODE=${SMD_MODE}
+export awsAccessKeyId=${awsAccessKeyId}
+export awsSecretAccessKey=${awsSecretAccessKey} 
 
 echo "" && echo "*** Common Config ***"
 echo "NODE_HOST: $NODE_HOST"
@@ -165,6 +167,8 @@ echo "authBasic: $authBasic"
 echo "uiPassword: $(if [ -z ${uiPassword} ]; then echo "not set (using default)"; else echo "is set"; fi)"
 echo "STRATO_GS_MODE: $STRATO_GS_MODE"
 echo "SMD_MODE: $(if [ -z ${SMD_MODE} ]; then echo "not set (using default)"; else echo "${SMD_MODE}"; fi)"
+echo "awsAccessKeyId: $(if [ -z ${awsAccessKeyId} ]; then echo "not set (using default)"; else echo "${awsAccessKeyId}"; fi)"
+echo "awsSecretAccessKey: $(if [ -z ${awsSecretAccessKey} ]; then echo "not set (using default)"; else echo "${awsSecretAccessKey}"; fi)"
 
 if [ ${single} = true ]
 then
