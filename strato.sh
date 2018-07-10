@@ -41,6 +41,9 @@ ssl             - (default: false) [true|false] to run the node with SSL/TLS;
 sslCertFileType - (default: crt) [pem|crt] the SSL certificate type and file extension (should be accessible in ./ssl/certs/ while deploying);
 authBasic       - (default: true) [true|false] use basic access authentication for dashboard and APIs;
 uiPassword      - (default: admin) the basic auth password for 'admin' user, ignored when used with authBasic=false;
+EXT_STORAGE_S3_BUCKET             - enables external storage feature; the AWS S3 bucket name to use as the blockchain data external storage;
+EXT_STORAGE_S3_ACCESS_KEY_ID      - the access key ID for AWS S3 bucket provided;
+EXT_STORAGE_S3_SECRET_ACCESS_KEY  - the secret access key for AWS S3 bucket provided;
 "
 }
 
@@ -148,7 +151,18 @@ export APEX_URL=${APEX_URL:-${http_protocol}://$NODE_HOST/apex-api}
 export authBasic=${authBasic:-true}
 export uiPassword=${uiPassword:-}
 export STRATO_GS_MODE=${mode}
-export SMD_MODE=${SMD_MODE}
+export SMD_MODE=${SMD_MODE:-enterprise}
+
+if [ "$SMD_MODE" = "enterprise" ] && [ -n "${EXT_STORAGE_S3_BUCKET}" ]; then
+  if [[ -z ${EXT_STORAGE_S3_ACCESS_KEY_ID} || -z ${EXT_STORAGE_S3_SECRET_ACCESS_KEY} ]]; then
+    echo -e "${Red}The external storage S3 bucket name is provided but one of the credentials is empty. Expected all or none of [EXT_STORAGE_S3_BUCKET, EXT_STORAGE_S3_ACCESS_KEY_ID, EXT_STORAGE_S3_SECRET_ACCESS_KEY]. Exiting.${NC}"
+    exit 6
+  else
+    export EXT_STORAGE_S3_BUCKET=${EXT_STORAGE_S3_BUCKET}
+    export EXT_STORAGE_S3_ACCESS_KEY_ID=${EXT_STORAGE_S3_ACCESS_KEY_ID}
+    export EXT_STORAGE_S3_SECRET_ACCESS_KEY=${EXT_STORAGE_S3_SECRET_ACCESS_KEY}
+  fi
+fi
 
 echo "" && echo "*** Common Config ***"
 echo "NODE_HOST: $NODE_HOST"
@@ -164,7 +178,10 @@ echo "APEX_URL: $APEX_URL"
 echo "authBasic: $authBasic"
 echo "uiPassword: $(if [ -z ${uiPassword} ]; then echo "not set (using default)"; else echo "is set"; fi)"
 echo "STRATO_GS_MODE: $STRATO_GS_MODE"
-echo "SMD_MODE: $(if [ -z ${SMD_MODE} ]; then echo "not set (using default)"; else echo "${SMD_MODE}"; fi)"
+echo "SMD_MODE: $SMD_MODE"
+echo "EXT_STORAGE_S3_BUCKET: ${EXT_STORAGE_S3_BUCKET:-not set}"
+echo "EXT_STORAGE_S3_ACCESS_KEY_ID: $(if [ -z ${EXT_STORAGE_S3_ACCESS_KEY_ID} ]; then echo "not set"; else echo "is set"; fi)"
+echo "EXT_STORAGE_S3_SECRET_ACCESS_KEY: $(if [ -z ${EXT_STORAGE_S3_SECRET_ACCESS_KEY} ]; then echo "not set"; else echo "is set"; fi)"
 
 if [ ${single} = true ]
 then
