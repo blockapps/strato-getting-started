@@ -122,6 +122,10 @@ while [ ${#} -gt 0 ]; do
     pullImages
     exit 0
     ;;
+  *)
+    echo "Unknown flag ${1} provided, please check --help"
+    exit 7
+    ;;
   esac
   shift 1
 done
