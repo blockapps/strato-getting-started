@@ -49,12 +49,12 @@ EXT_STORAGE_S3_SECRET_ACCESS_KEY  - the secret access key for AWS S3 bucket prov
 
 function wipe {
   echo "Removing STRATO containers and wiping out volumes"
-  docker-compose -f docker-compose.yml -p strato down -v -t 0
+  docker-compose -f docker-compose.yml -p strato down -v -t 0 --remove-orphans
 }
 
 function stop {
   echo "Gently stopping and removing STRATO containers"
-  docker-compose -f docker-compose.yml -p strato down
+  docker-compose -f docker-compose.yml -p strato down --remove-orphans
 }
 
 function getCompose {
