@@ -235,5 +235,5 @@ then
 else
   echo -e "${BYellow}Using the existing docker-compose.yml (to download the most recent stable version - remove the file and restart the script)${NC}"
 fi
-docker-compose -f docker-compose.yml -p strato up -d
+docker-compose -f docker-compose.yml -p strato up -d --remove-orphans
 exit 0;
