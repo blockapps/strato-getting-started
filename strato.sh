@@ -7,7 +7,6 @@ BYellow='\033[1;33m'
 NC='\033[0m'
 
 mode=${STRATO_GS_MODE:="0"}
-registry="registry-aws.blockapps.net:5000"
 single=false
 
 function outputLogo {
@@ -131,15 +130,6 @@ while [ ${#} -gt 0 ]; do
 done
 
 outputLogo
-
-if ! grep -q "${registry}" ~/.docker/config.json
-then
-  echo "Please login to BlockApps Public Registry first:"
-  echo "1) Register for access to STRATO Developer Edition trial here: http://developers.blockapps.net/trial"
-  echo "2) Follow the instructions from the registration email to login to BlockApps Public Registry;"
-  echo "3) Run this script again"
-  exit 3
-fi
 
 export NODE_HOST=${NODE_HOST:-localhost}
 export ssl=${ssl:-false}
