@@ -26,12 +26,12 @@ function help {
 Kickstart the STRATO node.
 
 ${Yellow}Optional flags:${NC}
---help    - this help;
---single  - run the single node with lazy mining;
---stop    - stop and remove STRATO containers, keep volumes;
---wipe    - stop and remove STRATO containers and wipe out volumes;
---compose - fetch the latest stable docker-compose.yml;
---pull    - pull images used in docker-compose.yml;
+--help|-h         - this help;
+--single|--lazy   - run the single node with lazy mining;
+--stop            - stop and remove STRATO containers, keep volumes;
+--wipe            - stop and remove STRATO containers and wipe out volumes;
+--compose         - fetch the latest stable docker-compose.yml;
+--pull            - pull images used in docker-compose.yml;
 
 ${Yellow}Environment variables:${NC}
 NODE_HOST       - (default: localhost) the hostname or IP of the machine (used for APIs and Dashoboard);
@@ -94,15 +94,15 @@ while [ ${#} -gt 0 ]; do
     help
     exit 0
     ;;
-  --stop|-stop)
+  --stop)
     stop
     exit 0
     ;;
-  --wipe|-wipe)
+  --wipe)
     wipe
     exit 0
     ;;
-  --stable|-stable)
+  --stable)
     echo -e "${Red}--stable flag is now deprecated and is set by default.${NC}"
     ;;
   -m)
@@ -110,14 +110,14 @@ while [ ${#} -gt 0 ]; do
     mode="$2"
     shift
     ;;
-  --single|-single)
+  --single|--lazy)
     single=true
     ;;
-  --compose|-compose)
+  --compose)
     getCompose
     exit 0
     ;;
-  --pull|-pull)
+  --pull)
     pullImages
     exit 0
     ;;
