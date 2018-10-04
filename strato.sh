@@ -231,7 +231,7 @@ fi
 
 # PARAMETERS VALIDATION
 if [ ${HTTP_PORT} = ${HTTPS_PORT} ]; then
-  echo -e "${Red}Can not map HTTP and HTTPS listeners to same port (${HTTP_PORT})${NC}"
+  echo -e "${Red}Can not bind HTTP and HTTPS listeners to same port (${HTTP_PORT})${NC}"
   exit 7
 fi
 # Make sure NODE_HOST contains port if custom port is provided
