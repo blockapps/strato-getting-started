@@ -36,6 +36,8 @@ ${Yellow}Optional flags:${NC}
 ${Yellow}Environment variables:${NC}
 NODE_HOST       - (default: localhost) the hostname or IP of the machine (used for APIs and Dashoboard);
 BOOT_NODE_IP    - IP address of the boot node to connect to (required for secondary node to discover other peers), ignored when used with --single flag;
+HTTP_PORT       - (default: 80) Port for HTTP traffic listener;
+HTTPS_PORT      - (default: 443) Port for HTTPS traffic listener; only used with ssl=true;
 ssl             - (default: false) [true|false] to run the node with SSL/TLS;
 sslCertFileType - (default: crt) [pem|crt] the SSL certificate type and file extension (should be accessible in ./ssl/certs/ while deploying);
 authBasic       - (default: true) [true|false] use basic access authentication for dashboard and APIs;
@@ -132,8 +134,16 @@ done
 outputLogo
 
 export NODE_HOST=${NODE_HOST:-localhost}
+export HTTP_PORT=${HTTP_PORT:-80}
+export HTTPS_PORT=${HTTPS_PORT:-443}
 export ssl=${ssl:-false}
-if [ "$ssl" = true ] ; then export http_protocol=https; else export http_protocol=http; fi
+if [ "$ssl" = true ] ; then
+  http_protocol=https
+  main_port=${HTTPS_PORT}
+else
+  http_protocol=http;
+  main_port=${HTTP_PORT}
+fi
 export sslCertFileType=${sslCertFileType:-crt}
 export NODE_NAME=${NODE_NAME:-$NODE_HOST}
 export BLOC_URL=${BLOC_URL:-${http_protocol}://$NODE_HOST/bloc/v2.2}
@@ -160,6 +170,8 @@ fi
 
 echo "" && echo "*** Common Config ***"
 echo "NODE_HOST: $NODE_HOST"
+echo "HTTP_PORT: $HTTP_PORT"
+echo "HTTPS_PORT: $HTTPS_PORT"
 echo "ssl: $ssl"
 echo "sslCertFileType: $sslCertFileType"
 echo "NODE_NAME: $NODE_NAME"
@@ -217,6 +229,18 @@ else
   echo "${genesisBlock}"
 fi
 
+# PARAMETERS VALIDATION
+if [ ${HTTP_PORT} = ${HTTPS_PORT} ]; then
+  echo -e "${Red}Can not bind HTTP and HTTPS listeners to same port (${HTTP_PORT})${NC}"
+  exit 7
+fi
+# Make sure NODE_HOST contains port if custom port is provided
+if [ ${main_port} != "80" ] && [ ${main_port} != "443" ] && [[ ${NODE_HOST} != *":${main_port}" ]]; then
+  echo -e "${Red}NODE_HOST should contain the port if custom port is set with HTTP_PORT (for non-ssl) or HTTPS_PORT (for ssl). Expected: NODE_HOST=hostname:${main_port}${NC}"
+  exit 8
+fi
+## END OF PARAMETERS VALIDATION
+
 # enable MixPanel metrics
 if [ "$mode" != "1" ] ; then curl --silent --output /dev/null --fail --location http://api.mixpanel.com/track/?data=ewogICAgImV2ZW50IjogInN0cmF0b19nc19pbml0IiwKICAgICJwcm9wZXJ0aWVzIjogewogICAgICAgICJ0b2tlbiI6ICJkYWYxNzFlOTAzMGFiYjNlMzAyZGY5ZDc4YjZiMWFhMCIKICAgIH0KfQ==&ip=1; fi
 if [ ! -f docker-compose.yml ]
@@ -225,5 +249,21 @@ then
 else
   echo -e "${BYellow}Using the existing docker-compose.yml (to download the most recent stable version - remove the file and restart the script)${NC}"
 fi
-docker-compose -f docker-compose.yml -p strato up -d --remove-orphans
-exit 0;
+
+# COMPOSE FILE PRE-PROCESSING
+function cleanup {
+  rm docker-compose-temp.yml
+}
+trap cleanup EXIT
+if [ "$ssl" != true ]; then
+  sed -n '/#TAG_REMOVE_WHEN_NO_SSL/!p' docker-compose.yml > docker-compose-temp.yml
+else
+  if [ ${HTTPS_PORT} != "443" ]; then
+    sed -n '/#TAG_REMOVE_WHEN_SSL_CUSTOM_HTTPS_PORT/!p' docker-compose.yml > docker-compose-temp.yml
+  else
+    cp docker-compose.yml docker-compose-temp.yml
+  fi
+fi
+# END OF COMPOSE FILE PRE-PROCESSING
+
+docker-compose -f docker-compose-temp.yml -p strato up -d --remove-orphans
