@@ -125,7 +125,10 @@ while [ ${#} -gt 0 ]; do
     exit 0
     ;;
   --keygen)
-    docker run --entrypoint=keygen ${STRATO_IMAGE:-registry-aws.blockapps.net:5000/blockapps/strato:4.1.0} --count=$2
+    if [ ! -f docker-compose.yml ]; then getCompose; fi
+    DC_STRATO_IMAGE=$(cat docker-compose.yml | grep "STRATO_IMAGE" | sed -e "s/.*:-//" -e "s/}//")
+    docker run --entrypoint=keygen ${STRATO_IMAGE:-$DC_STRATO_IMAGE} --count=$2
+    shift
     exit 0
     ;;
   *)
