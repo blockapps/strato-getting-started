@@ -32,7 +32,8 @@ ${Yellow}Optional flags:${NC}
 --wipe            - stop and remove STRATO containers and wipe out volumes;
 --compose         - fetch the latest stable docker-compose.yml;
 --pull            - pull images used in docker-compose.yml;
---keygen <n>      - Generate n private keys and their addresses for PBFT;
+--scriptgen       - generate PBFT nodes kickstart script files based on node list in node-list.json
+--keygen=N        - Generate n private keys and their addresses for PBFT;
 
 ${Yellow}Environment variables:${NC}
 NODE_HOST       - (default: localhost) the hostname or IP of the machine (used for APIs and Dashoboard);
@@ -66,6 +67,10 @@ function getCompose {
 
 function pullImages {
   docker-compose pull
+}
+
+function generatePbftScripts {
+  python scriptgen.py
 }
 
 if [ ! -f $(pwd)/strato.sh ]; then
@@ -124,11 +129,18 @@ while [ ${#} -gt 0 ]; do
     pullImages
     exit 0
     ;;
-  --keygen)
+  --keygen=*)
     if [ ! -f docker-compose.yml ]; then getCompose; fi
     DC_STRATO_IMAGE=$(cat docker-compose.yml | grep "STRATO_IMAGE" | sed -e "s/.*:-//" -e "s/}//")
-    docker run --entrypoint=keygen ${STRATO_IMAGE:-$DC_STRATO_IMAGE} --count=$2
-    shift
+    docker run --entrypoint=keygen ${STRATO_IMAGE:-$DC_STRATO_IMAGE} --count="${1#*=}"
+    exit 0
+    ;;
+  --keygen)
+    echo "Error: '--keygen N' syntax is deprecated. Use '--keygen=N' instead."
+    exit 1
+    ;;
+  --scriptgen)
+    generatePbftScripts
     exit 0
     ;;
   *)
