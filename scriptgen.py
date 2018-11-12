@@ -67,7 +67,7 @@ if __name__ == "__main__":
     validators = keys_json['all_validators']
 
     if os.path.exists(output_directory) and len(os.listdir(output_directory)):
-        print("Output directory {0}/ exists and not empty.\nAre you sure you want to remove it? (y/n):")
+        print("Output directory {0}/ exists and not empty.\nAre you sure you want to remove it? (y/n):".format(output_directory))
         choice = raw_input().lower()
         if choice in {'yes','y'}:
             shutil.rmtree(output_directory)
