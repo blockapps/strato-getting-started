@@ -1,3 +1,4 @@
 .idea
 docker-compose*
 my-node-scripts
+node-list.json
