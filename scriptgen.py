@@ -4,6 +4,7 @@ import json
 import os
 import re
 import shutil
+import socket
 import sys
 
 from subprocess import check_output
@@ -44,19 +45,40 @@ def get_strato_image_name():
     print('STRATO image used: {0}'.format(strato_image))
     return strato_image
 
+def process_records(records):
+    processed_records = []
+    for record in records:
+        if 'ip' not in record:
+            if 'host' not in record:
+                raise ValueError('ERROR: node record does not have neither host nor ip: {0}'.format(json.dumps(record)))
+            else:
+                try:
+                    record['ip'] = socket.gethostbyname(record['host'])
+                    print('IP address of {0} was resolved as {1}'.format(record['host'], record['ip']))
+                except Exception, e:
+                    print('ERROR: Failed to resolve IP of host `{0}`. Error message: {1}'.format(record['host'], e))
+                    sys.exit(4)
+
+        elif 'host' not in record:
+            record['host'] = record['ip']
+        processed_records.append(record)
+    return processed_records
 
 if __name__ == "__main__":
-    # TODO: try-catch json load
     try:
         with open(node_list_file) as file:
-            nodes = json.load(file)
+            node_records = json.load(file)
     except:
         print('Error: Unable to parse JSON in {0}'.format(node_list_file))
         sys.exit(2)
-    if not nodes:
+    if not node_records:
         print('ERROR: no nodes found in {0}'.format(node_list_file))
         sys.exit(3)
-    num_hosts = len(nodes)
+    num_hosts = len(node_records)
+
+    nodes = process_records(node_records)
+    print('Resulting node list: {0}'.format(json.dumps(nodes)))
+
     common_boot_ip = nodes[0]['ip'] if num_hosts > 1 else None
     other_boot_ip = nodes[1]['ip'] if num_hosts > 1 else None
     strato_image = get_strato_image_name()
@@ -64,20 +86,16 @@ if __name__ == "__main__":
     print(keys_bytes.decode('utf-8'))
     keys_json = json.loads(keys_bytes.decode('utf-8'))
 
+    if os.path.exists(output_directory):
+        shutil.rmtree(output_directory)
+
     validators = keys_json['all_validators']
 
-    if os.path.exists(output_directory) and len(os.listdir(output_directory)):
-        print("Output directory {0}/ exists and not empty.\nAre you sure you want to remove it? (y/n):".format(output_directory))
-        choice = raw_input().lower()
-        if choice in {'yes','y'}:
-            shutil.rmtree(output_directory)
-        else:
-            print('Error: Output directory {0}/ is not empty and removal was not confirmed by the user'.format(output_directory))
-            sys.exit(2)
-    os.makedirs(output_directory)
-
     for (node, key_address_pair) in zip(nodes, keys_json['key_address_pairs']):
-        with open(os.path.join(output_directory, '{0}_run.sh'.format(node['ip'].strip())), 'w') as file:
+        node_dir = os.path.join(output_directory, node['host'].strip())
+        os.makedirs(node_dir)
+        file_path = os.path.join(node_dir, 'run.sh')
+        with open(file_path, 'w') as file:
             file.write(
                 format_script(
                     key_address_pair['address'],
@@ -88,5 +106,6 @@ if __name__ == "__main__":
                     validators
                 )
             )
+        os.chmod(file_path, 0775)
 
     print('Successfully finished. Check {0}/ directory for scripts'.format(output_directory))
