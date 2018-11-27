@@ -20,7 +20,6 @@ def format_script(address, ip, host, boot_node_ip, prvkey, vals):
 NODE_HOST="{2}" \\
   BOOT_NODE_IP="{3}" \\
   blockstanbulPrivateKey="{4}" \\
-  seqDebugMode="${{seqDebugMode:-true}}" \\
   blockstanbul="${{blockstanbul:-true}}" \\
   validators='{5}' \\
   ./strato""" \
