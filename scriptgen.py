@@ -20,9 +20,8 @@ def format_script(address, ip, host, boot_node_ip, prvkey, vals):
 NODE_HOST="{2}" \\
   BOOT_NODE_IP="{3}" \\
   blockstanbulPrivateKey="{4}" \\
-  blockstanbul="${{blockstanbul:-true}}" \\
   validators='{5}' \\
-  ./strato""" \
+  ./strato --blockstanbul""" \
             .format(address, ip, host.strip(), boot_node_ip.strip() if boot_node_ip else '', prvkey, json.dumps(vals, separators=(',', ':')))
     # Single node deployment workaround - remove BOOT_NODE_IP line
     if not boot_node_ip:
