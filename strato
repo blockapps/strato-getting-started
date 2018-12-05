@@ -36,7 +36,7 @@ Provide no entrypoint to start STRATO node.
 --wipe      - stop and remove STRATO containers and wipe out volumes;
 --compose   - fetch the latest stable docker-compose.yml;
 --pull      - pull images used in docker-compose.yml;
---scriptgen - generate PBFT-blockstanbul nodes kickstart script files based on node list in node-list.json
+--scriptgen - generate kickstart script files for PBFT-blockstanbul nodes based on node list in node-list.json
 --keygen=N  - alternative way to generate keys for PBFT-blockstanbul - generate and output N private keys and their addresses;
 
 ${Yellow}Optional flags for STRATO:${NC}
