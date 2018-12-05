@@ -37,7 +37,7 @@ Provide no entrypoint to start STRATO node.
 --compose   - fetch the latest stable docker-compose.yml;
 --pull      - pull images used in docker-compose.yml;
 --scriptgen - generate PBFT-blockstanbul nodes kickstart script files based on node list in node-list.json
---keygen=N  - Generate N private keys and their addresses for PBFT-blockstanbul;
+--keygen=N  - alternative way to generate keys for PBFT-blockstanbul - generate and output N private keys and their addresses;
 
 ${Yellow}Optional flags for STRATO:${NC}
 --single              - run the single PBFT-blockstanbul node
