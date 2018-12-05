@@ -26,19 +26,23 @@ function help {
   echo -e "${BYellow}STRATO run script${NC}
 Kickstart the STRATO node.
 
-${Yellow}Optional flags:${NC}
---help|-h             - this help;
+${Yellow}Alternative entrypoints:${NC}
+The entrypoints are mutually exclusive.
+Provide no entrypoint to start STRATO node.
+--help|-h   - this help;
+--stop      - stop STRATO containers (keeps containers and volumes);
+--start     - start the existing STRATO containers after they were stopped (the opposite to --stop)
+--remove    - stop and remove STRATO containers but keep volumes (useful for STRATO upgrade - to resync with network);
+--wipe      - stop and remove STRATO containers and wipe out volumes;
+--compose   - fetch the latest stable docker-compose.yml;
+--pull      - pull images used in docker-compose.yml;
+--scriptgen - generate PBFT-blockstanbul nodes kickstart script files based on node list in node-list.json
+--keygen=N  - Generate N private keys and their addresses for PBFT-blockstanbul;
+
+${Yellow}Optional flags for STRATO:${NC}
 --single              - run the single PBFT-blockstanbul node
 --lazy                - run the the lazy mining node (single);
 --blockstanbul|--pbft - run the PBFT-blockstanbul node - equal to env var blockstanbul=true; requires additional env vars (blockstanbulPrivateKey, validators)
---stop                - stop STRATO containers (keeps containers and volumes);
---start               - start the existing STRATO containers after they were stopped (the opposite to --stop)
---remove              - stop and remove STRATO containers but keep volumes (useful for STRATO upgrade - to resync with network);
---wipe                - stop and remove STRATO containers and wipe out volumes;
---compose             - fetch the latest stable docker-compose.yml;
---pull                - pull images used in docker-compose.yml;
---scriptgen           - generate PBFT-blockstanbul nodes kickstart script files based on node list in node-list.json
---keygen=N            - Generate n private keys and their addresses for PBFT;
 
 ${Yellow}Environment variables:${NC}
 blockstanbulPrivateKey  - the private key for PBFT-blockstanbul node (ignored for --single; check --keygen=N or --scriptgen to generate)
