@@ -7,7 +7,8 @@ BYellow='\033[1;33m'
 NC='\033[0m'
 
 mode=${STRATO_GS_MODE:="0"}
-single=false
+node_type=multi
+blockstanbul=${blockstanbul:-false}
 
 function outputLogo {
 echo "
@@ -25,17 +26,27 @@ function help {
   echo -e "${BYellow}STRATO run script${NC}
 Kickstart the STRATO node.
 
-${Yellow}Optional flags:${NC}
---help|-h         - this help;
---single|--lazy   - run the single node with lazy mining;
---stop            - stop and remove STRATO containers, keep volumes;
---wipe            - stop and remove STRATO containers and wipe out volumes;
---compose         - fetch the latest stable docker-compose.yml;
---pull            - pull images used in docker-compose.yml;
---scriptgen       - generate PBFT nodes kickstart script files based on node list in node-list.json
---keygen=N        - Generate n private keys and their addresses for PBFT;
+${Yellow}Alternative entrypoints:${NC}
+The entrypoints are mutually exclusive.
+Provide no entrypoint to start STRATO node.
+--help|-h   - this help;
+--stop      - stop STRATO containers (keeps containers and volumes);
+--start     - start the existing STRATO containers after they were stopped (the opposite to --stop)
+--remove    - stop and remove STRATO containers but keep volumes (useful for STRATO upgrade - to resync with network);
+--wipe      - stop and remove STRATO containers and wipe out volumes;
+--compose   - fetch the latest stable docker-compose.yml;
+--pull      - pull images used in docker-compose.yml;
+--scriptgen - generate kickstart script files for PBFT-blockstanbul nodes based on node list in node-list.json
+--keygen=N  - alternative way to generate keys for PBFT-blockstanbul - generate and output N private keys and their addresses;
+
+${Yellow}Optional flags for STRATO:${NC}
+--single              - run the single PBFT-blockstanbul node
+--lazy                - run the the lazy mining node (single);
+--blockstanbul|--pbft - run the PBFT-blockstanbul node - equal to env var blockstanbul=true; requires additional env vars (blockstanbulPrivateKey, validators)
 
 ${Yellow}Environment variables:${NC}
+blockstanbulPrivateKey  - the private key for PBFT-blockstanbul node (ignored for --single; check --keygen=N or --scriptgen to generate)
+validators      - the list of validators addresses for PBFT-blockstanbul node (ignored for --single; check --keygen=N or --scriptgen to generate)
 NODE_HOST       - (default: localhost) the hostname or IP of the machine (used for APIs and Dashoboard);
 BOOT_NODE_IP    - IP address of the boot node to connect to (required for secondary node to discover other peers), ignored when used with --single flag;
 HTTP_PORT       - (default: 80) Port for HTTP traffic listener;
@@ -51,17 +62,27 @@ EXT_STORAGE_S3_SECRET_ACCESS_KEY  - the secret access key for AWS S3 bucket prov
 }
 
 function wipe {
-  echo "Removing STRATO containers and wiping out volumes"
+  echo -e "${Yellow}Removing STRATO containers and wiping out volumes${NC}"
   docker-compose -f docker-compose.yml -p strato down -v -t 0 --remove-orphans
 }
 
-function stop {
-  echo "Gently stopping and removing STRATO containers"
+function remove {
+  echo -e "${Yellow}Gently stopping and removing STRATO containers, keeping volumes${NC}"
   docker-compose -f docker-compose.yml -p strato down --remove-orphans
 }
 
+function stop {
+  echo -e "${Yellow}Gently stopping STRATO containers${NC}"
+  docker-compose -f docker-compose.yml -p strato stop
+}
+
+function start {
+  echo -e "${Yellow}Starting the earlier stopped STRATO containers${NC}"
+  docker-compose -f docker-compose.yml -p strato start
+}
+
 function getCompose {
-  echo "Downloading the latest stable version of docker-compose.yml"
+  echo -e "${Yellow}Downloading the latest stable version of docker-compose.yml${NC}"
   curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | egrep -o '/blockapps/strato-getting-started/releases/download/.*/docker-compose.yml' | wget --base=http://github.com/ -i - -O docker-compose.yml
 }
 
@@ -69,30 +90,36 @@ function pullImages {
   docker-compose pull
 }
 
+function keygen {
+  if [ ! -f docker-compose.yml ]; then getCompose; fi
+  DC_STRATO_IMAGE=$(cat docker-compose.yml | grep "STRATO_IMAGE" | sed -e "s/.*:-//" -e "s/}//")
+  docker run --entrypoint=keygen ${STRATO_IMAGE:-$DC_STRATO_IMAGE} --count="$1"
+}
+
 function generatePbftScripts {
   python scriptgen.py
 }
 
 if [ ! -f $(pwd)/strato.sh ]; then
-    echo -e "${Red}Should be run from within the strato-getting-started directory. Exiting.${NC}"
+    echo -e "${Red}Should be run from within the strato-getting-started directory. Exit.${NC}"
     exit 4
 fi
 
 if ! docker ps &> /dev/null
 then
-    echo 'Error: docker is required to be installed and configured for non-root users: https://www.docker.com/'
+    echo -e "${Red}Error: docker is required to be installed and configured for non-root users: https://www.docker.com/${NC}"
     exit 1
 fi
 
 if ! docker-compose -v &> /dev/null
 then
-    echo 'Error: docker-compose is required: https://docs.docker.com/compose/install/'
+    echo -e "${Red}Error: docker-compose is required: https://docs.docker.com/compose/install/"
     exit 2
 fi
 
 if [[ -f docker-compose.release.yml || -f docker-compose.release.multinode.yml ]]
 then
-  echo -e "${Red}docker-compose.release.yml and docker-compose.release.multinode.yml are deprecated. Please remove or rename to docker-compose.yml. Exiting.${NC}"
+  echo -e "${Red}docker-compose.release.yml and docker-compose.release.multinode.yml are deprecated. Please remove or rename to docker-compose.yml. Exit.${NC}"
   exit 5
 fi
 
@@ -106,20 +133,34 @@ while [ ${#} -gt 0 ]; do
     stop
     exit 0
     ;;
+  --start)
+    start
+    exit 0
+    ;;
+  --remove)
+    remove
+    exit 0
+    ;;
   --wipe)
     wipe
     exit 0
     ;;
   --stable)
-    echo -e "${Red}--stable flag is now deprecated and is set by default.${NC}"
+    echo -e "${Red}--stable flag is deprecated. Exit.${NC}"
     ;;
   -m)
     echo "Mode is set to $2"
     mode="$2"
     shift
     ;;
-  --single|--lazy)
-    single=true
+  --blockstanbul|pbft)
+    blockstanbul=true
+    ;;
+  --single)
+    node_type=single
+    ;;
+  --lazy)
+    node_type=lazy
     ;;
   --compose)
     getCompose
@@ -130,13 +171,11 @@ while [ ${#} -gt 0 ]; do
     exit 0
     ;;
   --keygen=*)
-    if [ ! -f docker-compose.yml ]; then getCompose; fi
-    DC_STRATO_IMAGE=$(cat docker-compose.yml | grep "STRATO_IMAGE" | sed -e "s/.*:-//" -e "s/}//")
-    docker run --entrypoint=keygen ${STRATO_IMAGE:-$DC_STRATO_IMAGE} --count="${1#*=}"
+    keygen "${1#*=}"
     exit 0
     ;;
   --keygen)
-    echo "Error: '--keygen N' syntax is deprecated. Use '--keygen=N' instead."
+    echo -e "${Red}'--keygen N' syntax is deprecated. Use '--keygen=N' instead. Exit.${NC}"
     exit 1
     ;;
   --scriptgen)
@@ -144,7 +183,7 @@ while [ ${#} -gt 0 ]; do
     exit 0
     ;;
   *)
-    echo "Unknown flag ${1} provided, please check --help"
+    echo -e "${Red}Unknown flag ${1} provided, please check --help. Exit.${NC}"
     exit 7
     ;;
   esac
@@ -179,7 +218,7 @@ export SMD_MODE=${SMD_MODE:-enterprise}
 
 if [ "$SMD_MODE" = "enterprise" ] && [ -n "${EXT_STORAGE_S3_BUCKET}" ]; then
   if [[ -z ${EXT_STORAGE_S3_ACCESS_KEY_ID} || -z ${EXT_STORAGE_S3_SECRET_ACCESS_KEY} ]]; then
-    echo -e "${Red}The external storage S3 bucket name is provided but one of the credentials is empty. Expected all or none of [EXT_STORAGE_S3_BUCKET, EXT_STORAGE_S3_ACCESS_KEY_ID, EXT_STORAGE_S3_SECRET_ACCESS_KEY]. Exiting.${NC}"
+    echo -e "${Red}The external storage S3 bucket name is provided but one of the credentials is empty. Expected all or none of [EXT_STORAGE_S3_BUCKET, EXT_STORAGE_S3_ACCESS_KEY_ID, EXT_STORAGE_S3_SECRET_ACCESS_KEY]. Exit.${NC}"
     exit 6
   else
     export EXT_STORAGE_S3_BUCKET=${EXT_STORAGE_S3_BUCKET}
@@ -209,30 +248,75 @@ echo "EXT_STORAGE_S3_BUCKET: ${EXT_STORAGE_S3_BUCKET:-not set}"
 echo "EXT_STORAGE_S3_ACCESS_KEY_ID: $(if [ -z ${EXT_STORAGE_S3_ACCESS_KEY_ID} ]; then echo "not set"; else echo "is set"; fi)"
 echo "EXT_STORAGE_S3_SECRET_ACCESS_KEY: $(if [ -z ${EXT_STORAGE_S3_SECRET_ACCESS_KEY} ]; then echo "not set"; else echo "is set"; fi)"
 
-if [ ${single} = true ]
+if [ ${node_type} = lazy ]
 then
   echo "" && echo -e "${BYellow}Running single node with lazy mining${NC}"
+
+  if [ ${blockstanbul} = true ]; then
+    echo -e "${Red}--lazy is incompatible with blockstanbul. Exit.${NC}"
+    exit 10
+  fi
+
+  export lazyBlocks=true
   export SINGLE_NODE=true
-  echo "*** Single-node Config ***"
-  echo "SINGLE_MODE: $SINGLE_NODE"
-else
-  # Multi-node config
-  export miningAlgorithm="SHA"
-  export lazyBlocks=false
-  export noMinPeers=true # Legacy 0.3.5 support
-  export numMinPeers=${numMinPeers:-5}
-  echo "" && echo "*** Multi-node Config ***"
-  echo "miningAlgorithm: $miningAlgorithm"
+
+  echo "*** Lazy node Config ***"
   echo "lazyBlocks: $lazyBlocks"
-  echo "noMinPeers(legacy for v0.3.5-): $noMinPeers"
-  echo "numMinPeers: $numMinPeers"
+  echo "SINGLE_MODE: $SINGLE_NODE"
+
+elif [ ${node_type} = single ]
+then
+  echo "" && echo -e "${BYellow}Running single node with PBFT-blockstanbul${NC}"
+  keys_json=$(keygen 1)
+  export blockstanbul=true
+  export blockstanbulPrivateKey="$(echo "${keys_json}" | grep \"private_key\" | awk -F'"' '{ print $4 }')"
+  export validators="[\"$(echo "${keys_json}" | grep \"address\" | awk -F'"' '{ print $4 }')\"]"
+  export lazyBlocks=false
+  export SINGLE_NODE=true
+
+  echo "*** Single-node Config ***"
+  echo "blockstanbul: $blockstanbul"
+  echo "blockstanbulPrivateKey: *** (is set)"
+  echo "lazyBlocks: $lazyBlocks"
+  echo "SINGLE_MODE: $SINGLE_NODE"
+  echo "validators: $validators"
+
+else
+  if [ ${blockstanbul} = true ]
+  then
+    echo "" && echo -e "${BYellow}Running node with PBFT-blockstanbul${NC}"
+
+    if [[ -z ${blockstanbulPrivateKey+x} || -z ${validators+x} ]]; then
+      echo -e "${Red}blockstanbul requires values in 'blockstanbulPrivateKey' and 'validators'. Check --help for --keygen=N and --scriptgen flags${NC}"
+      exit 9
+    fi
+
+    echo "blockstanbulPrivateKey: *** (is set)"
+    echo "validators: $validators"
+  else
+    echo "" && echo -e "${BYellow}Running node with Proof-of-Work${NC}"
+
+    export miningAlgorithm="SHA"
+    export noMinPeers=true # Legacy 0.3.5 support
+    export numMinPeers=${numMinPeers:-5}
+
+    echo "miningAlgorithm: $miningAlgorithm"
+    echo "noMinPeers(legacy for v0.3.5-): $noMinPeers"
+    echo "numMinPeers: $numMinPeers"
+  fi
+
+  export lazyBlocks=false
+  echo "lazyBlocks: $lazyBlocks"
+
   BOOT_NODE_IP=${BOOT_NODE_IP:-${BOOT_NODE_HOST}} # Backwards compatibility for old deprecated BOOT_NODE_HOST var name
   if [ -n "$BOOT_NODE_IP" ]
   then
     export bootnode=${BOOT_NODE_IP}
-    export useSyncMode=true # sync before mining
     echo "bootnode: $bootnode"
-    echo "useSyncMode: $useSyncMode"
+    if [ ${blockstanbul} != true ]; then
+      export useSyncMode=true # sync before mining
+      echo "useSyncMode: $useSyncMode"
+    fi
   fi
   if [[ -e "genesis-block.json" && -z ${genesis+x} ]]
   then
