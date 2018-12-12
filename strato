@@ -291,6 +291,7 @@ else
       exit 9
     fi
 
+    export blockstanbul=true
     echo "blockstanbulPrivateKey: *** (is set)"
     echo "validators: $validators"
   else
