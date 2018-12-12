@@ -1,5 +1,9 @@
 # STRATO Getting Started release notes
 
+## 2.6.1
+
+- export blockstabul variable hotfix
+
 ## 2.6.0
 
 - `--single` now runs a solo PBFT-blockstanbul node
