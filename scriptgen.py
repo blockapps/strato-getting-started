@@ -12,17 +12,26 @@ from subprocess import check_output
 node_list_file = 'node-list.json'
 output_directory = 'my-node-scripts'
 
-def format_script(address, ip, host, boot_node_ip, prvkey, vals):
+def format_script(address, ip, host, port, boot_node_ip, prvkey, vals):
     output = """\
 #!/usr/bin/env sh
-# Address: {0}
-# IP: {1}
-NODE_HOST="{2}" \\
-  BOOT_NODE_IP="{3}" \\
-  blockstanbulPrivateKey="{4}" \\
-  validators='{5}' \\
-  ./strato --blockstanbul""" \
-            .format(address, ip, host.strip(), boot_node_ip.strip() if boot_node_ip else '', prvkey, json.dumps(vals, separators=(',', ':')))
+# Address: {address}
+# IP: {ip}
+./strato --wipe
+NODE_HOST="{host}:{port}" \\
+  HTTP_PORT="{port}" \\
+  BOOT_NODE_IP="{boot_node_ip}" \\
+  blockstanbulPrivateKey="{prvkey}" \\
+  validators='{validators}' \\
+  ./strato --blockstanbul
+~/bin/stwait""" \
+        .format(address=address,
+                ip=ip,
+                host=host.strip(),
+                port=str(port),
+                boot_node_ip=boot_node_ip.strip() if boot_node_ip else '',
+                prvkey=prvkey,
+                validators=json.dumps(vals, separators=(',', ':')))
     # Single node deployment workaround - remove BOOT_NODE_IP line
     if not boot_node_ip:
         output = re.sub(".*BOOT_NODE_IP=.*\n?","",output)
@@ -59,6 +68,8 @@ def process_records(records):
 
         elif 'host' not in record:
             record['host'] = record['ip']
+        if 'port' not in record:
+            record['port'] = 80
         processed_records.append(record)
     return processed_records
 
@@ -99,6 +110,7 @@ if __name__ == "__main__":
                     key_address_pair['address'],
                     node['ip'],
                     node['host'],
+                    node['port'],
                     common_boot_ip if node['ip'] != common_boot_ip else other_boot_ip,
                     key_address_pair['private_key'],
                     validators
