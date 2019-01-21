@@ -24,7 +24,7 @@ NODE_HOST="{host}:{port}" \\
   blockstanbulPrivateKey="{prvkey}" \\
   validators='{validators}' \\
   ./strato --blockstanbul
-~/bin/stwait""" \
+""" \
         .format(address=address,
                 ip=ip,
                 host=host.strip(),
