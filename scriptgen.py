@@ -17,7 +17,6 @@ def format_script(address, ip, host, port, boot_node_ip, prvkey, vals):
 #!/usr/bin/env sh
 # Address: {address}
 # IP: {ip}
-./strato --wipe
 NODE_HOST="{host}:{port}" \\
   HTTP_PORT="{port}" \\
   BOOT_NODE_IP="{boot_node_ip}" \\
