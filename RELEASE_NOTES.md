@@ -1,5 +1,12 @@
 # STRATO Getting Started release notes
 
+## 2.7
+
+- STRATO v4.3 compatibility
+- Added the check of minimum required strato-getting-started version for docker-compose.yml provided
+- Added OAuth help topic
+- Some refactoring
+
 ## 2.6.1
 
 - export blockstabul variable hotfix
