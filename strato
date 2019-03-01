@@ -125,7 +125,7 @@ fi
 
 STRATOGS_REQUIRED_VERSION=$(grep strato-getting-started-min-version docker-compose.yml | awk -F":" '{print $NF}')
 if [ ${STRATOGS_REQUIRED_VERSION} ]; then
-  if awk -v VER=$(<VERSION) -v REQ_VER=${STRATOGS_REQUIRED_VERSION} 'BEGIN { if (VER < REQ_VER) { exit 0 } else { exit 1 }}'
+  if ! awk -v VER=$(<VERSION) -v REQ_VER=${STRATOGS_REQUIRED_VERSION} 'BEGIN {exit (VER < REQ_VER)}'
   then
       echo -e "${Red}The STRATO version from docker-compose.yml is incompatible with this strato-getting-started. Please update to v${STRATOGS_REQUIRED_VERSION}."
       exit 12
