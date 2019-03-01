@@ -58,6 +58,12 @@ uiPassword      - (default: admin) the basic auth password for 'admin' user, ign
 EXT_STORAGE_S3_BUCKET             - enables external storage feature; the AWS S3 bucket name to use as the blockchain data external storage;
 EXT_STORAGE_S3_ACCESS_KEY_ID      - the access key ID for AWS S3 bucket provided;
 EXT_STORAGE_S3_SECRET_ACCESS_KEY  - the secret access key for AWS S3 bucket provided;
+OAUTH_ENABLED               - (default: false) [true|false] Enable the OAuth-OpenId functional;
+OAUTH_DISCOVERY_URL         - (required if OAUTH_ENABLED=true) OAuth provider's OpenID Connect discovery URL;
+OAUTH_CLIENT_ID             - (required if OAUTH_ENABLED=true) Client ID of OAuth provider valid for the future STRATO url (http(s)://<NODE_HOST>:<HTTP_PORT/HTTPS_PORT>);
+OAUTH_CLIENT_SECRET         - (required if OAUTH_ENABLED=true) Client Secret for the client ID specified;
+OAUTH_JWT_USERNAME_PROPERTY - (default: email) The name of property of JWT access token payload to be used as STRATO user name;
+OAUTH_STRATO42_FALLBACK     - (default: false) - STRATO v4.2 OAuth compatibility mode ('OAUTH_JWT_VALIDATION_' config vars used, no OAuth login feature for UIs);
 "
 }
 
@@ -115,6 +121,15 @@ if ! docker-compose -v &> /dev/null
 then
     echo -e "${Red}Error: docker-compose is required: https://docs.docker.com/compose/install/"
     exit 2
+fi
+
+STRATOGS_REQUIRED_VERSION=$(grep strato-getting-started-min-version docker-compose.yml | awk -F":" '{print $NF}')
+if [ ${STRATOGS_REQUIRED_VERSION} ]; then
+  if awk -v VER=$(<VERSION) -v REQ_VER=${STRATOGS_REQUIRED_VERSION} 'BEGIN { if (VER < REQ_VER) { exit 0 } else { exit 1 }}'
+  then
+      echo -e "${Red}The STRATO version from docker-compose.yml is incompatible with this strato-getting-started. Please update to v${STRATOGS_REQUIRED_VERSION}."
+      exit 12
+  fi
 fi
 
 if [[ -f docker-compose.release.yml || -f docker-compose.release.multinode.yml ]]
@@ -205,25 +220,48 @@ else
 fi
 export sslCertFileType=${sslCertFileType:-crt}
 export NODE_NAME=${NODE_NAME:-$NODE_HOST}
+export authBasic=${authBasic:-true}
+export uiPassword=${uiPassword:-}
+export STRATO_GS_MODE=${mode}
+export SMD_MODE=${SMD_MODE:-enterprise}
+
+# BEGIN # Vars bloc for backwards-compatibility with STRATO 4.2 and older
 export BLOC_URL=${BLOC_URL:-${http_protocol}://$NODE_HOST/bloc/v2.2}
 export BLOC_DOC_URL=${BLOC_DOC_URL:-${http_protocol}://$NODE_HOST/docs/?url=/bloc/v2.2/swagger.json}
 export STRATO_URL=${STRATO_URL:-${http_protocol}://$NODE_HOST/strato-api/eth/v1.2}
 export STRATO_DOC_URL=${STRATO_DOC_URL:-${http_protocol}://$NODE_HOST/docs/?url=/strato-api/eth/v1.2/swagger.json}
 export CIRRUS_URL=${CIRRUS_URL:-${http_protocol}://$NODE_HOST/cirrus/search}
 export APEX_URL=${APEX_URL:-${http_protocol}://$NODE_HOST/apex-api}
-export authBasic=${authBasic:-true}
-export uiPassword=${uiPassword:-}
-export STRATO_GS_MODE=${mode}
-export SMD_MODE=${SMD_MODE:-enterprise}
+# ENDOF # Vars bloc for backwards-compatibility with STRATO 4.2 and older
 
 if [ "$SMD_MODE" = "enterprise" ] && [ -n "${EXT_STORAGE_S3_BUCKET}" ]; then
   if [[ -z ${EXT_STORAGE_S3_ACCESS_KEY_ID} || -z ${EXT_STORAGE_S3_SECRET_ACCESS_KEY} ]]; then
     echo -e "${Red}The external storage S3 bucket name is provided but one of the credentials is empty. Expected all or none of [EXT_STORAGE_S3_BUCKET, EXT_STORAGE_S3_ACCESS_KEY_ID, EXT_STORAGE_S3_SECRET_ACCESS_KEY]. Exit.${NC}"
     exit 6
+  fi
+fi
+
+# Process old OAUTH var names - for backwards-compatibility
+if [ "$OAUTH_JWT_VALIDATION_ENABLED" = "true" ]; then
+  if [ "$OAUTH_STRATO42_FALLBACK" = "true" ]; then
+    if [ -z ${OAUTH_JWT_VALIDATION_DISCOVERY_URL} ]; then
+      echo -e "${Red}OAUTH_JWT_VALIDATION_DISCOVERY_URL is required for OAUTH_JWT_VALIDATION_ENABLED mode with OAUTH_STRATO42_FALLBACK=true"
+      echo -e "For additional help see './strato --help'${NC}"
+      exit 14
+    fi
   else
-    export EXT_STORAGE_S3_BUCKET=${EXT_STORAGE_S3_BUCKET}
-    export EXT_STORAGE_S3_ACCESS_KEY_ID=${EXT_STORAGE_S3_ACCESS_KEY_ID}
-    export EXT_STORAGE_S3_SECRET_ACCESS_KEY=${EXT_STORAGE_S3_SECRET_ACCESS_KEY}
+    echo -e "${Red}OAUTH_JWT_VALIDATION_ENABLED and OAUTH_JWT_VALIDATION_DISCOVERY_URL variables are deprecated in STRATO v4.3+"
+    echo -e "For compatibility with STRATO v4.2, please use the 'OAUTH_STRATO42_FALLBACK=true' mode"
+    echo -e "For additional help see './strato --help'${NC}"
+    exit 11
+  fi
+fi
+
+if [ ${OAUTH_ENABLED} = true ]; then
+  if [[ -z ${OAUTH_DISCOVERY_URL} || -z ${OAUTH_CLIENT_ID} || -z ${OAUTH_CLIENT_SECRET} ]] ; then
+    echo -e "${Red}OAUTH_DISCOVERY_URL, OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET are required for OAUTH_ENABLED mode"
+    echo -e "For additional help see './strato --help'${NC}"
+    exit 13
   fi
 fi
 
@@ -234,12 +272,12 @@ echo "HTTPS_PORT: $HTTPS_PORT"
 echo "ssl: $ssl"
 echo "sslCertFileType: $sslCertFileType"
 echo "NODE_NAME: $NODE_NAME"
-echo "BLOC_URL: $BLOC_URL"
-echo "BLOC_DOC_URL: $BLOC_DOC_URL"
-echo "STRATO_URL: $STRATO_URL"
-echo "STRATO_DOC_URL: $STRATO_DOC_URL"
-echo "CIRRUS_URL: $CIRRUS_URL"
-echo "APEX_URL: $APEX_URL"
+echo "BLOC_URL (for STRATO v4.2 backwards-compatibility): $BLOC_URL"
+echo "BLOC_DOC_URL (for STRATO v4.2 backwards-compatibility): $BLOC_DOC_URL"
+echo "STRATO_URL (for STRATO v4.2 backwards-compatibility): $STRATO_URL"
+echo "STRATO_DOC_URL (for STRATO v4.2 backwards-compatibility): $STRATO_DOC_URL"
+echo "CIRRUS_URL (for STRATO v4.2 backwards-compatibility): $CIRRUS_URL"
+echo "APEX_URL (for STRATO v4.2 backwards-compatibility): $APEX_URL"
 echo "authBasic: $authBasic"
 echo "uiPassword: $(if [ -z ${uiPassword} ]; then echo "not set (using default)"; else echo "is set"; fi)"
 echo "STRATO_GS_MODE: $STRATO_GS_MODE"
@@ -247,6 +285,12 @@ echo "SMD_MODE: $SMD_MODE"
 echo "EXT_STORAGE_S3_BUCKET: ${EXT_STORAGE_S3_BUCKET:-not set}"
 echo "EXT_STORAGE_S3_ACCESS_KEY_ID: $(if [ -z ${EXT_STORAGE_S3_ACCESS_KEY_ID} ]; then echo "not set"; else echo "is set"; fi)"
 echo "EXT_STORAGE_S3_SECRET_ACCESS_KEY: $(if [ -z ${EXT_STORAGE_S3_SECRET_ACCESS_KEY} ]; then echo "not set"; else echo "is set"; fi)"
+echo "OAUTH_ENABLED: ${OAUTH_ENABLED:-false}"
+echo "OAUTH_DISCOVERY_URL: ${OAUTH_DISCOVERY_URL:-not set}"
+echo "OAUTH_CLIENT_ID: $(if [ -z ${OAUTH_CLIENT_ID} ]; then echo "not set"; else echo "is set"; fi)"
+echo "OAUTH_CLIENT_SECRET: $(if [ -z ${OAUTH_CLIENT_SECRET} ]; then echo "not set"; else echo "is set"; fi)"
+echo "OAUTH_JWT_USERNAME_PROPERTY: ${OAUTH_JWT_USERNAME_PROPERTY:-not set (using default)}"
+echo "OAUTH_STRATO42_FALLBACK: ${OAUTH_STRATO42_FALLBACK:-false}"
 
 if [ ${node_type} = lazy ]
 then
