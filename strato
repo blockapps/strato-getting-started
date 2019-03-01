@@ -257,7 +257,7 @@ if [ "$OAUTH_JWT_VALIDATION_ENABLED" = "true" ]; then
   fi
 fi
 
-if [ ${OAUTH_ENABLED} = true ]; then
+if [ "$OAUTH_ENABLED" = true ]; then
   if [[ -z ${OAUTH_DISCOVERY_URL} || -z ${OAUTH_CLIENT_ID} || -z ${OAUTH_CLIENT_SECRET} ]] ; then
     echo -e "${Red}OAUTH_DISCOVERY_URL, OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET are required for OAUTH_ENABLED mode"
     echo -e "For additional help see './strato --help'${NC}"
