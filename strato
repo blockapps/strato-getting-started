@@ -430,10 +430,10 @@ docker-compose -f docker-compose-temp.yml -p strato up -d --remove-orphans
 # WAIT FOR STRATO TO RUN
 started=$(date +%s)
 timeout=180
-hc_container=$(docker-compose -p strato ps 2>/dev/null| grep '_apex_' | awk '{print $1}')
+hc_container=$(docker-compose -p strato ps 2>/dev/null| grep '_nginx_' | awk '{print $1}')
 if [ -z "$(docker ps -f name=${hc_container} | grep '(.*)')" ]; then 
   # STRATO v4.2 or older - no health status in nginx container, checking vault-wrapper's
-  hc_container=$(docker-compose -p strato ps 2>/dev/null| grep '_apex_' | awk '{print $1}')
+  hc_container=$(docker-compose -p strato ps 2>/dev/null| grep '_vault-wrapper_' | awk '{print $1}')
 fi
 printf "Waiting for STRATO to rise and shine"
 i=0
