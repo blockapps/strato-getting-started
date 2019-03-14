@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
+Green='\033[0;32m'
 Red='\033[0;31m'
 Yellow='\033[0;33m'
 BYellow='\033[1;33m'
@@ -29,15 +30,16 @@ Kickstart the STRATO node.
 ${Yellow}Alternative entrypoints:${NC}
 The entrypoints are mutually exclusive.
 Provide no entrypoint to start STRATO node.
---help|-h   - this help;
---stop      - stop STRATO containers (keeps containers and volumes);
---start     - start the existing STRATO containers after they were stopped (the opposite to --stop)
---remove    - stop and remove STRATO containers but keep volumes (useful for STRATO upgrade - to resync with network);
---wipe      - stop and remove STRATO containers and wipe out volumes;
---compose   - fetch the latest stable docker-compose.yml;
---pull      - pull images used in docker-compose.yml;
---scriptgen - generate kickstart script files for PBFT-blockstanbul nodes based on node list in node-list.json
---keygen=N  - alternative way to generate keys for PBFT-blockstanbul - generate and output N private keys and their addresses;
+--help|-h     - this help;
+--version|-v  - show strato-getting-started script version;
+--stop        - stop STRATO containers (keeps containers and volumes);
+--start       - start the existing STRATO containers after they were stopped (the opposite to --stop)
+--remove      - stop and remove STRATO containers but keep volumes (useful for STRATO upgrade - to resync with network);
+--wipe        - stop and remove STRATO containers and wipe out volumes;
+--compose     - fetch the latest stable docker-compose.yml;
+--pull        - pull images used in docker-compose.yml;
+--scriptgen   - generate kickstart script files for PBFT-blockstanbul nodes based on node list in node-list.json
+--keygen=N    - alternative way to generate keys for PBFT-blockstanbul - generate and output N private keys and their addresses;
 
 ${Yellow}Optional flags for STRATO:${NC}
 --single              - run the single PBFT-blockstanbul node
@@ -53,7 +55,7 @@ HTTP_PORT       - (default: 80) Port for HTTP traffic listener;
 HTTPS_PORT      - (default: 443) Port for HTTPS traffic listener; only used with ssl=true;
 ssl             - (default: false) [true|false] to run the node with SSL/TLS;
 sslCertFileType - (default: crt) [pem|crt] the SSL certificate type and file extension (should be accessible in ./ssl/certs/ while deploying);
-authBasic       - (default: true) [true|false] use basic access authentication for dashboard and APIs;
+authBasic       - (default: false) [true|false] use basic access authentication for dashboard and APIs;
 uiPassword      - (default: admin) the basic auth password for 'admin' user, ignored when used with authBasic=false;
 EXT_STORAGE_S3_BUCKET             - enables external storage feature; the AWS S3 bucket name to use as the blockchain data external storage;
 EXT_STORAGE_S3_ACCESS_KEY_ID      - the access key ID for AWS S3 bucket provided;
@@ -106,14 +108,14 @@ function generatePbftScripts {
   python scriptgen.py
 }
 
-if [ ! -f $(pwd)/strato.sh ]; then
+if [ ! -f $(pwd)/strato ]; then
     echo -e "${Red}Should be run from within the strato-getting-started directory. Exit.${NC}"
     exit 4
 fi
 
 if ! docker ps &> /dev/null
 then
-    echo -e "${Red}Error: docker is required to be installed and configured for non-root users: https://www.docker.com/${NC}"
+    echo -e "${Red}Error: docker is required: https://www.docker.com/ . If you have it installed - you may need to run STRATO with sudo user${NC}"
     exit 1
 fi
 
@@ -142,6 +144,10 @@ while [ ${#} -gt 0 ]; do
   case "${1}" in
   --help|-h)
     help
+    exit 0
+    ;;
+  --version|-v)
+    echo "$(<VERSION)"
     exit 0
     ;;
   --stop)
@@ -220,8 +226,12 @@ else
 fi
 export sslCertFileType=${sslCertFileType:-crt}
 export NODE_NAME=${NODE_NAME:-$NODE_HOST}
-export authBasic=${authBasic:-true}
 export uiPassword=${uiPassword:-}
+if [ -n "$uiPassword" ]; then
+  export authBasic=true
+else
+  export authBasic=${authBasic:-false}
+fi
 export STRATO_GS_MODE=${mode}
 export SMD_MODE=${SMD_MODE:-enterprise}
 
@@ -279,7 +289,7 @@ echo "STRATO_DOC_URL (for STRATO v4.2 backwards-compatibility): $STRATO_DOC_URL"
 echo "CIRRUS_URL (for STRATO v4.2 backwards-compatibility): $CIRRUS_URL"
 echo "APEX_URL (for STRATO v4.2 backwards-compatibility): $APEX_URL"
 echo "authBasic: $authBasic"
-echo "uiPassword: $(if [ -z ${uiPassword} ]; then echo "not set (using default)"; else echo "is set"; fi)"
+echo "uiPassword: $(if [[ -z ${uiPassword} ]]; then if [[ ${authBasic} = true ]]; then echo "not set (using default)"; else echo "not set"; fi; else echo "is set"; fi)"
 echo "STRATO_GS_MODE: $STRATO_GS_MODE"
 echo "SMD_MODE: $SMD_MODE"
 echo "EXT_STORAGE_S3_BUCKET: ${EXT_STORAGE_S3_BUCKET:-not set}"
@@ -416,3 +426,29 @@ fi
 # END OF COMPOSE FILE PRE-PROCESSING
 
 docker-compose -f docker-compose-temp.yml -p strato up -d --remove-orphans
+
+# WAIT FOR STRATO TO RUN
+started=$(date +%s)
+timeout=180
+hc_container=$(docker-compose -p strato ps 2>/dev/null| grep '_apex_' | awk '{print $1}')
+if [ -z "$(docker ps -f name=${hc_container} | grep '(.*)')" ]; then 
+  # STRATO v4.2 or older - no health status in nginx container, checking vault-wrapper's
+  hc_container=$(docker-compose -p strato ps 2>/dev/null| grep '_apex_' | awk '{print $1}')
+fi
+printf "Waiting for STRATO to rise and shine"
+i=0
+while ! [[ -n $(docker ps -q -f name=${hc_container} -f health=healthy) ]];  do
+  if [[ -n $(docker ps -q -f name=${hc_container} -f health=unhealthy) ]]; then
+    echo -e "\n${Red}Node failed to start${NC}"
+    exit 15
+  fi
+  if [[ $(date +%s) -ge ${started}+${timeout} ]]; then
+    echo -e "\n${Red}Node did not start within ${timeout}sec. See 'docker ps' for additional info. Exit.${NC}"
+    exit 16
+  fi
+  i=$((i + 1))
+  if [[ $((i % 4)) -eq 0 ]]; then printf '\b\b\b   \b\b\b'; else printf '.'; fi
+  sleep 0.3
+done
+echo -e "\n${Green}STRATO has awoken. Check ${http_protocol}://${NODE_HOST}${NC}"
+# END OF WAIT FOR STRATO TO RUN
