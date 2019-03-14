@@ -1,5 +1,14 @@
 # STRATO Getting Started release notes
 
+## 2.7.1
+
+STRATO versions supported: v4.0+
+
+- Wait for STRATO containers to become healthy
+- -v|--version flag added
+- BasicAuth is now off by default
+- Minor refactoring
+
 ## 2.7
 
 STRATO versions supported: v4.0+
