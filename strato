@@ -11,6 +11,8 @@ mode=${STRATO_GS_MODE:="0"}
 node_type=multi
 blockstanbul=${blockstanbul:-false}
 
+docker_compose="docker-compose -p strato --log-level ERROR"
+
 function outputLogo {
 echo "
     ____  __           __   ___
@@ -71,22 +73,22 @@ OAUTH_STRATO42_FALLBACK     - (default: false) - STRATO v4.2 OAuth compatibility
 
 function wipe {
   echo -e "${Yellow}Removing STRATO containers and wiping out volumes${NC}"
-  docker-compose -f docker-compose.yml -p strato down -v -t 0 --remove-orphans
+  ${docker_compose} down -v -t 0 --remove-orphans
 }
 
 function remove {
   echo -e "${Yellow}Gently stopping and removing STRATO containers, keeping volumes${NC}"
-  docker-compose -f docker-compose.yml -p strato down --remove-orphans
+  ${docker_compose} down --remove-orphans
 }
 
 function stop {
   echo -e "${Yellow}Gently stopping STRATO containers${NC}"
-  docker-compose -f docker-compose.yml -p strato stop
+  ${docker_compose} stop
 }
 
 function start {
   echo -e "${Yellow}Starting the earlier stopped STRATO containers${NC}"
-  docker-compose -f docker-compose.yml -p strato start
+  ${docker_compose} start
 }
 
 function getCompose {
@@ -95,7 +97,7 @@ function getCompose {
 }
 
 function pullImages {
-  docker-compose pull
+  ${docker_compose} pull
 }
 
 function keygen {
@@ -425,15 +427,15 @@ else
 fi
 # END OF COMPOSE FILE PRE-PROCESSING
 
-docker-compose -f docker-compose-temp.yml -p strato up -d --remove-orphans
+${docker_compose} -f docker-compose-temp.yml up -d --remove-orphans
 
 # WAIT FOR STRATO TO RUN
 started=$(date +%s)
 timeout=180
-hc_container=$(docker-compose -p strato ps 2>/dev/null| grep '_nginx_' | awk '{print $1}')
+hc_container=$(${docker_compose} ps | grep '_nginx_' | awk '{print $1}')
 if [ -z "$(docker ps -f name=${hc_container} | grep '(.*)')" ]; then 
   # STRATO v4.2 or older - no health status in nginx container, checking vault-wrapper's
-  hc_container=$(docker-compose -p strato ps 2>/dev/null| grep '_vault-wrapper_' | awk '{print $1}')
+  hc_container=$(${docker_compose} ps | grep '_vault-wrapper_' | awk '{print $1}')
 fi
 printf "Waiting for STRATO to rise and shine"
 i=0
