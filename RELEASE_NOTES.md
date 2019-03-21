@@ -1,5 +1,11 @@
 # STRATO Getting Started release notes
 
+## 2.7.2
+
+STRATO versions supported: v4.0+
+
+- Suppress the unused variable warning messages in docker-compose
+
 ## 2.7.1
 
 STRATO versions supported: v4.0+
