@@ -1,5 +1,11 @@
 # STRATO Getting Started release notes
 
+## 2.7.3
+
+STRATO versions supported: v4.0+
+
+- Fix for wrong "Node failed to start" message when running STRATO 4.3 or earlier
+
 ## 2.7.2
 
 STRATO versions supported: v4.0+
