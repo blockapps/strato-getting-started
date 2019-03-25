@@ -440,10 +440,6 @@ fi
 printf "Waiting for STRATO to rise and shine"
 i=0
 while ! [[ -n $(docker ps -q -f name=${hc_container} -f health=healthy) ]];  do
-  if [[ -n $(docker ps -q -f name=${hc_container} -f health=unhealthy) ]]; then
-    echo -e "\n${Red}Node failed to start${NC}"
-    exit 15
-  fi
   if [[ $(date +%s) -ge ${started}+${timeout} ]]; then
     echo -e "\n${Red}Node did not start within ${timeout}sec. See 'docker ps' for additional info. Exit.${NC}"
     exit 16
