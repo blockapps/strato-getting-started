@@ -1,5 +1,14 @@
 # STRATO Getting Started release notes
 
+## 2.8.0
+
+STRATO versions supported: v4.0+
+
+- fetchlogs python script added to fetch STRATO node logs and database dump (optional)
+- `--fetch-logs` and `--fetch-logs-with-db` wrapper entrypoints to fetch logs easily
+- minor refactoring
+
+
 ## 2.7.3
 
 STRATO versions supported: v4.0+

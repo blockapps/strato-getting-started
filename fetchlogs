@@ -1,0 +1,166 @@
+#!/usr/bin/env python
+
+import argparse
+import exceptions
+import os
+import shutil
+import subprocess
+import sys
+import zipfile
+
+
+def fetch_logs():
+    containers_with_logfiles = {
+        'bloc': '/logs',
+        'strato': '/var/lib/strato/logs'
+    }
+    try:
+        running_containers = subprocess.check_output(
+            "docker-compose --log-level ERROR -p strato ps | grep strato_ | awk '{print $1}'",
+            shell=True
+        ).split('\n')
+        running_containers = filter(None, running_containers)
+    except exceptions.Exception as e:
+        print('unable to fetch the currently running containers:\n%s' % e)
+        sys.exit(6)
+
+    for container_name in running_containers:
+        container_name_split = container_name.split('_')
+        if len(container_name_split) != 3:
+            print('unexpected container name: %s' % container_name)
+            sys.exit(7)
+        container_subname = container_name_split[1]
+        if container_subname in containers_with_logfiles.keys():
+            current_container_logs_dir = os.path.join(temp_dir_path, container_subname)
+            os.makedirs(current_container_logs_dir)
+            docker_cp_command = 'docker cp %s:%s %s' % (
+                container_name,
+                os.path.join(containers_with_logfiles[container_subname], '.'),
+                current_container_logs_dir
+            )
+            try:
+                subprocess.check_output(docker_cp_command, shell=True)
+            except exceptions.Exception as e:
+                error_message = 'unable to fetch logs from %s container with error:\n%s' % (container_name, e)
+                print(error_message)
+                create_text_file(os.path.join(current_container_logs_dir, '%s_error.txt' % container_subname),
+                                 error_message)
+        else:
+            # Copying logfile returned with `"docker inspect --format='{{.LogPath}}' %s" % container_name` does not work
+            # since: 1. it returns non-existing log filenames in some cases 2. sudo is mandatory to access file directly
+            try:
+                subprocess.check_output(
+                    'docker logs %s >& %s' % (container_name, os.path.join(temp_dir_path, container_subname)),
+                    shell=True
+                )
+            except exceptions.Exception as e:
+                error_message = 'unable to fetch logs of %s container with error:\n%s' % (container_name, e)
+                print(error_message)
+                create_text_file(os.path.join(temp_dir_path, '%s_error.txt' % container_subname), error_message)
+
+    if args.db_dump:
+        postgres_container_name = [cname for cname in running_containers if '_postgres_' in cname][0]
+        print('Creating Posgtres DBs dump - this may take up to several minutes...')
+        pgdump_filename = 'pgdump'
+        try:
+            subprocess.check_output(
+                'docker exec -i %s pg_dumpall -U postgres -f %s && '
+                'docker cp %s:/tmp/pgdump %s && '
+                'docker exec -i %s rm -rf /tmp/pgdump' % (
+                    postgres_container_name,
+                    os.path.join('/tmp', pgdump_filename),
+                    postgres_container_name,
+                    temp_dir_path,
+                    postgres_container_name
+                ),
+                shell=True
+            )
+        except exceptions.Exception as e:
+            error_message = 'unable to process the database dump with error:\n%s' % e
+            print(error_message)
+            create_text_file(os.path.join(temp_dir_path, '%s_error.txt' % pgdump_filename), error_message)
+    try:
+        print('Zipping data - almost done...')
+        zip_logs()
+    except exceptions.Exception as e:
+        print('unable to archive the directory %s into zip archive. Check the logs in directory: %s\nError:\n%s' % (
+            archive_output_dir,
+            temp_dir_path,
+            e
+        ))
+        sys.exit(8)
+    try:
+        shutil.rmtree(temp_dir_path)
+    except exceptions.Exception as e:
+        print('unable to clean the temporary directory (%s) with the error:\n%s' % (temp_dir_path, e))
+
+
+def create_text_file(file_path, text):
+    try:
+        error_msg_file = open(file_path, "w")
+        error_msg_file.write(text)
+        error_msg_file.close()
+    except exceptions.Exception as e:
+        print('SCRIPT ERROR: unable to create file %s with an error: %s' % (file_path, e))
+
+
+def zip_logs():
+    work_dir = os.getcwd()
+    os.chdir(archive_output_dir)
+    zipf = zipfile.ZipFile(output_zip_name, 'w', zipfile.ZIP_DEFLATED)
+    for root, dirs, files in os.walk(temp_dir_name):
+        for file_to_zip in files:
+            zipf.write(os.path.join(root, file_to_zip))
+    zipf.close()
+    os.chdir(work_dir)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description='Fetch all STRATO logs and optionally the database dump into single zip file',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument(
+        '-o', '--output-dir',
+        dest='path',
+        default='./',
+        help='Output directory path',
+    )
+    parser.add_argument(
+        '--db-dump',
+        action='store_true',
+        help='Add the Postgres database dump. WARNING: the data stored in databases may be sensitive; '
+             'the dump process may lock the databases for up to several minutes; the dump file may be large',
+    )
+
+    args = parser.parse_args()
+    archive_output_dir = args.path
+    if not os.path.isdir(archive_output_dir):
+        try:
+            os.makedirs(archive_output_dir)
+        except exceptions.Exception as e:
+            print('unable to create directory %s:\n%s' % (archive_output_dir, e))
+            sys.exit(2)
+    if not os.access(archive_output_dir, os.W_OK):
+        print('no write access to: "%s". Change directory permissions or provide another path as a script argument')
+        sys.exit(3)
+
+    temp_dir_name = 'strato_logs'
+    temp_dir_path = os.path.join(archive_output_dir, temp_dir_name)
+
+    output_zip_name = 'strato_logs.zip'
+    output_zip_path = os.path.join(archive_output_dir, output_zip_name)
+    if os.path.isfile(output_zip_path):
+        print('output zip file already exists, please (re)move: %s' % os.path.abspath(output_zip_path))
+        sys.exit(4)
+    if not os.path.isdir(temp_dir_path):
+        os.makedirs(temp_dir_path)
+    else:
+        print('temporary directory exists, please clean: %s' % temp_dir_path)
+        sys.exit(5)
+
+    print('Fetching STRATO logs - this may take up to a minute...')
+    fetch_logs()
+
+    print('Done.')
+    sys.exit(0)

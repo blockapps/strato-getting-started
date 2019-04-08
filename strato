@@ -40,8 +40,10 @@ Provide no entrypoint to start STRATO node.
 --wipe        - stop and remove STRATO containers and wipe out volumes;
 --compose     - fetch the latest stable docker-compose.yml;
 --pull        - pull images used in docker-compose.yml;
---scriptgen   - generate kickstart script files for PBFT-blockstanbul nodes based on node list in node-list.json
+--scriptgen   - generate kickstart script files for PBFT-blockstanbul nodes based on node list in node-list.json;
 --keygen=N    - alternative way to generate keys for PBFT-blockstanbul - generate and output N private keys and their addresses;
+--fetch-logs  - fetch all STRATO logs into strato_logs.zip (for more info and options refer to './fetchlogs --help')
+--fetch-logs-with-db  - fetch all STRATO logs and database dump into strato_logs.zip (WARNING: database data may be sensitive; for more info and options refer to './fetchlogs --help')
 
 ${Yellow}Optional flags for STRATO:${NC}
 --single              - run the single PBFT-blockstanbul node
@@ -107,7 +109,14 @@ function keygen {
 }
 
 function generatePbftScripts {
-  python scriptgen.py
+  python scriptgen
+}
+
+function fetchLogs {
+  if [[ "$1" = withdb ]]; then
+    withdb_flag="--db-dump"
+  fi
+  python fetchlogs ${withdb_flag}
 }
 
 if [ ! -f $(pwd)/strato ]; then
@@ -203,6 +212,14 @@ while [ ${#} -gt 0 ]; do
     ;;
   --scriptgen)
     generatePbftScripts
+    exit 0
+    ;;
+  --fetch-logs)
+    fetchLogs
+    exit 0
+    ;;
+  --fetch-logs-with-db)
+    fetchLogs "withdb"
     exit 0
     ;;
   *)
