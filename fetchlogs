@@ -14,21 +14,24 @@ def fetch_logs():
         'bloc': '/logs',
         'strato': '/var/lib/strato/logs'
     }
+    if not os.path.isfile('docker-compose.yml'):
+        sys.stderr.write('ERROR: ./docker-compose.yml does not exist. Try `./strato --compose` to download one')
+        sys.exit(6)
     try:
         running_containers = subprocess.check_output(
-            "docker-compose --log-level ERROR -p strato ps | grep strato_ | awk '{print $1}'",
+            "set -o pipefail && docker-compose --log-level ERROR -p strato ps | grep strato_ | awk '{print $1}'",
             shell=True
         ).split('\n')
         running_containers = filter(None, running_containers)
     except exceptions.Exception as e:
-        print('unable to fetch the currently running containers:\n%s' % e)
-        sys.exit(6)
+        sys.stderr.write('ERROR: Unable to fetch the currently running containers:\n%s' % e)
+        sys.exit(7)
 
     for container_name in running_containers:
         container_name_split = container_name.split('_')
         if len(container_name_split) != 3:
-            print('unexpected container name: %s' % container_name)
-            sys.exit(7)
+            sys.stderr.write('ERROR: Unexpected container name: %s' % container_name)
+            sys.exit(8)
         container_subname = container_name_split[1]
         if container_subname in containers_with_logfiles.keys():
             current_container_logs_dir = os.path.join(temp_dir_path, container_subname)
@@ -41,8 +44,8 @@ def fetch_logs():
             try:
                 subprocess.check_output(docker_cp_command, shell=True)
             except exceptions.Exception as e:
-                error_message = 'unable to fetch logs from %s container with error:\n%s' % (container_name, e)
-                print(error_message)
+                error_message = 'ERROR: Unable to fetch logs from %s container with error:\n%s' % (container_name, e)
+                sys.stderr.write('%s\n' % error_message)
                 create_text_file(os.path.join(current_container_logs_dir, '%s_error.txt' % container_subname),
                                  error_message)
         else:
@@ -50,17 +53,18 @@ def fetch_logs():
             # since: 1. it returns non-existing log filenames in some cases 2. sudo is mandatory to access file directly
             try:
                 subprocess.check_output(
-                    'docker logs %s >& %s' % (container_name, os.path.join(temp_dir_path, container_subname)),
+                    'docker logs %s &> %s' % (container_name, os.path.join(temp_dir_path, container_subname)),
                     shell=True
                 )
             except exceptions.Exception as e:
-                error_message = 'unable to fetch logs of %s container with error:\n%s' % (container_name, e)
-                print(error_message)
+                error_message = 'ERROR: Unable to fetch logs of %s container with error:\n%s' % (container_name, e)
+                sys.stderr.write('%s\n' % error_message)
                 create_text_file(os.path.join(temp_dir_path, '%s_error.txt' % container_subname), error_message)
+                deferred_errors.append(error_message)
 
     if args.db_dump:
         postgres_container_name = [cname for cname in running_containers if '_postgres_' in cname][0]
-        print('Creating Posgtres DBs dump - this may take up to several minutes...')
+        sys.stdout.write('Creating Posgtres DBs dump - this may take up to several minutes...\n')
         pgdump_filename = 'pgdump'
         try:
             subprocess.check_output(
@@ -76,46 +80,55 @@ def fetch_logs():
                 shell=True
             )
         except exceptions.Exception as e:
-            error_message = 'unable to process the database dump with error:\n%s' % e
-            print(error_message)
+            error_message = 'ERROR: unable to process the database dump with error:\n%s' % e
+            sys.stderr.write('%s\n' % error_message)
             create_text_file(os.path.join(temp_dir_path, '%s_error.txt' % pgdump_filename), error_message)
+            deferred_errors.append(error_message)
     try:
-        print('Zipping data - almost done...')
-        zip_logs()
+        sys.stdout.write('Zipping data - almost done...\n')
+        if args.force:
+            try:
+                os.remove(output_zip_path)
+            except OSError:
+                pass
+        zip_logs(output_zip_name)
     except exceptions.Exception as e:
-        print('unable to archive the directory %s into zip archive. Check the logs in directory: %s\nError:\n%s' % (
-            archive_output_dir,
-            temp_dir_path,
-            e
-        ))
-        sys.exit(8)
+        sys.stderr.write(
+            'ERROR: Unable to archive the directory %s into zip archive. Check the logs in directory: %s\nError:\n%s' % (
+                archive_output_dir,
+                temp_dir_path,
+                e
+            ))
+        sys.exit(9)
     try:
         shutil.rmtree(temp_dir_path)
     except exceptions.Exception as e:
-        print('unable to clean the temporary directory (%s) with the error:\n%s' % (temp_dir_path, e))
+        sys.stderr.write(
+            'ERROR: Unable to clean the temporary directory (%s) with the error:\n%s\n' % (temp_dir_path, e))
 
 
 def create_text_file(file_path, text):
     try:
-        error_msg_file = open(file_path, "w")
-        error_msg_file.write(text)
-        error_msg_file.close()
+        with open(file_path, "w") as f:
+            f.write(text)
     except exceptions.Exception as e:
-        print('SCRIPT ERROR: unable to create file %s with an error: %s' % (file_path, e))
+        error_message = 'SCRIPT ERROR: unable to create file %s with an error: %s' % (file_path, e)
+        sys.stderr.write('%s\n' % error_message)
+        deferred_errors.append(error_message)
 
 
-def zip_logs():
+def zip_logs(output_file_name):
     work_dir = os.getcwd()
     os.chdir(archive_output_dir)
-    zipf = zipfile.ZipFile(output_zip_name, 'w', zipfile.ZIP_DEFLATED)
-    for root, dirs, files in os.walk(temp_dir_name):
-        for file_to_zip in files:
-            zipf.write(os.path.join(root, file_to_zip))
-    zipf.close()
+    with zipfile.ZipFile(output_file_name, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for root, dirs, files in os.walk(temp_dir_name):
+            for file_to_zip in files:
+                zipf.write(os.path.join(root, file_to_zip))
     os.chdir(work_dir)
 
 
 if __name__ == "__main__":
+    deferred_errors = []
     parser = argparse.ArgumentParser(
         description='Fetch all STRATO logs and optionally the database dump into single zip file',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
@@ -132,6 +145,11 @@ if __name__ == "__main__":
         help='Add the Postgres database dump. WARNING: the data stored in databases may be sensitive; '
              'the dump process may lock the databases for up to several minutes; the dump file may be large',
     )
+    parser.add_argument(
+        '-f', '--force',
+        action='store_true',
+        help='Force rewrite to a previously exported log files and directories',
+    )
 
     args = parser.parse_args()
     archive_output_dir = args.path
@@ -139,10 +157,11 @@ if __name__ == "__main__":
         try:
             os.makedirs(archive_output_dir)
         except exceptions.Exception as e:
-            print('unable to create directory %s:\n%s' % (archive_output_dir, e))
+            sys.stderr.write('ERROR: Unable to create directory %s:\n%s' % (archive_output_dir, e))
             sys.exit(2)
     if not os.access(archive_output_dir, os.W_OK):
-        print('no write access to: "%s". Change directory permissions or provide another path as a script argument')
+        sys.stderr.write(
+            'ERROR: No write access to: "%s". Change directory permissions or provide another path as a script argument')
         sys.exit(3)
 
     temp_dir_name = 'strato_logs'
@@ -150,17 +169,38 @@ if __name__ == "__main__":
 
     output_zip_name = 'strato_logs.zip'
     output_zip_path = os.path.join(archive_output_dir, output_zip_name)
-    if os.path.isfile(output_zip_path):
-        print('output zip file already exists, please (re)move: %s' % os.path.abspath(output_zip_path))
-        sys.exit(4)
-    if not os.path.isdir(temp_dir_path):
+    if args.force:
+        try:
+            shutil.rmtree(temp_dir_path)
+        except OSError:
+            pass
         os.makedirs(temp_dir_path)
     else:
-        print('temporary directory exists, please clean: %s' % temp_dir_path)
-        sys.exit(5)
+        if os.path.isfile(output_zip_path):
+            error_message = 'Output zip file already exists (%s)' % os.path.abspath(output_zip_path)
+            overwrite_input = raw_input('%s, remove? (y/n): ' % error_message)[0].lower()
+            if overwrite_input == 'y':
+                os.remove(output_zip_path)
+            else:
+                sys.stderr.write(error_message)
+                sys.exit(4)
+        try:
+            os.makedirs(temp_dir_path)
+        except OSError as e:
+            error_message = 'Temporary directory exists (%s)' % os.path.abspath(temp_dir_path)
+            overwrite_input = raw_input('%s, overwrite? (y/n): ' % error_message)[0].lower()
+            if overwrite_input == 'y':
+                os.rmdir(temp_dir_path)
+            else:
+                sys.stderr.write(error_message)
+                sys.exit(5)
 
-    print('Fetching STRATO logs - this may take up to a minute...')
+    sys.stdout.write('Fetching STRATO logs - this may take up to a minute...\n')
     fetch_logs()
 
-    print('Done.')
-    sys.exit(0)
+    if deferred_errors:
+        sys.stderr.write('ERROR: Some logs failed to fetch with errors:\n%s' % '\n'.join(deferred_errors))
+        sys.exit(100)
+    else:
+        sys.stdout.write('Done.\n')
+        sys.exit(0)
