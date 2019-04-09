@@ -18,11 +18,11 @@ def fetch_logs():
         sys.stderr.write('ERROR: ./docker-compose.yml does not exist. Try `./strato --compose` to download one')
         sys.exit(6)
     try:
-        running_containers = subprocess.check_output(
-            "set -o pipefail && docker-compose --log-level ERROR -p strato ps | grep strato_ | awk '{print $1}'",
+        compose_ps_output = subprocess.check_output(
+            "docker-compose --log-level ERROR -p strato ps",
             shell=True
         ).split('\n')
-        running_containers = filter(None, running_containers)
+        running_containers = filter(None, [line.split()[0] for line in compose_ps_output if 'strato_' in line])
     except exceptions.Exception as e:
         sys.stderr.write('ERROR: Unable to fetch the currently running containers:\n%s' % e)
         sys.exit(7)
