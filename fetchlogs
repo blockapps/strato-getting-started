@@ -84,27 +84,29 @@ def fetch_logs():
             sys.stderr.write('%s\n' % error_message)
             create_text_file(os.path.join(temp_dir_path, '%s_error.txt' % pgdump_filename), error_message)
             deferred_errors.append(error_message)
-    try:
-        sys.stdout.write('Zipping data - almost done...\n')
-        if args.force:
-            try:
-                os.remove(output_zip_path)
-            except OSError:
-                pass
-        zip_logs(output_zip_name)
-    except exceptions.Exception as e:
-        sys.stderr.write(
-            'ERROR: Unable to archive the directory %s into zip archive. Check the logs in directory: %s\nError:\n%s' % (
-                archive_output_dir,
-                temp_dir_path,
-                e
-            ))
-        sys.exit(9)
-    try:
-        shutil.rmtree(temp_dir_path)
-    except exceptions.Exception as e:
-        sys.stderr.write(
-            'ERROR: Unable to clean the temporary directory (%s) with the error:\n%s\n' % (temp_dir_path, e))
+
+    if not args.as_dir:
+        try:
+            sys.stdout.write('Zipping data - almost done...\n')
+            if args.force:
+                try:
+                    os.remove(output_zip_path)
+                except OSError:
+                    pass
+            zip_logs(output_zip_name)
+        except exceptions.Exception as e:
+            sys.stderr.write(
+                'ERROR: Unable to archive the directory %s into zip archive. Check the logs in directory: %s\nError:\n%s' % (
+                    archive_output_dir,
+                    temp_dir_path,
+                    e
+                ))
+            sys.exit(9)
+        try:
+            shutil.rmtree(temp_dir_path)
+        except exceptions.Exception as e:
+            sys.stderr.write(
+                'ERROR: Unable to clean the temporary directory (%s) with the error:\n%s\n' % (temp_dir_path, e))
 
 
 def create_text_file(file_path, text):
@@ -150,6 +152,11 @@ if __name__ == "__main__":
         action='store_true',
         help='Force rewrite to a previously exported log files and directories',
     )
+    parser.add_argument(
+        '--as-dir',
+        action='store_true',
+        help='Leave the logs as a directory instead of a zip file',
+    )
 
     args = parser.parse_args()
     archive_output_dir = args.path
@@ -190,7 +197,7 @@ if __name__ == "__main__":
             error_message = 'Temporary directory exists (%s)' % os.path.abspath(temp_dir_path)
             overwrite_input = raw_input('%s, overwrite? (y/n): ' % error_message)[0].lower()
             if overwrite_input == 'y':
-                os.rmdir(temp_dir_path)
+                shutil.rmtree(temp_dir_path)
             else:
                 sys.stderr.write(error_message)
                 sys.exit(5)
