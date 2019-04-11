@@ -1,5 +1,11 @@
 # STRATO Getting Started release notes
 
+## 2.8.1
+
+STRATO versions supported: v4.0+
+
+- fetchlogs `--as-dir` flag added to output logs as directory and to not archive
+
 ## 2.8.0
 
 STRATO versions supported: v4.0+
