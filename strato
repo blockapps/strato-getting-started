@@ -105,7 +105,7 @@ function pullImages {
 function keygen {
   if [ ! -f docker-compose.yml ]; then getCompose; fi
   DC_STRATO_IMAGE=$(cat docker-compose.yml | grep "STRATO_IMAGE" | sed -e "s/.*:-//" -e "s/}//")
-  docker run --entrypoint=keygen ${STRATO_IMAGE:-$DC_STRATO_IMAGE} --count="$1"
+  docker run --rm --entrypoint=keygen ${STRATO_IMAGE:-$DC_STRATO_IMAGE} --count="$1"
 }
 
 function generatePbftScripts {
@@ -450,7 +450,7 @@ ${docker_compose} -f docker-compose-temp.yml up -d --remove-orphans
 started=$(date +%s)
 timeout=180
 hc_container=$(${docker_compose} ps | grep '_nginx_' | awk '{print $1}')
-if [ -z "$(docker ps -f name=${hc_container} | grep '(.*)')" ]; then 
+if [ -z "$(docker ps -f name=${hc_container} | grep '(.*)')" ]; then
   # STRATO v4.2 or older - no health status in nginx container, checking vault-wrapper's
   hc_container=$(${docker_compose} ps | grep '_vault-wrapper_' | awk '{print $1}')
 fi

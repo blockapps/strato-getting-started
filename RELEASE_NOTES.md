@@ -1,5 +1,11 @@
 # STRATO Getting Started release notes
 
+## 2.8.2
+
+STRATO versions supported: v4.0+
+
+- Automatically remove transient containers used for key generation
+
 ## 2.8.1
 
 STRATO versions supported: v4.0+
