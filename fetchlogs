@@ -53,7 +53,7 @@ def fetch_logs():
             # since: 1. it returns non-existing log filenames in some cases 2. sudo is mandatory to access file directly
             try:
                 subprocess.check_output(
-                    'docker logs %s &> %s' % (container_name, os.path.join(temp_dir_path, container_subname)),
+                    'docker logs %s > %s 2>&1' % (container_name, os.path.join(temp_dir_path, container_subname)),
                     shell=True
                 )
             except exceptions.Exception as e:
@@ -198,6 +198,7 @@ if __name__ == "__main__":
             overwrite_input = raw_input('%s, overwrite? (y/n): ' % error_message)[0].lower()
             if overwrite_input == 'y':
                 shutil.rmtree(temp_dir_path)
+                os.makedirs(temp_dir_path)
             else:
                 sys.stderr.write(error_message)
                 sys.exit(5)

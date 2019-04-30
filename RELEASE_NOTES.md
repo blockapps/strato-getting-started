@@ -1,5 +1,11 @@
 # STRATO Getting Started release notes
 
+## 2.8.3
+
+STRATO versions supported: v4.0+
+
+- fixed issue with temporary directory creation and too verbose output in fetchlogs script
+
 ## 2.8.2
 
 STRATO versions supported: v4.0+
