@@ -98,6 +98,11 @@ function getCompose {
   curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | egrep -o '/blockapps/strato-getting-started/releases/download/.*/docker-compose.yml' | wget --base=http://github.com/ -i - -O docker-compose.yml
 }
 
+function pbftVote {
+    echo -e "submitting a vote into pbft consensus"
+    docker exec --env NODEKEY="${blockstanbulPrivateKey}" strato_strato_1 bash -c "set -x && blockstanbul-vote $*"
+}
+
 function pullImages {
   ${docker_compose} pull
 }
@@ -220,6 +225,10 @@ while [ ${#} -gt 0 ]; do
     ;;
   --fetch-logs-with-db)
     fetchLogs "withdb"
+    exit 0
+    ;;
+  --blockstanbul-vote)
+    pbftVote "${*:2}"
     exit 0
     ;;
   *)
