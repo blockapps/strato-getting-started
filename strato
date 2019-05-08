@@ -52,6 +52,7 @@ ${Yellow}Optional flags for STRATO:${NC}
 
 ${Yellow}Environment variables:${NC}
 blockstanbulPrivateKey  - the private key for PBFT-blockstanbul node (ignored for --single; check --keygen=N or --scriptgen to generate)
+blockstanbulVote        - the private key for PBFT-blockstanbul admin
 validators      - the list of validators addresses for PBFT-blockstanbul node (ignored for --single; check --keygen=N or --scriptgen to generate)
 NODE_HOST       - (default: localhost) the hostname or IP of the machine (used for APIs and Dashoboard);
 BOOT_NODE_IP    - IP address of the boot node to connect to (required for secondary node to discover other peers), ignored when used with --single flag;
@@ -96,6 +97,14 @@ function start {
 function getCompose {
   echo -e "${Yellow}Downloading the latest stable version of docker-compose.yml${NC}"
   curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | egrep -o '/blockapps/strato-getting-started/releases/download/.*/docker-compose.yml' | wget --base=http://github.com/ -i - -O docker-compose.yml
+}
+
+function pbftVote {
+    echo -e "submitting a vote into pbft consensus"
+    if [ ! -f docker-compose.yml ]; then getCompose; fi
+    # blockstanbulVote="$(echo "${keys_json}" | grep \"private_key\" | awk -F'"' '{ print $4 }')"
+    echo -e "$*"
+    docker exec --env NODEKEY="${blockstanbulVote}" strato_strato_1  blockstanbul-vote "$*"
 }
 
 function pullImages {
@@ -220,6 +229,10 @@ while [ ${#} -gt 0 ]; do
     ;;
   --fetch-logs-with-db)
     fetchLogs "withdb"
+    exit 0
+    ;;
+  --blockstanbul-vote)
+    pbftVote "${*:2}"
     exit 0
     ;;
   *)
