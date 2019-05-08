@@ -52,7 +52,6 @@ ${Yellow}Optional flags for STRATO:${NC}
 
 ${Yellow}Environment variables:${NC}
 blockstanbulPrivateKey  - the private key for PBFT-blockstanbul node (ignored for --single; check --keygen=N or --scriptgen to generate)
-blockstanbulVote        - the private key for PBFT-blockstanbul admin
 validators      - the list of validators addresses for PBFT-blockstanbul node (ignored for --single; check --keygen=N or --scriptgen to generate)
 NODE_HOST       - (default: localhost) the hostname or IP of the machine (used for APIs and Dashoboard);
 BOOT_NODE_IP    - IP address of the boot node to connect to (required for secondary node to discover other peers), ignored when used with --single flag;
@@ -101,10 +100,7 @@ function getCompose {
 
 function pbftVote {
     echo -e "submitting a vote into pbft consensus"
-    if [ ! -f docker-compose.yml ]; then getCompose; fi
-    # blockstanbulVote="$(echo "${keys_json}" | grep \"private_key\" | awk -F'"' '{ print $4 }')"
-    echo -e "$*"
-    docker exec --env NODEKEY="${blockstanbulVote}" strato_strato_1  blockstanbul-vote "$*"
+    docker exec --env NODEKEY="${blockstanbulPrivateKey}" strato_strato_1 bash -c "set -x && blockstanbul-vote $*"
 }
 
 function pullImages {
