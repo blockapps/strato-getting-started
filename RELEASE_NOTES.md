@@ -1,6 +1,12 @@
 # STRATO Getting Started release notes
 
 ## 2.8.3
+  
+STRATO versions supported: v4.0+
+  
+- License agreement link changed in README.md
+
+## 2.8.3
 
 STRATO versions supported: v4.0+
 

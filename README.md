@@ -97,5 +97,5 @@ STRATO services need the following ports to be available on the machine (refer d
 
 ## License Agreement
 
-See [BlockApps’ Developer Edition Terms of Use](https://signup.blockapps.net/trial-license)
+See [BlockApps STRATO end user license agreement](https://developers.blockapps.net/eula.html)
 
