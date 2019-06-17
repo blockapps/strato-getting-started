@@ -124,6 +124,13 @@ function fetchLogs {
   python fetchlogs ${withdb_flag}
 }
 
+function setPassword {
+  echo -n Password:
+  read -s PASSWORD
+  echo
+  docker exec -i strato_vault-wrapper_1 curl --silent -H "Content-Type: application/json" -d @- localhost:8000/strato/v2.3/password <<< \"$PASSWORD\"
+}
+
 if [ ! -f $(pwd)/strato ]; then
     echo -e "${Red}Should be run from within the strato-getting-started directory. Exit.${NC}"
     exit 4
@@ -229,6 +236,10 @@ while [ ${#} -gt 0 ]; do
     ;;
   --blockstanbul-vote)
     pbftVote "${*:2}"
+    exit 0
+    ;;
+  --set-password)
+    setPassword
     exit 0
     ;;
   *)
