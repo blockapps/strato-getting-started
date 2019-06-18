@@ -49,6 +49,7 @@ ${Yellow}Optional flags for STRATO:${NC}
 --single              - run the single PBFT-blockstanbul node
 --lazy                - run the the lazy mining node (single);
 --blockstanbul|--pbft - run the PBFT-blockstanbul node - equal to env var blockstanbul=true; requires additional env vars (blockstanbulPrivateKey, validators)
+--upgrade-strato      - run strato and keep previous volume
 
 ${Yellow}Environment variables:${NC}
 blockstanbulPrivateKey  - the private key for PBFT-blockstanbul node (ignored for --single; check --keygen=N or --scriptgen to generate)
@@ -111,6 +112,11 @@ function keygen {
   if [ ! -f docker-compose.yml ]; then getCompose; fi
   DC_STRATO_IMAGE=$(cat docker-compose.yml | grep "STRATO_IMAGE" | sed -e "s/.*:-//" -e "s/}//")
   docker run --rm --entrypoint=keygen ${STRATO_IMAGE:-$DC_STRATO_IMAGE} --count="$1"
+}
+
+function mountStratoVolume {
+  DC_STRATO_IMAGE=$(cat docker-compose.yml | grep "STRATO_IMAGE" | sed -e "s/.*:-//" -e "s/}//")
+  docker run --volumes-from strato_strato_1 ${DC_STRATO_IMAGE}
 }
 
 function generatePbftScripts {
@@ -198,6 +204,9 @@ while [ ${#} -gt 0 ]; do
     ;;
   --lazy)
     node_type=lazy
+    ;;
+  --upgrade-strato)
+    mountStratoVolume
     ;;
   --compose)
     getCompose
