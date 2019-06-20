@@ -124,6 +124,24 @@ function fetchLogs {
   python fetchlogs ${withdb_flag}
 }
 
+function setPassword {
+  while [ -z $PASSWORD ]; do
+    echo
+    echo -n Please enter a password:
+    read -s PASSWORDA
+    echo
+    echo -n Please re-enter the password:
+    read -s PASSWORDB
+    if [ "${PASSWORDA}" == "${PASSWORDB}" ]; then
+      PASSWORD=$PASSWORDA
+    else
+      echo
+      echo -n Passwords did not match. Please try again.
+    fi
+  done
+  (docker exec -i strato_vault-wrapper_1 curl --silent -H "Content-Type: application/json" -d @- localhost:8000/strato/v2.3/password <<< \"$PASSWORD\") > /dev/null
+}
+
 if [ ! -f $(pwd)/strato ]; then
     echo -e "${Red}Should be run from within the strato-getting-started directory. Exit.${NC}"
     exit 4
@@ -474,5 +492,9 @@ while ! [[ -n $(docker ps -q -f name=${hc_container} -f health=healthy) ]];  do
   if [[ $((i % 4)) -eq 0 ]]; then printf '\b\b\b   \b\b\b'; else printf '.'; fi
   sleep 0.3
 done
+if [ $OAUTH_ENABLED ]
+then
+  setPassword
+fi
 echo -e "\n${Green}STRATO has awoken. Check ${http_protocol}://${NODE_HOST}${NC}"
 # END OF WAIT FOR STRATO TO RUN
