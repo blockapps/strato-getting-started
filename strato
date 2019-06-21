@@ -115,8 +115,10 @@ function keygen {
 }
 
 function mountStratoVolume {
-  DC_STRATO_IMAGE=$(cat docker-compose.yml | grep "STRATO_IMAGE" | sed -e "s/.*:-//" -e "s/}//")
-  docker run --volumes-from strato_strato_1 ${DC_STRATO_IMAGE}
+  echo -e "${BYellow}STRATO container already exists. Restarting"
+  docker restart strato_strato_1
+  echo -e "${Green}STRATO container has restarted."
+  exit 0
 }
 
 function generatePbftScripts {
@@ -357,6 +359,14 @@ then
 
 elif [ ${node_type} = single ]
 then
+  if [ "$(docker ps -a | grep strato_strato_1 )" ]
+  then
+    docker exec -it strato_strato_1 [ -f var/lib/strato/logs/strato-setup ]
+      if [ $? = 0 ]
+      then
+        mountStratoVolume
+      fi
+  fi
   echo "" && echo -e "${BYellow}Running single node with PBFT-blockstanbul${NC}"
   keys_json=$(keygen 1)
   export blockstanbul=true
