@@ -116,7 +116,7 @@ function keygen {
 
 function mountStratoVolume {
   echo -e "${BYellow}STRATO container already exists. Restarting"
-  docker restart strato_strato_1
+  docker-compose -p strato up -d --no-deps strato
   echo -e "${Green}STRATO container has restarted."
   exit 0
 }
