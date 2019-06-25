@@ -36,7 +36,9 @@ Provide no entrypoint to start STRATO node.
 --version|-v  - show strato-getting-started script version;
 --stop        - stop STRATO containers (keeps containers and volumes);
 --start       - start the existing STRATO containers after they were stopped (the opposite to --stop)
---remove      - stop and remove STRATO containers but keep volumes (useful for STRATO upgrade - to resync with network);
+--remove      - DEPRECATED: choose --down or --drop-chains
+--down        - remove strato containers and leave all volumes intact
+--drop-chains - remove strato containers and chain data volumes; user data volumes are kept
 --wipe        - stop and remove STRATO containers and wipe out volumes;
 --compose     - fetch the latest stable docker-compose.yml;
 --pull        - pull images used in docker-compose.yml;
@@ -49,6 +51,7 @@ ${Yellow}Optional flags for STRATO:${NC}
 --single              - run the single PBFT-blockstanbul node
 --lazy                - run the the lazy mining node (single);
 --blockstanbul|--pbft - run the PBFT-blockstanbul node - equal to env var blockstanbul=true; requires additional env vars (blockstanbulPrivateKey, validators)
+--upgrade-strato      - run strato and keep previous volume
 
 ${Yellow}Environment variables:${NC}
 blockstanbulPrivateKey  - the private key for PBFT-blockstanbul node (ignored for --single; check --keygen=N or --scriptgen to generate)
@@ -79,8 +82,19 @@ function wipe {
 }
 
 function remove {
-  echo -e "${Yellow}Gently stopping and removing STRATO containers, keeping volumes${NC}"
+  echo -e "${Red}Remove is no longer supported. Use --down to just remove containers or --drop-chains to also remove chain volumes${NC}"
+  exit 17
+}
+
+
+function down {
+  echo -e "${Yellow}Removing STRATO containers${NC}"
   ${docker_compose} down --remove-orphans
+}
+
+function dropChains {
+  down
+  docker volume rm --force strato_kafkadata strato_redisdata strato_stratodata
 }
 
 function stop {
@@ -111,6 +125,13 @@ function keygen {
   if [ ! -f docker-compose.yml ]; then getCompose; fi
   DC_STRATO_IMAGE=$(cat docker-compose.yml | grep "STRATO_IMAGE" | sed -e "s/.*:-//" -e "s/}//")
   docker run --rm --entrypoint=keygen ${STRATO_IMAGE:-$DC_STRATO_IMAGE} --count="$1"
+}
+
+function mountStratoVolume {
+  echo -e "${BYellow}STRATO container already exists. Restarting"
+  docker-compose -p strato up -d --no-deps strato
+  echo -e "${Green}STRATO container has restarted."
+  exit 0
 }
 
 function generatePbftScripts {
@@ -178,6 +199,14 @@ while [ ${#} -gt 0 ]; do
     remove
     exit 0
     ;;
+  --down)
+    down
+    exit 0
+    ;;
+  --drop-chains)
+    dropChains
+    exit 0
+    ;;
   --wipe)
     wipe
     exit 0
@@ -198,6 +227,9 @@ while [ ${#} -gt 0 ]; do
     ;;
   --lazy)
     node_type=lazy
+    ;;
+  --upgrade-strato)
+    mountStratoVolume
     ;;
   --compose)
     getCompose
@@ -348,6 +380,14 @@ then
 
 elif [ ${node_type} = single ]
 then
+  if [ "$(docker ps -a | grep strato_strato_1 )" ]
+  then
+    docker exec -it strato_strato_1 [ -f var/lib/strato/logs/strato-setup ]
+      if [ $? = 0 ]
+      then
+        mountStratoVolume
+      fi
+  fi
   echo "" && echo -e "${BYellow}Running single node with PBFT-blockstanbul${NC}"
   keys_json=$(keygen 1)
   export blockstanbul=true
