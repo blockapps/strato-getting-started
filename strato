@@ -492,7 +492,7 @@ while ! [[ -n $(docker ps -q -f name=${hc_container} -f health=healthy) ]];  do
   if [[ $((i % 4)) -eq 0 ]]; then printf '\b\b\b   \b\b\b'; else printf '.'; fi
   sleep 0.3
 done
-if [ $OAUTH_ENABLED ]
+if [ "$OAUTH_ENABLED" == "true" ] || [ "$OAUTH_JWT_VALIDATION_ENABLED" == "true" ]
 then
   setPassword
 fi
