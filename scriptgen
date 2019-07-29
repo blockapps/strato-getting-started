@@ -17,10 +17,14 @@ def format_script(address, ip, host, boot_node_ip, prvkey, vals):
 #!/usr/bin/env sh
 # Address: {0}
 # IP: {1}
-NODE_HOST="{2}" \\
-  BOOT_NODE_IP="{3}" \\
-  blockstanbulPrivateKey="{4}" \\
-  validators='{5}' \\
+export NODE_HOST="{2}" \\
+  export BOOT_NODE_IP="{3}" \\
+  export OAUTH_CLIENT_ID='tt-localhost' \\
+  export OAUTH_CLIENT_SECRET='10352ea6-f286-47cf-936c-2cb7ce6c1c39' \\
+  export OAUTH_DISCOVERY_URL='https://keycloak.blockapps.net/auth/realms/track-and-trace/.well-known/openid-configuration' \\
+  export OAUTH_ENABLED='true' \\
+  export blockstanbulPrivateKey="{4}" \\
+  export validators='{5}' \\
   ./strato --blockstanbul""" \
             .format(address, ip, host.strip(), boot_node_ip.strip() if boot_node_ip else '', prvkey, json.dumps(vals, separators=(',', ':')))
     # Single node deployment workaround - remove BOOT_NODE_IP line
