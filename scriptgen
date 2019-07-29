@@ -12,7 +12,7 @@ from subprocess import check_output
 node_list_file = 'node-list.json'
 output_directory = 'my-node-scripts'
 
-def format_script(address, ip, host, boot_node_ip, prvkey, vals):
+def format_script(address, ip, host, boot_node_ip, prvkey, vals, oauth_client_id, oauth_client_secret, oauth_discovery_url, oauth_enabled):
     output = """\
 #!/usr/bin/env sh
 # Address: {0}
@@ -60,9 +60,16 @@ def process_records(records):
                 except Exception, e:
                     print('ERROR: Failed to resolve IP of host `{0}`. Error message: {1}'.format(record['host'], e))
                     sys.exit(4)
-
         elif 'host' not in record:
             record['host'] = record['ip']
+        if 'oauth_client_id' not in record:
+            record['client_id'] = ''
+        if 'oauth_client_secret' not in record:
+            record['client_secret'] = ''
+        if 'oauth_discovery_url' not in record:
+            record['oauth_discovery_url'] = ''
+        if 'oauth_enabled' not in record:
+            record['oauth_enabled'] = false
         processed_records.append(record)
     return processed_records
 
@@ -105,7 +112,11 @@ if __name__ == "__main__":
                     node['host'],
                     common_boot_ip if node['ip'] != common_boot_ip else other_boot_ip,
                     key_address_pair['private_key'],
-                    validators
+                    validators,
+                    node['oauth_client_id'],
+                    node['oauth_client_secret'],
+                    node['oauth_discovery_url'],
+                    node['oauth_enabled']
                 )
             )
         os.chmod(file_path, 0775)
