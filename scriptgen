@@ -69,7 +69,7 @@ def process_records(records):
         if 'oauth_discovery_url' not in record:
             record['oauth_discovery_url'] = ''
         if 'oauth_enabled' not in record:
-            record['oauth_enabled'] = false
+            record['oauth_enabled'] = 'false'
         processed_records.append(record)
     return processed_records
 
