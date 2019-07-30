@@ -1,4 +1,4 @@
-[![BlockApps logo](http://blockapps.net/img/logo_cropped.png)](http://blockapps.net)
+[![BlockApps logo](https://blockapps.net/wp-content/uploads/2019/07/blockapps-logo-super-small.png)](http://blockapps.net)
 
 # STRATO - Getting Started guide
 
