@@ -34,6 +34,7 @@ The entrypoints are mutually exclusive.
 Provide no entrypoint to start STRATO node.
 --help|-h     - this help;
 --version|-v  - show strato-getting-started script version;
+--set-password  - provide the in-memory password after the node was restarted; use PASSWORD env var to skip interactive input;
 --stop        - stop STRATO containers (keeps containers and volumes);
 --start       - start the existing STRATO containers after they were stopped (the opposite to --stop)
 --remove      - DEPRECATED: choose --down or --drop-chains
@@ -54,6 +55,7 @@ ${Yellow}Optional flags for STRATO:${NC}
 --upgrade-strato      - run strato and keep previous volume
 
 ${Yellow}Environment variables:${NC}
+PASSWORD        - node in-memory password for STRATO v4.5+ with OAuth enabled. To be requested interactively if skipped
 blockstanbulPrivateKey  - the private key for PBFT-blockstanbul node (ignored for --single; check --keygen=N or --scriptgen to generate)
 validators      - the list of validators addresses for PBFT-blockstanbul node (ignored for --single; check --keygen=N or --scriptgen to generate)
 NODE_HOST       - (default: localhost) the hostname or IP of the machine (used for APIs and Dashoboard);
@@ -146,21 +148,41 @@ function fetchLogs {
 }
 
 function setPassword {
-  while [ -z $PASSWORD ]; do
-    echo
-    echo -n Please enter a password:
-    read -s PASSWORDA
-    echo
-    echo -n Please re-enter the password:
-    read -s PASSWORDB
-    if [ "${PASSWORDA}" == "${PASSWORDB}" ]; then
-      PASSWORD=$PASSWORDA
-    else
+  REQUIRES_PASSWORD=$([[ $(docker exec strato_vault-wrapper_1 curl --write-out %{http_code} --silent --output /dev/null localhost:8000/strato/v2.3/password) == "405" ]] && echo "true" || echo "false")
+  if [[ "$REQUIRES_PASSWORD" == "true" ]]; then
+    while [ -z $PASSWORD ]; do
       echo
-      echo -n Passwords did not match. Please try again.
-    fi
-  done
-  (docker exec -i strato_vault-wrapper_1 curl --silent -H "Content-Type: application/json" -d @- localhost:8000/strato/v2.3/password <<< \"$PASSWORD\") > /dev/null
+      echo -n Please enter a password:
+      read -s PASSWORDA
+      echo
+      echo -n Please re-enter the password:
+      read -s PASSWORDB
+      if [ "${PASSWORDA}" == "${PASSWORDB}" ]; then
+        echo
+        PASSWORD=${PASSWORDA}
+      else
+        echo
+        echo -n Passwords did not match. Please try again.
+      fi
+    done
+    
+    PASSWORD_SET_RESPONSE=$(docker exec -i strato_vault-wrapper_1 curl -s -H "Content-Type: application/json" -d @- localhost:8000/strato/v2.3/password <<< \"$PASSWORD\")
+    case ${PASSWORD_SET_RESPONSE} in
+      "\"Could not validate password\"" )
+        echo -e "\033[0;31mWrong password provided, please try again.\033[0m"
+        exit 15
+        ;;
+      "[]" )
+        echo -e "\033[0;32mThe password has been set.\033[0m"
+        ;;
+      "\"Password is already set\"" )
+        echo "Password is already set and node is active"
+        exit 16
+        ;;
+    esac
+  else
+    echo "STRATO version is 4.4.1 or older - skipping global password setting"
+  fi
 }
 
 if [ ! -f $(pwd)/strato ]; then
@@ -182,7 +204,8 @@ fi
 
 STRATOGS_REQUIRED_VERSION=$(grep strato-getting-started-min-version docker-compose.yml | awk -F":" '{print $NF}')
 if [ ${STRATOGS_REQUIRED_VERSION} ]; then
-  if ! awk -v VER=$(<VERSION) -v REQ_VER=${STRATOGS_REQUIRED_VERSION} 'BEGIN {exit (VER < REQ_VER)}'
+  STRATOGS_CURRENT_VERSION=$(< VERSION)
+  if ! awk -v VER=${STRATOGS_CURRENT_VERSION//.} -v REQ_VER=${STRATOGS_REQUIRED_VERSION//.} 'BEGIN {exit (VER < REQ_VER)}'
   then
       echo -e "${Red}The STRATO version from docker-compose.yml is incompatible with this strato-getting-started. Please update to v${STRATOGS_REQUIRED_VERSION}."
       exit 12
@@ -279,6 +302,10 @@ while [ ${#} -gt 0 ]; do
     ;;
   --blockstanbul-vote)
     pbftVote "${*:2}"
+    exit 0
+    ;;
+  --set-password)
+    setPassword
     exit 0
     ;;
   *)
@@ -532,8 +559,9 @@ while ! [[ -n $(docker ps -q -f name=${hc_container} -f health=healthy) ]];  do
   if [[ $((i % 4)) -eq 0 ]]; then printf '\b\b\b   \b\b\b'; else printf '.'; fi
   sleep 0.3
 done
-if [ "$OAUTH_ENABLED" == "true" ] || [ "$OAUTH_JWT_VALIDATION_ENABLED" == "true" ]
-then
+printf "\n"
+
+if [[ "$OAUTH_ENABLED" == "true"  ||  "$OAUTH_JWT_VALIDATION_ENABLED" == "true" ]]; then
   setPassword
 fi
 echo -e "\n${Green}STRATO has awoken. Check ${http_protocol}://${NODE_HOST}${NC}"
