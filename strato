@@ -153,7 +153,9 @@ function setPassword {
     while [ -z $PASSWORD ]; do
       echo
       echo -n Please enter a password:
-      read -s PASSWORDA
+      read -s PASSWORDA || (printf "\nerror: unable to read password, stdin might be closed\n" &&
+                            printf "Set the PASSWORD environment variable in automated environments\n" &&
+                            exit 72)
       echo
       echo -n Please re-enter the password:
       read -s PASSWORDB
@@ -165,7 +167,7 @@ function setPassword {
         echo -n Passwords did not match. Please try again.
       fi
     done
-    
+
     PASSWORD_SET_RESPONSE=$(docker exec -i strato_vault-wrapper_1 curl -s -H "Content-Type: application/json" -d @- localhost:8000/strato/v2.3/password <<< \"$PASSWORD\")
     case ${PASSWORD_SET_RESPONSE} in
       "\"Could not validate password\"" )
