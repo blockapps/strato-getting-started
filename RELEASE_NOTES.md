@@ -1,9 +1,20 @@
 # STRATO Getting Started release notes
+## 2.9.1
+
+STRATO versions supported: v4.0+
+
+- --drop-chains behavior fixed to remove the zookeeper volume
+
+## 2.9.0
+
+STRATO versions supported: v4.0+
+
+- Support for STRATO container upgrade: --upgrade-strato --down and --drop-chains flags added, --remove flag deprecated
 
 ## 2.8.3
-  
+
 STRATO versions supported: v4.0+
-  
+
 - License agreement link changed in README.md
 
 ## 2.8.3
