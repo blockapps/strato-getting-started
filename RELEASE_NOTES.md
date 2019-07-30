@@ -1,4 +1,11 @@
 # STRATO Getting Started release notes
+
+## 2.10.0
+
+STRATO versions supported: v4.0+
+
+- Global in-memory password setting for STRATO 4.5+ with OAuth enabled
+
 ## 2.9.1
 
 STRATO versions supported: v4.0+
