@@ -1,5 +1,11 @@
 # STRATO Getting Started release notes
 
+## 2.10.1
+
+STRATO versions supported: v4.0+
+
+- Fail verbosely when no password can be read
+
 ## 2.10.0
 
 STRATO versions supported: v4.0+

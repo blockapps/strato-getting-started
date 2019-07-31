@@ -155,7 +155,7 @@ function setPassword {
       echo -n Please enter a password:
       read -s PASSWORDA || (printf "\nerror: unable to read password, stdin might be closed\n" &&
                             printf "Set the PASSWORD environment variable in automated environments\n" &&
-                            exit 72)
+                            exit 18)
       echo
       echo -n Please re-enter the password:
       read -s PASSWORDB
