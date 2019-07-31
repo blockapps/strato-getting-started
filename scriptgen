@@ -12,7 +12,7 @@ from subprocess import check_output
 node_list_file = 'node-list.json'
 output_directory = 'my-node-scripts'
 
-def format_script(address, ip, host, boot_node_ip, prvkey, vals, oauth_client_id, oauth_client_secret, oauth_discovery_url, oauth_enabled):
+def format_script(address, ip, host, boot_node_ip, prvkey, vals, oauth):
     output = """\
 #!/usr/bin/env sh
 # Address: {0}
@@ -21,12 +21,9 @@ export NODE_HOST="{2}" \\
   export BOOT_NODE_IP="{3}" \\
   export blockstanbulPrivateKey="{4}" \\
   export validators='{5}' \\
-  export OAUTH_CLIENT_ID='{6}' \\
-  export OAUTH_CLIENT_SECRET='{7}' \\
-  export OAUTH_DISCOVERY_URL='{8}' \\
-  export OAUTH_ENABLED='{9}' \\
+  export oauth_parameters='{6}' \\
   ./strato --blockstanbul""" \
-            .format(address, ip, host.strip(), boot_node_ip.strip() if boot_node_ip else '', prvkey, json.dumps(vals, separators=(',', ':')))
+            .format(address, ip, host.strip(), boot_node_ip.strip() if boot_node_ip else '', prvkey, json.dumps(vals, separators=(',', ':'), json.dumps(oauth, separators=(',', ':')))
     # Single node deployment workaround - remove BOOT_NODE_IP line
     if not boot_node_ip:
         output = re.sub(".*BOOT_NODE_IP=.*\n?","",output)
@@ -62,14 +59,6 @@ def process_records(records):
                     sys.exit(4)
         elif 'host' not in record:
             record['host'] = record['ip']
-        if 'oauth_client_id' not in record:
-            record['client_id'] = ''
-        if 'oauth_client_secret' not in record:
-            record['client_secret'] = ''
-        if 'oauth_discovery_url' not in record:
-            record['oauth_discovery_url'] = ''
-        if 'oauth_enabled' not in record:
-            record['oauth_enabled'] = 'false'
         processed_records.append(record)
     return processed_records
 
@@ -113,10 +102,7 @@ if __name__ == "__main__":
                     common_boot_ip if node['ip'] != common_boot_ip else other_boot_ip,
                     key_address_pair['private_key'],
                     validators,
-                    node['oauth_client_id'],
-                    node['oauth_client_secret'],
-                    node['oauth_discovery_url'],
-                    node['oauth_enabled']
+                    oauth_parameters
                 )
             )
         os.chmod(file_path, 0775)
