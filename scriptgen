@@ -12,21 +12,32 @@ from subprocess import check_output
 node_list_file = 'node-list.json'
 output_directory = 'my-node-scripts'
 
-def format_script(address, ip, host, boot_node_ip, prvkey, vals, oauth):
+def format_script(address, ip, host, boot_node_ip, prvkey, vals, oauth, parameters):
+    host = host.strip()
+    vals = json.dumps(vals, separators=(',', ':')
     output = """\
-#!/usr/bin/env sh
-# Address: {0}
-# IP: {1}
-export NODE_HOST="{2}" \\
-  export BOOT_NODE_IP="{3}" \\
-  export blockstanbulPrivateKey="{4}" \\
-  export validators='{5}' \\
-  export oauth_parameters='{6}' \\
-  ./strato --blockstanbul""" \
-            .format(address, ip, host.strip(), boot_node_ip.strip() if boot_node_ip else '', prvkey, json.dumps(vals, separators=(',', ':'), json.dumps(oauth, separators=(',', ':')))
+    #!/usr/bin/env sh
+    # Address: {0}
+    # IP: {1}
+    export NODE_HOST="{host}" \\
+    export blockstanbulPrivateKey="{4}" \\
+    export validators='{5}' \\
+    export oauth_parameters='{6}' \\
+    ./strato --blockstanbul""" \
     # Single node deployment workaround - remove BOOT_NODE_IP line
-    if not boot_node_ip:
+    if boot_node_ip:
+        boot_node_ip.strip()
+        export BOOT_NODE_IP="{3}" \\
+    else:
         output = re.sub(".*BOOT_NODE_IP=.*\n?","",output)
+   # Add Oauth parameters
+   if oauth:
+
+   # Add other parameters
+   if parameters:
+	for item in iteritems(): 
+          export k,v
+
     return output
 
 
