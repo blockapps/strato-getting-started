@@ -14,30 +14,27 @@ output_directory = 'my-node-scripts'
 
 def format_script(address, ip, host, boot_node_ip, prvkey, vals, oauth, parameters):
     host = host.strip()
-    vals = json.dumps(vals, separators=(',', ':')
     output = """\
     #!/usr/bin/env sh
     # Address: {0}
     # IP: {1}
     export NODE_HOST="{host}" \\
-    export blockstanbulPrivateKey="{4}" \\
-    export validators='{5}' \\
-    export oauth_parameters='{6}' \\
-    ./strato --blockstanbul""" \
+    export blockstanbulPrivateKey="{4}" \\\
     # Single node deployment workaround - remove BOOT_NODE_IP line
     if boot_node_ip:
-        boot_node_ip.strip()
-        export BOOT_NODE_IP="{3}" \\
-    else:
-        output = re.sub(".*BOOT_NODE_IP=.*\n?","",output)
+        output.extend(["export BOOT_NODE_IP='{3}'".format(boot_node_ip.strip())])
+    if validators:
+      output.extend(["export validators='.format(json.dumps(vals, separators=(',', ':')))])
    # Add Oauth parameters
-   if oauth:
+    if oauth:
+      output.extend(["export {0}='{1}'".format(k, v) for k, v in oauth.iteritems()])
 
    # Add other parameters
-   if parameters:
-	for item in iteritems(): 
-          export k,v
+    if parameters:
+      output.extend(["export {0}='{1}'".format(k, v) for k, v in parameters.iteritems()])
 
+    output.append("./strato --blockstanbul")
+    print '\n'.join(output)
     return output
 
 
