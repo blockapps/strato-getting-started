@@ -102,7 +102,7 @@ if __name__ == "__main__":
                     common_boot_ip if node['ip'] != common_boot_ip else other_boot_ip,
                     key_address_pair['private_key'],
                     validators,
-                    oauth_parameters
+                    node['oauth'],
                 )
             )
         os.chmod(file_path, 0775)
