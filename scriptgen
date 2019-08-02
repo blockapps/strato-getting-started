@@ -18,13 +18,13 @@ def format_script(address, ip, host, boot_node_ip, prvkey, vals, oauth, paramete
     #!/usr/bin/env sh
     # Address: {0}
     # IP: {1}
-    export NODE_HOST="{host}" \\
-    export blockstanbulPrivateKey="{4}" \\\
+    export NODE_HOST="{host}" 
+    export blockstanbulPrivateKey="{4}" """
     # Single node deployment workaround - remove BOOT_NODE_IP line
     if boot_node_ip:
         output.extend(["export BOOT_NODE_IP='{3}'".format(boot_node_ip.strip())])
     if validators:
-      output.extend(["export validators='.format(json.dumps(vals, separators=(',', ':')))])
+      output.extend(["export validators='{vals}".format(json.dumps(vals, separators=(',', ':')))])
    # Add Oauth parameters
     if oauth:
       output.extend(["export {0}='{1}'".format(k, v) for k, v in oauth.iteritems()])
