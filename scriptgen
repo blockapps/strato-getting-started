@@ -26,12 +26,16 @@ def format_script(address, ip, host, boot_node_ip, prvkey, vals, oauth, paramete
     if validators:
       output.extend(["export validators='{vals}".format(json.dumps(vals, separators=(',', ':')))])
    # Add Oauth parameters
-    if oauth:
-      output.extend(["export {0}='{1}'".format(k, v) for k, v in oauth.iteritems()])
+#    oauth_params=json.dumps(oauth)
+#    print(oauth_params)
+#    if oauth:
+#      output.extend(["export {0}='{1}'".format(k, v) for k, v in oauth_params.iteritems()])
 
    # Add other parameters
-    if parameters:
-      output.extend(["export {0}='{1}'".format(k, v) for k, v in parameters.iteritems()])
+#    params=json.dumps(params)
+#    print(params)
+#    if parameters:
+#      output.extend(["export {0}='{1}'".format(k, v) for k, v in params.iteritems()])
 
     output.append("./strato --blockstanbul")
     print '\n'.join(output)

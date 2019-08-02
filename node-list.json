@@ -1,10 +1,11 @@
 [
   {
-    "host": "example.com"
-    "oauth: {"oauth_enabled":true, "client_id":"sdskjdhfkdsjklsdjf"}"
+    "host": "example.com",
+    "oauth": "[{'oauth_enabled':'true'}]"
   },
   {
-    "ip": "192.168.0.2"
+    "ip": "192.168.0.2",
+    "parameters":"[{'maxTxsPerBlock':'10'}]"
   },
   {
     "ip": "192.168.0.3",
