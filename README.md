@@ -96,7 +96,7 @@ STRATO services need the following ports to be available on the machine (refer d
 ```
 
 ### Need Docker Access?
-You need a valid **STRATO License** in order to access the STRATO docker image. If you are getting `images not accessible` errors (example below) then your license is not valid.
+You need a valid **STRATO License** in order to access the STRATO docker images. If you are getting `image not accessible` errors (example below) then your license is not valid.
 
 ```Error response from daemon: pull access denied for registry-x/y/z, repository does not exist or may require 'docker login': denied: requested access to the resource is denied```
 
