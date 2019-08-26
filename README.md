@@ -47,12 +47,12 @@
     ```
     ./strato --single
     ```
-    
+
     >If running on the remote machine, provide the NODE_HOST variable with the machine's external IP address or domain (reachable through the network) when running the STRATO: ```NODE_HOST=example.com ./strato.sh --single```
 
     >Windows users should always provide the NODE_HOST variable with the docker machine IP address (in most cases it is `192.168.99.100`) when running the STRATO: ```NODE_HOST=192.168.99.100 ./strato.sh --single```
 
-        
+
 4. Check if STRATO services are running (using `docker ps`) & view the Strato Management Dashboard at `http://localhost/` (or `http://<remote_node_host>/` when running on remote machine)
 
     >If `NODE_HOST` is set in step 3, use it's value instead of the `localhost` hereinafter
@@ -95,7 +95,13 @@ STRATO services need the following ports to be available on the machine (refer d
 :30303, :30303/UDP (for Strato P2P)
 ```
 
+### Need Docker Access?
+You need a valid **STRATO License** in order to access the STRATO docker image. If you are getting `images not accessible` errors (example below) then your license is not valid.
+
+```Error response from daemon: pull access denied for registry-x/y/z, repository does not exist or may require 'docker login': denied: requested access to the resource is denied```
+
+You can **purchase a license [here](https://blockapps.net/strato-pricing/)**. Once requested, we will contact you shortly to configure your license.
+
 ## License Agreement
 
 See [BlockApps STRATO end user license agreement](https://developers.blockapps.net/eula.html)
-
