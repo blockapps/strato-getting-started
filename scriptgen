@@ -17,7 +17,7 @@ def format_script(address, ip, host, port, boot_node_ip, prvkey, vals):
 #!/usr/bin/env sh
 # Address: {address}
 # IP: {ip}
-NODE_HOST="{host}:{port}" \\
+NODE_HOST="{host}{colon_port_or_empty}" \\
   HTTP_PORT="{port}" \\
   BOOT_NODE_IP="{boot_node_ip}" \\
   blockstanbulPrivateKey="{prvkey}" \\
@@ -27,6 +27,7 @@ NODE_HOST="{host}:{port}" \\
         .format(address=address,
                 ip=ip,
                 host=host.strip(),
+                colon_port_or_empty=':'+str(port) if str(port) != "80" else '',
                 port=str(port),
                 boot_node_ip=boot_node_ip.strip() if boot_node_ip else '',
                 prvkey=prvkey,

@@ -1,5 +1,11 @@
 # STRATO Getting Started release notes
 
+## 2.11.0
+
+STRATO versions supported: v4.0+
+
+- Added support for "port" in node-list.json syntax to alter the default STRATO port
+
 ## 2.10.1
 
 STRATO versions supported: v4.0+

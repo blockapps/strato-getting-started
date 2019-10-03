@@ -8,5 +8,9 @@
   {
     "ip": "192.168.0.3",
     "host": "example3.com"
+  },
+  {
+    "host": "example4.com",
+    "port": 8080
   }
 ]
