@@ -52,7 +52,7 @@ ${Yellow}Optional flags for STRATO:${NC}
 --single              - run the single PBFT-blockstanbul node
 --lazy                - run the the lazy mining node (single);
 --blockstanbul|--pbft - run the PBFT-blockstanbul node - equal to env var blockstanbul=true; requires additional env vars (blockstanbulPrivateKey, validators)
---upgrade-strato      - run strato and keep previous volume
+--restart-strato      - restart strato with the same docker compose and keep previous volume
 
 ${Yellow}Environment variables:${NC}
 PASSWORD        - node in-memory password for STRATO v4.5+ with OAuth enabled. To be requested interactively if skipped
@@ -131,7 +131,7 @@ function keygen {
 
 function mountStratoVolume {
   echo -e "${BYellow}STRATO container already exists. Restarting"
-  docker-compose -p strato up -d --no-deps strato
+  docker-compose -p strato stop && docker-compose -p strato start
   echo -e "${Green}STRATO container has restarted."
   exit 0
 }
@@ -271,7 +271,7 @@ while [ ${#} -gt 0 ]; do
   --lazy)
     node_type=lazy
     ;;
-  --upgrade-strato)
+  --restart-strato)
     mountStratoVolume
     ;;
   --compose)
@@ -427,14 +427,6 @@ then
 
 elif [ ${node_type} = single ]
 then
-  if [ "$(docker ps -a | grep strato_strato_1 )" ]
-  then
-    docker exec -it strato_strato_1 [ -f var/lib/strato/logs/strato-setup ]
-      if [ $? = 0 ]
-      then
-        mountStratoVolume
-      fi
-  fi
   echo "" && echo -e "${BYellow}Running single node with PBFT-blockstanbul${NC}"
   keys_json=$(keygen 1)
   export blockstanbul=true
