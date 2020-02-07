@@ -74,6 +74,7 @@ OAUTH_DISCOVERY_URL         - (required if OAUTH_ENABLED=true) OAuth provider's 
 OAUTH_CLIENT_ID             - (required if OAUTH_ENABLED=true) Client ID of OAuth provider valid for the future STRATO url (http(s)://<NODE_HOST>:<HTTP_PORT/HTTPS_PORT>);
 OAUTH_CLIENT_SECRET         - (required if OAUTH_ENABLED=true) Client Secret for the client ID specified;
 OAUTH_JWT_USERNAME_PROPERTY - (default: email) The name of property of JWT access token payload to be used as STRATO user name;
+OAUTH_SCOPE                 - (default: 'openid email profile') The openid scopes used in session cookie verification (alter for custom OAUTH_JWT_USERNAME_PROPERTY only, refer to your OAuth provider's documentation)
 OAUTH_STRATO42_FALLBACK     - (default: false) - STRATO v4.2 OAuth compatibility mode ('OAUTH_JWT_VALIDATION_' config vars used, no OAuth login feature for UIs);
 "
 }
@@ -407,6 +408,7 @@ echo "OAUTH_DISCOVERY_URL: ${OAUTH_DISCOVERY_URL:-not set}"
 echo "OAUTH_CLIENT_ID: $(if [ -z ${OAUTH_CLIENT_ID} ]; then echo "not set"; else echo "is set"; fi)"
 echo "OAUTH_CLIENT_SECRET: $(if [ -z ${OAUTH_CLIENT_SECRET} ]; then echo "not set"; else echo "is set"; fi)"
 echo "OAUTH_JWT_USERNAME_PROPERTY: ${OAUTH_JWT_USERNAME_PROPERTY:-not set (using default)}"
+echo "OAUTH_SCOPE: ${OAUTH_SCOPE:-not set (using default)}"
 echo "OAUTH_STRATO42_FALLBACK: ${OAUTH_STRATO42_FALLBACK:-false}"
 
 if [ ${node_type} = lazy ]
