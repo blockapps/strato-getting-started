@@ -21,6 +21,7 @@ NODE_HOST="{host}{colon_port_or_empty}" \\
   HTTP_PORT="{port}" \\
   BOOT_NODE_IP="{boot_node_ip}" \\
   blockstanbulPrivateKey="{prvkey}" \\
+  blockstanbulAdmins='["{address}"]' \\
   validators='{validators}' \\
   ./strato --blockstanbul
 """ \
