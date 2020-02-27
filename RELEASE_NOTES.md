@@ -1,5 +1,17 @@
 # STRATO Getting Started release notes
 
+## 2.13.0
+
+STRATO versions supported: v4.0+
+
+- scriptgen to add blockstanbulAdmins variable into generated run.sh scripts
+
+## 2.12.0
+
+STRATO versions supported: v4.0+
+
+- OAUTH_SCOPE added to --help output
+
 ## 2.11.0
 
 STRATO versions supported: v4.0+
