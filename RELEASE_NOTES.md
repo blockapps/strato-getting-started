@@ -1,5 +1,11 @@
 # STRATO Getting Started release notes
 
+## 2.14.0
+
+STRATO versions supported: v4.0+
+
+- scriptgen to add blockstanbul public key into generated run.sh scripts
+
 ## 2.13.0
 
 STRATO versions supported: v4.0+

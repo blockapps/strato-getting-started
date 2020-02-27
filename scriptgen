@@ -12,11 +12,13 @@ from subprocess import check_output
 node_list_file = 'node-list.json'
 output_directory = 'my-node-scripts'
 
-def format_script(address, ip, host, port, boot_node_ip, prvkey, vals):
+
+def format_script(address, ip, host, port, boot_node_ip, prvkey, pubkey, vals):
     output = """\
 #!/usr/bin/env sh
-# Address: {address}
-# IP: {ip}
+# Address:{address}
+# PublicKey:{pubkey}
+# IP:{ip}
 NODE_HOST="{host}{colon_port_or_empty}" \\
   HTTP_PORT="{port}" \\
   BOOT_NODE_IP="{boot_node_ip}" \\
@@ -26,6 +28,7 @@ NODE_HOST="{host}{colon_port_or_empty}" \\
   ./strato --blockstanbul
 """ \
         .format(address=address,
+                pubkey=pubkey,
                 ip=ip,
                 host=host.strip(),
                 colon_port_or_empty=':'+str(port) if str(port) != "80" else '',
@@ -101,19 +104,20 @@ if __name__ == "__main__":
 
     validators = keys_json['all_validators']
 
-    for (node, key_address_pair) in zip(nodes, keys_json['key_address_pairs']):
+    for (node, node_blockstanbul_data) in zip(nodes, keys_json['key_address_pairs']):
         node_dir = os.path.join(output_directory, node['host'].strip())
         os.makedirs(node_dir)
         file_path = os.path.join(node_dir, 'run.sh')
         with open(file_path, 'w') as file:
             file.write(
                 format_script(
-                    key_address_pair['address'],
+                    node_blockstanbul_data['address'],
                     node['ip'],
                     node['host'],
                     node['port'],
                     common_boot_ip if node['ip'] != common_boot_ip else other_boot_ip,
-                    key_address_pair['private_key'],
+                    node_blockstanbul_data['private_key'],
+                    node_blockstanbul_data['public_key'],
                     validators
                 )
             )
