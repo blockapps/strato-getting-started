@@ -16,9 +16,9 @@ output_directory = 'my-node-scripts'
 def format_script(address, ip, host, port, boot_node_ip, prvkey, pubkey, vals):
     output = """\
 #!/usr/bin/env sh
-# Address:{address}
-# PublicKey:{pubkey}
-# IP:{ip}
+# Address: {address}
+# PublicKey: {pubkey}
+# IP: {ip}
 NODE_HOST="{host}{colon_port_or_empty}" \\
   HTTP_PORT="{port}" \\
   BOOT_NODE_IP="{boot_node_ip}" \\
@@ -117,7 +117,7 @@ if __name__ == "__main__":
                     node['port'],
                     common_boot_ip if node['ip'] != common_boot_ip else other_boot_ip,
                     node_blockstanbul_data['private_key'],
-                    node_blockstanbul_data['public_key'],
+                    node_blockstanbul_data['public_key'] if ('public_key' in node_blockstanbul_data) else 'unknown-update-strato-image',
                     validators
                 )
             )

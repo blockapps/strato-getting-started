@@ -1,5 +1,12 @@
 # STRATO Getting Started release notes
 
+## 2.15.0
+
+STRATO versions supported: v4.0+
+
+- scriptgen compatible with STRATO versions below 5.2.0
+- updated formatting of scripts generated with scriptgen
+
 ## 2.14.0
 
 STRATO versions supported: v4.0+
