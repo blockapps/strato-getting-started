@@ -52,7 +52,6 @@ ${Yellow}Optional flags for STRATO:${NC}
 --single              - run the single PBFT-blockstanbul node
 --lazy                - run the the lazy mining node (single);
 --blockstanbul|--pbft - run the PBFT-blockstanbul node - equal to env var blockstanbul=true; requires additional env vars (blockstanbulPrivateKey, validators)
---upgrade-strato      - run strato and keep previous volume
 
 ${Yellow}Environment variables:${NC}
 PASSWORD        - node in-memory password for STRATO v4.5+ with OAuth enabled. To be requested interactively if skipped
@@ -128,13 +127,6 @@ function keygen {
   if [ ! -f docker-compose.yml ]; then getCompose; fi
   DC_STRATO_IMAGE=$(cat docker-compose.yml | grep "STRATO_IMAGE" | sed -e "s/.*:-//" -e "s/}//")
   docker run --rm --entrypoint=keygen ${STRATO_IMAGE:-$DC_STRATO_IMAGE} --count="$1"
-}
-
-function mountStratoVolume {
-  echo -e "${BYellow}STRATO container already exists. Restarting"
-  docker-compose -p strato up -d --no-deps strato
-  echo -e "${Green}STRATO container has restarted."
-  exit 0
 }
 
 function generatePbftScripts {
@@ -271,9 +263,6 @@ while [ ${#} -gt 0 ]; do
     ;;
   --lazy)
     node_type=lazy
-    ;;
-  --upgrade-strato)
-    mountStratoVolume
     ;;
   --compose)
     getCompose
@@ -429,28 +418,32 @@ then
 
 elif [ ${node_type} = single ]
 then
-  if [ "$(docker ps -a | grep strato_strato_1 )" ]
-  then
-    docker exec -it strato_strato_1 [ -f var/lib/strato/logs/strato-setup ]
-      if [ $? = 0 ]
-      then
-        mountStratoVolume
-      fi
-  fi
   echo "" && echo -e "${BYellow}Running single node with PBFT-blockstanbul${NC}"
-  keys_json=$(keygen 1)
   export blockstanbul=true
-  export blockstanbulPrivateKey="$(echo "${keys_json}" | grep \"private_key\" | awk -F'"' '{ print $4 }')"
-  export validators="[\"$(echo "${keys_json}" | grep \"address\" | awk -F'"' '{ print $4 }')\"]"
   export lazyBlocks=false
   export SINGLE_NODE=true
+  
+  if [[ $(docker ps -a | grep strato_strato_1) ]]; then
+    echo -e "${BYellow}Updating the existing STRATO Single node instance - getting it's blockstanbul keys...${NC}"
+    STRATO_ENV_VARS=$(docker inspect --format='{{range .Config.Env}}{{println .}}{{end}}' strato_strato_1)
+    export blockstanbulAdmins=$(echo "${STRATO_ENV_VARS}" | grep blockstanbulAdmins | awk -F"ulAdmins=" '{print $2}')
+    export blockstanbulPrivateKey=$(echo "${STRATO_ENV_VARS}" | grep blockstanbulPrivateKey | awk -F"ivateKey=" '{print $2}')
+    export validators=$(echo "${STRATO_ENV_VARS}" | grep validators | awk -F"alidators=" '{print $2}')
+  else
+    echo -e "${BYellow}Running STRATO Single node from scratch - generating blockstanbul keys...${NC}"
+    keys_json=$(keygen 1)
+    export blockstanbulPrivateKey="$(echo "${keys_json}" | grep \"private_key\" | awk -F'"' '{ print $4 }')"
+    export validators="[\"$(echo "${keys_json}" | grep \"address\" | awk -F'"' '{ print $4 }')\"]"
+    export blockstanbulAdmins=${validators}
+  fi
 
   echo "*** Single-node Config ***"
   echo "blockstanbul: $blockstanbul"
+  echo "blockstanbulAdmins: $blockstanbulAdmins"
   echo "blockstanbulPrivateKey: *** (is set)"
+  echo "validators: $validators"
   echo "lazyBlocks: $lazyBlocks"
   echo "SINGLE_MODE: $SINGLE_NODE"
-  echo "validators: $validators"
 
 else
   if [ ${blockstanbul} = true ]

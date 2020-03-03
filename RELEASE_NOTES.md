@@ -1,5 +1,11 @@
 # STRATO Getting Started release notes
 
+## 2.16.0
+
+STRATO versions supported: v4.0+
+
+- Fix for single node upgrade flow
+
 ## 2.15.0
 
 STRATO versions supported: v4.0+
