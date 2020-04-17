@@ -19,10 +19,10 @@ def fetch_logs():
         sys.exit(6)
     try:
         compose_ps_output = subprocess.check_output(
-            "docker-compose --log-level ERROR -p strato ps",
+            "docker-compose --log-level ERROR -p strato ps --services",
             shell=True
         ).split('\n')
-        running_containers = filter(None, [line.split()[0] for line in compose_ps_output if 'strato_' in line])
+        running_containers = ['strato_%s_1' % service_name for service_name in compose_ps_output if service_name]
     except exceptions.Exception as e:
         sys.stderr.write('ERROR: Unable to fetch the currently running containers:\n%s' % e)
         sys.exit(7)

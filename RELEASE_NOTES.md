@@ -1,5 +1,11 @@
 # STRATO Getting Started release notes
 
+## 2.17.0
+
+STRATO versions supported: v4.0+
+
+- Fix for --fetch-logs not working correctly on some linux distributions
+
 ## 2.16.0
 
 STRATO versions supported: v4.0+
