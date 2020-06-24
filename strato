@@ -165,7 +165,7 @@ function setPassword {
     case ${PASSWORD_SET_RESPONSE} in
       "\"Could not validate password\"" )
         echo -e "\033[0;31mWrong password provided, please try again.\033[0m"
-        exit 15
+        exit 0
         ;;
       "[]" )
         echo -e "\033[0;32mThe password has been set.\033[0m"
