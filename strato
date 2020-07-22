@@ -483,13 +483,13 @@ else
       echo "useSyncMode: $useSyncMode"
     fi
   fi
-  if [[ -e "genesis-block.json" && -z ${genesis+x} ]]
-  then
-    export genesisBlock=$(< genesis-block.json)
-  fi
 fi
 
 echo "" && echo "*** Genesis Block ***"
+if [[ -e "genesis-block.json" && -z ${genesis+x} ]]
+then
+  export genesisBlock=$(< genesis-block.json)
+fi
 if [ -z ${genesisBlock+x} ]
 then
   echo "Genesis block is not set (using default)"
