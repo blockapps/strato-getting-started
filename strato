@@ -545,6 +545,13 @@ if [ -z "$(docker ps -f name=${hc_container} | grep '(.*)')" ]; then
   # STRATO v4.2 or older - no health status in nginx container, checking vault-wrapper's
   hc_container=$(${docker_compose} ps | grep '_vault-wrapper_' | awk '{print $1}')
 fi
+
+
+if [[ "$OAUTH_ENABLED" == "true"  ||  "$OAUTH_JWT_VALIDATION_ENABLED" == "true" ]]; then
+  setPassword
+fi
+
+
 printf "Waiting for STRATO to rise and shine"
 i=0
 while ! [[ -n $(docker ps -q -f name=${hc_container} -f health=healthy) ]];  do
@@ -558,8 +565,5 @@ while ! [[ -n $(docker ps -q -f name=${hc_container} -f health=healthy) ]];  do
 done
 printf "\n"
 
-if [[ "$OAUTH_ENABLED" == "true"  ||  "$OAUTH_JWT_VALIDATION_ENABLED" == "true" ]]; then
-  setPassword
-fi
 echo -e "\n${Green}STRATO has awoken. Check ${http_protocol}://${NODE_HOST}${NC}"
 # END OF WAIT FOR STRATO TO RUN
