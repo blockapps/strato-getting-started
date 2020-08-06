@@ -51,11 +51,10 @@ Provide no entrypoint to start STRATO node.
 ${Yellow}Optional flags for STRATO:${NC}
 --single              - run the single PBFT-blockstanbul node
 --lazy                - run the the lazy mining node (single);
---blockstanbul|--pbft - run the PBFT-blockstanbul node - equal to env var blockstanbul=true; requires additional env vars (blockstanbulPrivateKey, validators)
+--blockstanbul|--pbft - run the PBFT-blockstanbul node - equal to env var blockstanbul=true; you may need additional env vars, if this is not the root node of the network (validators, blockstanbulAdmins)
 
 ${Yellow}Environment variables:${NC}
 PASSWORD        - node in-memory password for STRATO v4.5+ with OAuth enabled. To be requested interactively if skipped
-blockstanbulPrivateKey  - the private key for PBFT-blockstanbul node (ignored for --single; check --keygen=N or --scriptgen to generate)
 validators      - the list of validators addresses for PBFT-blockstanbul node (ignored for --single; check --keygen=N or --scriptgen to generate)
 NODE_HOST       - (default: localhost) the hostname or IP of the machine (used for APIs and Dashoboard);
 BOOT_NODE_IP    - IP address of the boot node to connect to (required for secondary node to discover other peers), ignored when used with --single flag;
@@ -116,7 +115,7 @@ function getCompose {
 
 function pbftVote {
     echo -e "submitting a vote into pbft consensus"
-    docker exec --env NODEKEY="${blockstanbulPrivateKey}" strato_strato_1 bash -c "set -x && blockstanbul-vote $*"
+    docker exec strato_strato_1 bash -c "set -x && blockstanbul-vote $*"
 }
 
 function pullImages {
@@ -127,6 +126,21 @@ function keygen {
   if [ ! -f docker-compose.yml ]; then getCompose; fi
   DC_STRATO_IMAGE=$(cat docker-compose.yml | grep "STRATO_IMAGE" | sed -e "s/.*:-//" -e "s/}//")
   docker run --rm --entrypoint=keygen ${STRATO_IMAGE:-$DC_STRATO_IMAGE} --count="$1"
+}
+
+function getAddress {
+  if [[ -n $(docker ps | grep strato_strato_1) ]]; then
+    ADDR_RESP=$(docker exec -it strato_strato_1 bash -c "curl -X GET http://vault-wrapper:8000/strato/v2.3/key -H \"X-USER-UNIQUE-NAME: nodekey\"")
+    if [[ "$ADDR_RESP" == "\"User nodekey doesn't exist\"" ]]; then
+      echo -e "${Red}This node does not have its key stored in the vault. You are probably running an older version of STRATO${NC}"
+      exit 1
+    else
+      echo -e "This node's address is ${Green}$(echo "$ADDR_RESP" | jq .address)${NC}"
+    fi
+  else
+    echo -e "${Red}STRATO is not running. Start STRATO to get the node's address${NC}"
+    exit 16
+  fi
 }
 
 function generatePbftScripts {
@@ -273,6 +287,7 @@ while [ ${#} -gt 0 ]; do
     exit 0
     ;;
   --keygen=*)
+    echo -e "${Red}'--keygen is deprecated. You can still use it, for fun"
     keygen "${1#*=}"
     exit 0
     ;;
@@ -298,6 +313,10 @@ while [ ${#} -gt 0 ]; do
     ;;
   --set-password)
     setPassword
+    exit 0
+    ;;
+  --get-address)
+    getAddress
     exit 0
     ;;
   *)
@@ -427,12 +446,10 @@ then
     echo -e "${BYellow}Updating the existing STRATO Single node instance - getting it's blockstanbul keys...${NC}"
     STRATO_ENV_VARS=$(docker inspect --format='{{range .Config.Env}}{{println .}}{{end}}' strato_strato_1)
     export blockstanbulAdmins=$(echo "${STRATO_ENV_VARS}" | grep blockstanbulAdmins | awk -F"ulAdmins=" '{print $2}')
-    export blockstanbulPrivateKey=$(echo "${STRATO_ENV_VARS}" | grep blockstanbulPrivateKey | awk -F"ivateKey=" '{print $2}')
     export validators=$(echo "${STRATO_ENV_VARS}" | grep validators | awk -F"alidators=" '{print $2}')
   else
     echo -e "${BYellow}Running STRATO Single node from scratch - generating blockstanbul keys...${NC}"
     keys_json=$(keygen 1)
-    export blockstanbulPrivateKey="$(echo "${keys_json}" | grep \"private_key\" | awk -F'"' '{ print $4 }')"
     export validators="[\"$(echo "${keys_json}" | grep \"address\" | awk -F'"' '{ print $4 }')\"]"
     export blockstanbulAdmins=${validators}
   fi
@@ -440,7 +457,6 @@ then
   echo "*** Single-node Config ***"
   echo "blockstanbul: $blockstanbul"
   echo "blockstanbulAdmins: $blockstanbulAdmins"
-  echo "blockstanbulPrivateKey: *** (is set)"
   echo "validators: $validators"
   echo "lazyBlocks: $lazyBlocks"
   echo "SINGLE_MODE: $SINGLE_NODE"
@@ -450,13 +466,7 @@ else
   then
     echo "" && echo -e "${BYellow}Running node with PBFT-blockstanbul${NC}"
 
-    if [[ -z ${blockstanbulPrivateKey+x} || -z ${validators+x} ]]; then
-      echo -e "${Red}blockstanbul requires values in 'blockstanbulPrivateKey' and 'validators'. Check --help for --keygen=N and --scriptgen flags${NC}"
-      exit 9
-    fi
-
     export blockstanbul=true
-    echo "blockstanbulPrivateKey: *** (is set)"
     echo "validators: $validators"
   else
     echo "" && echo -e "${BYellow}Running node with Proof-of-Work${NC}"
