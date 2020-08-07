@@ -474,8 +474,10 @@ else
     fi 
 
     export blockstanbul=true
+    export numMinPeers=${numMinPeers:-5}
     echo "blockstanbulAdmins: $blockstanbulAdmins"
     echo "isAdmin: $isAdmin"
+    echo "numMinPeers: $numMinPeers"
   else
     echo "" && echo -e "${BYellow}Running node with Proof-of-Work${NC}"
 
