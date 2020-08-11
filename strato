@@ -465,6 +465,10 @@ else
   then
     echo "" && echo -e "${BYellow}Running node with PBFT-blockstanbul${NC}"
 
+    if [[ -n "$blockstanbulPrivateKey" ]]; then
+      echo -e "${Red}Usage of blockstanbulPrivateKey is deprecated. Please migrate your key using the migrate-nodekey script, and rerun STRATO without the blockstanbulPrivateKey${NC}"
+      exit 16
+
     if [[ -z "$isAdmin" ]]; then
       export isAdmin=false
     fi
