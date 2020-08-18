@@ -466,22 +466,27 @@ else
     echo "" && echo -e "${BYellow}Running node with PBFT-blockstanbul${NC}"
 
     if [[ -n "$blockstanbulPrivateKey" ]]; then
-      echo -e "${Red}Usage of blockstanbulPrivateKey is deprecated. Please migrate your key using the migrate-nodekey script, and rerun STRATO without the blockstanbulPrivateKey${NC}"
+      echo -e "${Red}Usage of blockstanbulPrivateKey is deprecated - please remove it. If you wish to upgrade an existing node, please rerun STRATO with generateKey=false, and insert your old key manually using the migrate-nodekey script.${NC}"
       exit 16
     fi
 
     if [[ -z "$isAdmin" ]]; then
       export isAdmin=false
     fi
-
     if [[ ${isAdmin} = false ]] & [[ -z "$blockstanbulAdmins" ]]; then
       export isAdmin=true # otherwise, sequencer would fail. Someone needs to be an admin and validator
     fi 
+    if [[ ${generateKey} = false ]]; then
+      echo -e "\n${BYellow}WARNING: STRATO was started with generateKey=false. The node will not start until you manually insert a key into the vault using the migrate-nodekey script${NC}"
+    fi
 
+
+    export generateKey=${generateKey:-true}
     export blockstanbul=true
     export numMinPeers=${numMinPeers:-5}
     echo "blockstanbulAdmins: $blockstanbulAdmins"
     echo "isAdmin: $isAdmin"
+    echo "generateKey: $generateKey"
     echo "numMinPeers: $numMinPeers"
   else
     echo "" && echo -e "${BYellow}Running node with Proof-of-Work${NC}"
