@@ -61,6 +61,7 @@ HTTP_PORT          - (default: 80) Port for HTTP traffic listener;
 HTTPS_PORT         - (default: 443) Port for HTTPS traffic listener; only used with ssl=true;
 isAdmin            - (default: false) [true|false] Whether or not to make this node the PBFT admin and validator
 blockstanbulAdmins - (default: []) Optional list of existing blockstanbulAdmins, if you are adding this node to a network
+validators         - (default: []) Optional list of existing validators - deprecated, unless you are joining an existing network that was deployed before STRATO 6.0
 ssl                - (default: false) [true|false] to run the node with SSL/TLS;
 sslCertFileType    - (default: crt) [pem|crt] the SSL certificate type and file extension (should be accessible in ./ssl/certs/ while deploying);
 authBasic          - (default: false) [true|false] use basic access authentication for dashboard and APIs;
@@ -466,10 +467,9 @@ else
     echo "" && echo -e "${BYellow}Running node with PBFT-blockstanbul${NC}"
 
     if [[ -n "$blockstanbulPrivateKey" ]]; then
-      echo -e "${Red}Usage of blockstanbulPrivateKey is deprecated - please remove it. If you wish to upgrade an existing node, please rerun STRATO with generateKey=false, and insert your old key manually using the migrate-nodekey script.${NC}"
+      echo -e "${Red}Usage of \"blockstanbulPrivateKey\" is deprecated - please remove it. If you wish to upgrade an existing node, please rerun STRATO with generateKey=false, and insert the old key manually using the migrate-nodekey script.${NC}"
       exit 16
     fi
-
     if [[ -z "$isAdmin" ]]; then
       export isAdmin=false
     fi
@@ -479,8 +479,11 @@ else
     if [[ ${generateKey} = false ]]; then
       echo -e "\n${BYellow}WARNING: STRATO was started with generateKey=false. The node will not start until you manually insert a key into the vault using the migrate-nodekey script${NC}"
     fi
-
-
+    if [[ -n "$validators" ]]; then
+      echo -e "\n${BYellow}WARNING: Usage of \"validators\" is deprecated - unless you are joining an existing network that was upgraded to STRATO 6.0${NC}"
+      export validators=${validators}
+    fi
+  
     export generateKey=${generateKey:-true}
     export blockstanbul=true
     export numMinPeers=${numMinPeers:-5}
