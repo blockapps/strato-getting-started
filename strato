@@ -447,6 +447,7 @@ then
   export lazyBlocks=false
   export SINGLE_NODE=true
   export isAdmin=true
+  export isRootNode=true
   
   if [[ $(docker ps -a | grep strato_strato_1) ]]; then
     echo -e "${BYellow}Updating the existing STRATO Single node instance - getting it's blockstanbul admins...${NC}"
@@ -457,7 +458,7 @@ then
   echo "*** Single-node Config ***"
   echo "blockstanbul: $blockstanbul"
   echo "isAdmin: $isAdmin"
-  echo "blockstanbulAdmins: $blockstanbulAdmins"
+  echo "isRootNode: $isRootNode"
   echo "lazyBlocks: $lazyBlocks"
   echo "SINGLE_MODE: $SINGLE_NODE"
 
@@ -470,25 +471,26 @@ else
       echo -e "${Red}Usage of \"blockstanbulPrivateKey\" is deprecated - please remove it. If you wish to upgrade an existing node, please rerun STRATO with generateKey=false, and insert the old key manually using the migrate-nodekey script.${NC}"
       exit 16
     fi
-    if [[ -z "$isAdmin" ]]; then
-      export isAdmin=false
-    fi
-    if [[ ${isAdmin} = false ]] & [[ -z "$blockstanbulAdmins" ]]; then
-      export isAdmin=true # otherwise, sequencer would fail. Someone needs to be an admin and validator
-    fi 
     if [[ ${generateKey} = false ]]; then
       echo -e "\n${BYellow}WARNING: STRATO was started with generateKey=false. The node will not start until you manually insert a key into the vault using the migrate-nodekey script${NC}"
     fi
-    if [[ -n "$validators" ]]; then
-      echo -e "\n${BYellow}WARNING: Usage of \"validators\" is deprecated - unless you are joining an existing network that was upgraded to STRATO 6.0${NC}"
-      export validators=${validators}
+ 
+    if [[ -n "$extraFaucets" ]]; then
+      echo -e "\n${BYellow}WARNING: STRATO was started with extraFaucets. This variable is deprecated, unless you are joining an existing network from before STRATO 6.0${NC}"
+      export extraFaucets=${extraFaucets}
     fi
-  
-    export generateKey=${generateKey:-true}
+   
     export blockstanbul=true
+    export validators=${validators}
+    export blockstanbulAdmins=${blockstanbulAdmins}
+    export isAdmin=${isAdmin:-false}
+    export isRootNode=${isRootNode:-false}
+    export generateKey=${generateKey:-true}
     export numMinPeers=${numMinPeers:-5}
+    echo "validators: $validators"
     echo "blockstanbulAdmins: $blockstanbulAdmins"
     echo "isAdmin: $isAdmin"
+    echo "isRootNode: $isRootNode"
     echo "generateKey: $generateKey"
     echo "numMinPeers: $numMinPeers"
   else
