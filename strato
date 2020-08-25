@@ -43,8 +43,7 @@ Provide no entrypoint to start STRATO node.
 --wipe        - stop and remove STRATO containers and wipe out volumes;
 --compose     - fetch the latest stable docker-compose.yml;
 --pull        - pull images used in docker-compose.yml;
---scriptgen   - generate kickstart script files for PBFT-blockstanbul nodes based on node list in node-list.json;
---keygen=N    - alternative way to generate keys for PBFT-blockstanbul - generate and output N private keys and their addresses;
+--get-address - get the address of the running node
 --fetch-logs  - fetch all STRATO logs into strato_logs.zip (for more info and options refer to './fetchlogs --help')
 --fetch-logs-with-db  - fetch all STRATO logs and database dump into strato_logs.zip (WARNING: database data may be sensitive; for more info and options refer to './fetchlogs --help')
 
@@ -55,13 +54,15 @@ ${Yellow}Optional flags for STRATO:${NC}
 
 ${Yellow}Environment variables:${NC}
 PASSWORD           - node in-memory password for STRATO v4.5+ with OAuth enabled. To be requested interactively if skipped
-NODE_HOST          - (default: localhost) the hostname or IP of the machine (used for APIs and Dashoboard);
+NODE_HOST          - (default: localhost) the hostname or IP of the machine (used for APIs and Dashboard);
 BOOT_NODE_IP       - IP address of the boot node to connect to (required for secondary node to discover other peers), ignored when used with --single flag;
 HTTP_PORT          - (default: 80) Port for HTTP traffic listener;
 HTTPS_PORT         - (default: 443) Port for HTTPS traffic listener; only used with ssl=true;
-isAdmin            - (default: false) [true|false] Whether or not to make this node the PBFT admin and validator
-blockstanbulAdmins - (default: []) Optional list of existing blockstanbulAdmins, if you are adding this node to a network
-validators         - (default: []) Optional list of existing validators - deprecated, unless you are joining an existing network that was deployed before STRATO 6.0
+generateKey        - (default: true) [true|false] Whether or not to generate this node's key - set this to false if migrating an old node with an existing key
+isRootNode         - (default: false) [true|false] Whether or not to make this node the initial PBFT validator and admin
+isAdmin            - (default: false) [true|false] Whether or not to make this node its own PBFT admin
+blockstanbulAdmins - (default: []) Optional list of PBFT admins who can send votes to this node
+validators         - (default: []) List of initial PBFT validators - must contain root node address, if joining a network.
 ssl                - (default: false) [true|false] to run the node with SSL/TLS;
 sslCertFileType    - (default: crt) [pem|crt] the SSL certificate type and file extension (should be accessible in ./ssl/certs/ while deploying);
 authBasic          - (default: false) [true|false] use basic access authentication for dashboard and APIs;
@@ -143,10 +144,6 @@ function getAddress {
     echo -e "${Red}STRATO is not running. Start STRATO to get the node's address${NC}"
     exit 16
   fi
-}
-
-function generatePbftScripts {
-  python scriptgen
 }
 
 function fetchLogs {
@@ -296,10 +293,6 @@ while [ ${#} -gt 0 ]; do
   --keygen)
     echo -e "${Red}'--keygen N' syntax is deprecated. Use '--keygen=N' instead. Exit.${NC}"
     exit 1
-    ;;
-  --scriptgen)
-    generatePbftScripts
-    exit 0
     ;;
   --fetch-logs)
     fetchLogs
