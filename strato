@@ -439,13 +439,22 @@ then
   export blockstanbul=true
   export lazyBlocks=false
   export SINGLE_NODE=true
+  export generateKey=${generateKey:-true}
   export isAdmin=true
   export isRootNode=true
   
   if [[ $(docker ps -a | grep strato_strato_1) ]]; then
-    echo -e "${BYellow}Updating the existing STRATO Single node instance - getting it's blockstanbul admins...${NC}"
+    echo -e "${BYellow}Updating the existing STRATO Single node instance - getting it's blockstanbul variables...${NC}"
     STRATO_ENV_VARS=$(docker inspect --format='{{range .Config.Env}}{{println .}}{{end}}' strato_strato_1)
     export blockstanbulAdmins=$(echo "${STRATO_ENV_VARS}" | grep blockstanbulAdmins | awk -F"ulAdmins=" '{print $2}')
+    export validators=$(echo "${STRATO_ENV_VARS}" | grep validators | awk -F"alidators=" '{print $2}')
+    export blockstanbulPrivateKey=$(echo "${STRATO_ENV_VARS}" | grep blockstanbulPrivateKey | awk -F"ivateKey=" '{print $2}')
+    export generateKey=false
+    
+    if [[ -n "$blockstanbulPrivateKey" ]]; then
+      echo -e "${BYellow}blockstanbulPrivateKey is set: you must migrate this key using migrate-nodekey once STRATO is up${NC}"
+      echo -e "The key is${Green} $blockstanbulPrivateKey${NC}"
+    fi
   fi
 
   echo "*** Single-node Config ***"
