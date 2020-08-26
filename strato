@@ -452,7 +452,7 @@ then
     export generateKey=false
     
     if [[ -n "$blockstanbulPrivateKey" ]]; then
-      echo -e "\n${Red}blockstanbulPrivateKey has been retrieved: you must migrate this key using migrate-nodekey once STRATO is up.${NC}"
+      echo -e "\n${Red}blockstanbulPrivateKey has been retrieved - you must migrate this key using migrate-nodekey once STRATO is up.${NC}"
       echo -e "The key:${Green} $blockstanbulPrivateKey${NC}\n"
     fi
   fi
