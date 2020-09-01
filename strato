@@ -50,7 +50,7 @@ Provide no entrypoint to start STRATO node.
 ${Yellow}Optional flags for STRATO:${NC}
 --single              - run the single PBFT-blockstanbul node
 --lazy                - run the the lazy mining node (single);
---blockstanbul|--pbft - run the PBFT-blockstanbul node - equal to env var blockstanbul=true; you will need additional env vars (either isAdmin or blockstanbulAdmins)
+--blockstanbul|--pbft - run the PBFT-blockstanbul node - equal to env var blockstanbul=true; you will need additional environment variables (either isRootNode, or validators and blockstanbulAdmins/isAdmin)
 
 ${Yellow}Environment variables:${NC}
 PASSWORD           - node in-memory password for STRATO v4.5+ with OAuth enabled. To be requested interactively if skipped
