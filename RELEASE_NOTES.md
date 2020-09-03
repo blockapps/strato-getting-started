@@ -1,5 +1,11 @@
 # STRATO Getting Started release notes
 
+## 2.18.0
+
+STRATO versions supported: v4.0+
+
+- Remove docker volumes whether or not the down command was successful (for cases when docker network can't be removed etc.)
+
 ## 2.17.0
 
 STRATO versions supported: v4.0+
