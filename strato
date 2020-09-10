@@ -133,16 +133,16 @@ function keygen {
 
 function getAddress {
   if [[ -n $(docker ps | grep strato_strato_1) ]]; then
-    ADDR_RESP=$(docker exec -it strato_strato_1 bash -c "curl -X GET http://vault-wrapper:8000/strato/v2.3/key -H \"X-USER-UNIQUE-NAME: nodekey\"")
+    ADDR_RESP=$(docker exec strato_strato_1 bash -c "curl -X GET http://vault-wrapper:8000/strato/v2.3/key -H \"X-USER-UNIQUE-NAME: nodekey\"")
     if [[ "$ADDR_RESP" == "\"User nodekey doesn't exist\"" ]]; then
       echo -e "${Red}This node does not have its key stored in the vault. You are probably running an older version of STRATO${NC}"
-      exit 1
+      exit 19
     else
       echo -e "This node's address is ${Green}$(echo "$ADDR_RESP" | jq .address)${NC}"
     fi
   else
     echo -e "${Red}STRATO is not running. Start STRATO to get the node's address${NC}"
-    exit 16
+    exit 20
   fi
 }
 
@@ -471,7 +471,7 @@ else
 
     if [[ -n "$blockstanbulPrivateKey" ]]; then
       echo -e "${Red}Usage of \"blockstanbulPrivateKey\" is deprecated - please remove it. If you wish to upgrade an existing node, please rerun STRATO with generateKey=false, and insert the old key manually using the migrate-nodekey script.${NC}"
-      exit 16
+      exit 21
     fi
     if [[ ${generateKey} = false ]]; then
       echo -e "\n${BYellow}WARNING: STRATO was started with generateKey=false. The node will not start until you manually insert a key into the vault using the migrate-nodekey script${NC}"
@@ -591,7 +591,7 @@ i=0
 while ! [[ -n $(docker ps -q -f name=${hc_container} -f health=healthy) ]];  do
   if [[ $(date +%s) -ge ${started}+${timeout} ]]; then
     echo -e "\n${Red}Node did not start within ${timeout}sec. See 'docker ps' for additional info. Exit.${NC}"
-    exit 16
+    exit 22
   fi
   i=$((i + 1))
   if [[ $((i % 4)) -eq 0 ]]; then printf '\b\b\b   \b\b\b'; else printf '.'; fi
