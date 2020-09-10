@@ -43,6 +43,7 @@
 **Steps to setup and run single STRATO node using Docker on your machine:**
 
 1. Clone [STRATO Getting Started repo](https://github.com/blockapps/strato-getting-started) using ```git clone``` or download and extract .zip archive. And `chdir` or `cd` into that folder.
+
 2. Launch STRATO single node:
     ```
     ./strato --single
