@@ -21,6 +21,7 @@
 - [Install Docker](https://www.docker.com/community-edition) on your machine
 - [Install Docker Compose](https://docs.docker.com/compose/install/) on your machine
 - Python 2.7 for PBFT network deployment
+- `jq` for PBFT address retrieval 
 
 - For Mac users: Install `wget` using [Homebrew](https://brew.sh/) (use the steps below):
 
@@ -43,7 +44,12 @@
 **Steps to setup and run single STRATO node using Docker on your machine:**
 
 1. Clone [STRATO Getting Started repo](https://github.com/blockapps/strato-getting-started) using ```git clone``` or download and extract .zip archive. And `chdir` or `cd` into that folder.
-2. Launch STRATO single node:
+
+2. If you are deploying STRATO 5.5 or an earlier version, you'll need to use an older version of `strato-getting-started`, as the deployment script has changed for STRATO 6.0 or later. If this is the case, pin the version of `strato-getting-started` using the following command:
+    ```
+    git checkout f5078958ea6049fd8db2775b4c76d04eef704d52
+    ```
+3. Launch STRATO single node:
     ```
     ./strato --single
     ```

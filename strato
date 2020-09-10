@@ -43,28 +43,30 @@ Provide no entrypoint to start STRATO node.
 --wipe        - stop and remove STRATO containers and wipe out volumes;
 --compose     - fetch the latest stable docker-compose.yml;
 --pull        - pull images used in docker-compose.yml;
---scriptgen   - generate kickstart script files for PBFT-blockstanbul nodes based on node list in node-list.json;
---keygen=N    - alternative way to generate keys for PBFT-blockstanbul - generate and output N private keys and their addresses;
+--get-address - get the address of the running node
 --fetch-logs  - fetch all STRATO logs into strato_logs.zip (for more info and options refer to './fetchlogs --help')
 --fetch-logs-with-db  - fetch all STRATO logs and database dump into strato_logs.zip (WARNING: database data may be sensitive; for more info and options refer to './fetchlogs --help')
 
 ${Yellow}Optional flags for STRATO:${NC}
 --single              - run the single PBFT-blockstanbul node
 --lazy                - run the the lazy mining node (single);
---blockstanbul|--pbft - run the PBFT-blockstanbul node - equal to env var blockstanbul=true; requires additional env vars (blockstanbulPrivateKey, validators)
+--blockstanbul|--pbft - run the PBFT-blockstanbul node - equal to env var blockstanbul=true; you will need additional environment variables (either isRootNode, or validators and blockstanbulAdmins/isAdmin)
 
 ${Yellow}Environment variables:${NC}
-PASSWORD        - node in-memory password for STRATO v4.5+ with OAuth enabled. To be requested interactively if skipped
-blockstanbulPrivateKey  - the private key for PBFT-blockstanbul node (ignored for --single; check --keygen=N or --scriptgen to generate)
-validators      - the list of validators addresses for PBFT-blockstanbul node (ignored for --single; check --keygen=N or --scriptgen to generate)
-NODE_HOST       - (default: localhost) the hostname or IP of the machine (used for APIs and Dashoboard);
-BOOT_NODE_IP    - IP address of the boot node to connect to (required for secondary node to discover other peers), ignored when used with --single flag;
-HTTP_PORT       - (default: 80) Port for HTTP traffic listener;
-HTTPS_PORT      - (default: 443) Port for HTTPS traffic listener; only used with ssl=true;
-ssl             - (default: false) [true|false] to run the node with SSL/TLS;
-sslCertFileType - (default: crt) [pem|crt] the SSL certificate type and file extension (should be accessible in ./ssl/certs/ while deploying);
-authBasic       - (default: false) [true|false] use basic access authentication for dashboard and APIs;
-uiPassword      - (default: admin) the basic auth password for 'admin' user, ignored when used with authBasic=false;
+PASSWORD           - node in-memory password for STRATO v4.5+ with OAuth enabled. To be requested interactively if skipped
+NODE_HOST          - (default: localhost) the hostname or IP of the machine (used for APIs and Dashboard);
+BOOT_NODE_IP       - IP address of the boot node to connect to (required for secondary node to discover other peers), ignored when used with --single flag;
+HTTP_PORT          - (default: 80) Port for HTTP traffic listener;
+HTTPS_PORT         - (default: 443) Port for HTTPS traffic listener; only used with ssl=true;
+generateKey        - (default: true) [true|false] Whether or not to generate this node's key - set this to false if migrating an old node with an existing key
+isRootNode         - (default: false) [true|false] Whether or not to make this node the initial PBFT validator and admin
+isAdmin            - (default: false) [true|false] Whether or not to make this node its own PBFT admin
+blockstanbulAdmins - (default: []) Optional list of PBFT admins who can send votes to this node
+validators         - (default: []) List of initial PBFT validators - must contain root node address, if joining a network.
+ssl                - (default: false) [true|false] to run the node with SSL/TLS;
+sslCertFileType    - (default: crt) [pem|crt] the SSL certificate type and file extension (should be accessible in ./ssl/certs/ while deploying);
+authBasic          - (default: false) [true|false] use basic access authentication for dashboard and APIs;
+uiPassword         - (default: admin) the basic auth password for 'admin' user, ignored when used with authBasic=false;
 EXT_STORAGE_S3_BUCKET             - enables external storage feature; the AWS S3 bucket name to use as the blockchain data external storage;
 EXT_STORAGE_S3_ACCESS_KEY_ID      - the access key ID for AWS S3 bucket provided;
 EXT_STORAGE_S3_SECRET_ACCESS_KEY  - the secret access key for AWS S3 bucket provided;
@@ -118,7 +120,7 @@ function getCompose {
 
 function pbftVote {
     echo -e "submitting a vote into pbft consensus"
-    docker exec --env NODEKEY="${blockstanbulPrivateKey}" strato_strato_1 bash -c "set -x && blockstanbul-vote $*"
+    docker exec strato_strato_1 bash -c "set -x && blockstanbul-vote $*"
 }
 
 function pullImages {
@@ -131,8 +133,19 @@ function keygen {
   docker run --rm --entrypoint=keygen ${STRATO_IMAGE:-$DC_STRATO_IMAGE} --count="$1"
 }
 
-function generatePbftScripts {
-  python scriptgen
+function getAddress {
+  if [[ -n $(docker ps | grep strato_strato_1) ]]; then
+    ADDR_RESP=$(docker exec strato_strato_1 bash -c "curl -X GET http://vault-wrapper:8000/strato/v2.3/key -H \"X-USER-UNIQUE-NAME: nodekey\"")
+    if [[ "$ADDR_RESP" == "\"User nodekey doesn't exist\"" ]]; then
+      echo -e "${Red}This node does not have its key stored in the vault. You are probably running an older version of STRATO${NC}"
+      exit 19
+    else
+      echo -e "This node's address is ${Green}$(echo "$ADDR_RESP" | jq .address)${NC}"
+    fi
+  else
+    echo -e "${Red}STRATO is not running. Start STRATO to get the node's address${NC}"
+    exit 20
+  fi
 }
 
 function fetchLogs {
@@ -275,16 +288,13 @@ while [ ${#} -gt 0 ]; do
     exit 0
     ;;
   --keygen=*)
+    echo -e "${Red}'--keygen is deprecated. You can still use it, for fun"
     keygen "${1#*=}"
     exit 0
     ;;
   --keygen)
     echo -e "${Red}'--keygen N' syntax is deprecated. Use '--keygen=N' instead. Exit.${NC}"
     exit 1
-    ;;
-  --scriptgen)
-    generatePbftScripts
-    exit 0
     ;;
   --fetch-logs)
     fetchLogs
@@ -300,6 +310,10 @@ while [ ${#} -gt 0 ]; do
     ;;
   --set-password)
     setPassword
+    exit 0
+    ;;
+  --get-address)
+    getAddress
     exit 0
     ;;
   *)
@@ -333,6 +347,9 @@ else
 fi
 export STRATO_GS_MODE=${mode}
 export SMD_MODE=${SMD_MODE:-enterprise}
+
+export isAdmin=${isAdmin:-false}
+
 
 # BEGIN # Vars bloc for backwards-compatibility with STRATO 4.2 and older
 export BLOC_URL=${BLOC_URL:-${http_protocol}://$NODE_HOST/bloc/v2.2}
@@ -424,26 +441,28 @@ then
   export blockstanbul=true
   export lazyBlocks=false
   export SINGLE_NODE=true
+  export generateKey=${generateKey:-true}
+  export isAdmin=true
+  export isRootNode=true
   
   if [[ $(docker ps -a | grep strato_strato_1) ]]; then
-    echo -e "${BYellow}Updating the existing STRATO Single node instance - getting it's blockstanbul keys...${NC}"
+    echo -e "${BYellow}Updating the existing STRATO Single node instance - getting it's blockstanbul variables...${NC}"
     STRATO_ENV_VARS=$(docker inspect --format='{{range .Config.Env}}{{println .}}{{end}}' strato_strato_1)
     export blockstanbulAdmins=$(echo "${STRATO_ENV_VARS}" | grep blockstanbulAdmins | awk -F"ulAdmins=" '{print $2}')
-    export blockstanbulPrivateKey=$(echo "${STRATO_ENV_VARS}" | grep blockstanbulPrivateKey | awk -F"ivateKey=" '{print $2}')
     export validators=$(echo "${STRATO_ENV_VARS}" | grep validators | awk -F"alidators=" '{print $2}')
-  else
-    echo -e "${BYellow}Running STRATO Single node from scratch - generating blockstanbul keys...${NC}"
-    keys_json=$(keygen 1)
-    export blockstanbulPrivateKey="$(echo "${keys_json}" | grep \"private_key\" | awk -F'"' '{ print $4 }')"
-    export validators="[\"$(echo "${keys_json}" | grep \"address\" | awk -F'"' '{ print $4 }')\"]"
-    export blockstanbulAdmins=${validators}
+    export blockstanbulPrivateKey=$(echo "${STRATO_ENV_VARS}" | grep blockstanbulPrivateKey | awk -F"ivateKey=" '{print $2}')
+    export generateKey=false
+    
+    if [[ -n "$blockstanbulPrivateKey" ]]; then
+      echo -e "\n${Red}blockstanbulPrivateKey has been retrieved - you must migrate this key using migrate-nodekey once STRATO is up.${NC}"
+      echo -e "The key:${Green} $blockstanbulPrivateKey${NC}\n"
+    fi
   fi
 
   echo "*** Single-node Config ***"
   echo "blockstanbul: $blockstanbul"
-  echo "blockstanbulAdmins: $blockstanbulAdmins"
-  echo "blockstanbulPrivateKey: *** (is set)"
-  echo "validators: $validators"
+  echo "isAdmin: $isAdmin"
+  echo "isRootNode: $isRootNode"
   echo "lazyBlocks: $lazyBlocks"
   echo "SINGLE_MODE: $SINGLE_NODE"
 
@@ -452,14 +471,32 @@ else
   then
     echo "" && echo -e "${BYellow}Running node with PBFT-blockstanbul${NC}"
 
-    if [[ -z ${blockstanbulPrivateKey+x} || -z ${validators+x} ]]; then
-      echo -e "${Red}blockstanbul requires values in 'blockstanbulPrivateKey' and 'validators'. Check --help for --keygen=N and --scriptgen flags${NC}"
-      exit 9
+    if [[ -n "$blockstanbulPrivateKey" ]]; then
+      echo -e "${Red}Usage of \"blockstanbulPrivateKey\" is deprecated - please remove it. If you wish to upgrade an existing node, please rerun STRATO with generateKey=false, and insert the old key manually using the migrate-nodekey script.${NC}"
+      exit 21
     fi
-
+    if [[ ${generateKey} = false ]]; then
+      echo -e "\n${BYellow}WARNING: STRATO was started with generateKey=false. The node will not start until you manually insert a key into the vault using the migrate-nodekey script${NC}"
+    fi
+ 
+    if [[ -n "$extraFaucets" ]]; then
+      echo -e "\n${BYellow}WARNING: STRATO was started with extraFaucets. This variable is deprecated, unless you are joining an existing network from before STRATO 6.0${NC}"
+      export extraFaucets=${extraFaucets}
+    fi
+   
     export blockstanbul=true
-    echo "blockstanbulPrivateKey: *** (is set)"
+    export validators=${validators}
+    export blockstanbulAdmins=${blockstanbulAdmins}
+    export isAdmin=${isAdmin:-false}
+    export isRootNode=${isRootNode:-false}
+    export generateKey=${generateKey:-true}
+    export numMinPeers=${numMinPeers:-5}
     echo "validators: $validators"
+    echo "blockstanbulAdmins: $blockstanbulAdmins"
+    echo "isAdmin: $isAdmin"
+    echo "isRootNode: $isRootNode"
+    echo "generateKey: $generateKey"
+    echo "numMinPeers: $numMinPeers"
   else
     echo "" && echo -e "${BYellow}Running node with Proof-of-Work${NC}"
 
@@ -539,6 +576,9 @@ fi
 
 ${docker_compose} -f docker-compose-temp.yml up -d --remove-orphans
 
+# SET PASSWORD FOR VAULT (EVEN NON-OAUTH NODES NEED THIS, SINCE STRATO-CORE USES VAULT)
+setPassword
+
 # WAIT FOR STRATO TO RUN
 started=$(date +%s)
 timeout=180
@@ -547,12 +587,13 @@ if [ -z "$(docker ps -f name=${hc_container} | grep '(.*)')" ]; then
   # STRATO v4.2 or older - no health status in nginx container, checking vault-wrapper's
   hc_container=$(${docker_compose} ps | grep '_vault-wrapper_' | awk '{print $1}')
 fi
+
 printf "Waiting for STRATO to rise and shine"
 i=0
 while ! [[ -n $(docker ps -q -f name=${hc_container} -f health=healthy) ]];  do
   if [[ $(date +%s) -ge ${started}+${timeout} ]]; then
     echo -e "\n${Red}Node did not start within ${timeout}sec. See 'docker ps' for additional info. Exit.${NC}"
-    exit 16
+    exit 22
   fi
   i=$((i + 1))
   if [[ $((i % 4)) -eq 0 ]]; then printf '\b\b\b   \b\b\b'; else printf '.'; fi
@@ -560,8 +601,5 @@ while ! [[ -n $(docker ps -q -f name=${hc_container} -f health=healthy) ]];  do
 done
 printf "\n"
 
-if [[ "$OAUTH_ENABLED" == "true"  ||  "$OAUTH_JWT_VALIDATION_ENABLED" == "true" ]]; then
-  setPassword
-fi
 echo -e "\n${Green}STRATO has awoken. Check ${http_protocol}://${NODE_HOST}${NC}"
 # END OF WAIT FOR STRATO TO RUN
