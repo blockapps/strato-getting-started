@@ -17,9 +17,7 @@ else
 fi
 
 if [ "${STRATO_GENERATION}" -eq "5" ] || [ "${STRATO_GENERATION}" -eq "4" ]; then
-  echo 'Using STRATO 5 or below'
   source strato5.sh
 else
-  echo 'Using STRATO 6 or newer'
   source strato6.sh
 fi

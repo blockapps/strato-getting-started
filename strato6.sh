@@ -339,6 +339,8 @@ done
 
 outputLogo
 
+echo 'Using STRATO 6 or newer'
+
 export NODE_HOST=${NODE_HOST:-localhost}
 export HTTP_PORT=${HTTP_PORT:-80}
 export HTTPS_PORT=${HTTPS_PORT:-443}
