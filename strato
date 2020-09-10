@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -e
+
+if [ ! -f docker-compose.yml ]; then
+  # TODO: statically set to STRATO_GENERATION=6 once STRATO 6.0.0 is released.
+  STRATO_GENERATION=$(curl -s https://github.com/blockapps/strato-getting-started/releases/latest | sed 's/.*tag\/\([^ ]*\).*/\1/' | cut -c1-1)
+else
+  STRATO_GENERATION=$(grep strato-version: docker-compose.yml | cut -d: -f2- | cut -c1-1)
+fi
+
+if [ "${STRATO_GENERATION}" -eq "5" ]; then
+  echo 'STRATO 5'
+  source strato5.sh
+else
+  echo 'STRATO 6 or newer'
+  source strato6.sh
+fi
