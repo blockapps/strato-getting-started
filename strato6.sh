@@ -135,13 +135,26 @@ function keygen {
 
 function getAddress {
   if [[ -n $(docker ps | grep strato_strato_1) ]]; then
-    ADDR_RESP=$(docker exec strato_strato_1 bash -c "curl -s -X GET http://vault-wrapper:8000/strato/v2.3/key -H \"X-USER-UNIQUE-NAME: nodekey\"")
-    if [[ "$ADDR_RESP" == "\"User nodekey doesn't exist\"" ]]; then
-      echo -e "${Red}This node does not have its key stored in the vault. You are probably running an older version of STRATO${NC}"
-      exit 19
-    else
-      echo -e "This node's address is ${Green}$(echo "$ADDR_RESP" | awk -F 'address\":\"' '{print $2 FS "."}' | cut -d\" -f1)${NC}"
-    fi
+    ADDR_RESP=$(docker exec strato_strato_1 bash -c "curl -s -w \"$%{http_code}\" -X GET http://vault-wrapper:8000/strato/v2.3/key -H \"X-USER-UNIQUE-NAME: nodekey\"" | tr '\n' ' ')
+    ADDR_RESP_STATUS=$(cut -d$ -f2 <<< ${ADDR_RESP})
+    ADDR_RESP_CONTENT=$(cut -d$ -f1 <<< ${ADDR_RESP})
+    case "${ADDR_RESP_STATUS}" in
+      400):
+        echo -e "${Red}This node does not have its key stored in the vault. You are probably running an older version of STRATO${NC}"
+        exit 19
+        ;;
+      503):
+        echo -e "${Red}${ADDR_RESP_CONTENT}${NC}"
+        exit 23
+        ;;
+      200):
+        echo "$ADDR_RESP_CONTENT" | awk -F 'address\":\"' '{print $2 FS "."}' | cut -d\" -f1
+        ;;
+      *):
+        echo -e "${Red}Error: Unknown response from vault${NC}"
+        exit 24
+        ;;
+    esac
   else
     echo -e "${Red}STRATO is not running. Start STRATO to get the node's address${NC}"
     exit 20
