@@ -2,10 +2,10 @@
 
 ## 3.0.0
 
-STRATO versions supported: v5.0+
+STRATO versions supported: v4.0+
 
 - Added support for STRATO 6.0
-- Added router file to keep backward compatibility with STRATO 5.0
+- Added router file to keep backward compatibility with STRATO 4 and 5
 
 ## 2.18.0
 
