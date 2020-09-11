@@ -30,7 +30,7 @@
 
     - wget:
 
-        ```brew install wget --with-libressl```
+        ```brew install wget```
 
 **Windows:**
 
