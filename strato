@@ -7,8 +7,10 @@ if [ ! -f docker-compose.yml ]; then
   STRATO_GENERATION=$(curl -s https://github.com/blockapps/strato-getting-started/releases/latest | sed 's/.*tag\/\([^ ]*\).*/\1/' | cut -c1-1)
 else
   STRATO_VERSION_TAG=$(grep strato-version: docker-compose.yml | cut -d: -f2-)
-  # Check if 6.0.0 release candidate
-  if [[ "$STRATO_VERSION_TAG" =~ .*"5.5.0-".* ]]; then
+  if [ -z "${STRATO_VERSION_TAG}" ]; then
+    STRATO_GENERATION="5"
+  elif [[ "$STRATO_VERSION_TAG" =~ .*"5.5.0-".* ]]; then
+    # 6.0.0 dev version
     STRATO_GENERATION="6"
   else
     # Get generation from first character of STRATO version tag

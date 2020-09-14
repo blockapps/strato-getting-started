@@ -1,5 +1,11 @@
 # STRATO Getting Started release notes
 
+## 3.0.1
+
+STRATO versions supported: v4.0+
+
+- Fix for backward compatibility for STRATO prior to version 5.5
+
 ## 3.0.0
 
 STRATO versions supported: v4.0+
