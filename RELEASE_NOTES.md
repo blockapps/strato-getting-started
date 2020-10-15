@@ -1,5 +1,11 @@
 # STRATO Getting Started release notes
 
+## 3.0.2
+
+STRATO versions supported: v4.0+
+
+- Remove blocdata docker volume on --drop-chains
+
 ## 3.0.1
 
 STRATO versions supported: v4.0+

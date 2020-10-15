@@ -97,8 +97,8 @@ function down {
 function dropChains {
   set +e
   down
-  docker volume rm --force strato_kafkadata strato_redisdata strato_stratodata strato_zookeeperdata
   set -e
+  docker volume rm --force strato_blocdata strato_kafkadata strato_redisdata strato_stratodata strato_zookeeperdata
 }
 
 function stop {
