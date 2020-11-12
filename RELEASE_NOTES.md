@@ -1,5 +1,11 @@
 # STRATO Getting Started release notes
 
+## 3.0.3
+
+STRATO versions supported: v4.0+
+
+- Added --get-pubkey flag to obtain the node's public key
+
 ## 3.0.2
 
 STRATO versions supported: v4.0+
