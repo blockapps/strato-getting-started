@@ -44,6 +44,7 @@ Provide no entrypoint to start STRATO node.
 --compose     - fetch the latest stable docker-compose.yml;
 --pull        - pull images used in docker-compose.yml;
 --get-address - get the address of the running node
+--get-pubkey  - get the public key of the running node
 --fetch-logs  - fetch all STRATO logs into strato_logs.zip (for more info and options refer to './fetchlogs --help')
 --fetch-logs-with-db  - fetch all STRATO logs and database dump into strato_logs.zip (WARNING: database data may be sensitive; for more info and options refer to './fetchlogs --help')
 
@@ -133,7 +134,7 @@ function keygen {
   docker run --rm --entrypoint=keygen ${STRATO_IMAGE:-$DC_STRATO_IMAGE} --count="$1"
 }
 
-function getAddress {
+function _getNodeKeyData {
   if [[ -n $(docker ps | grep strato_strato_1) ]]; then
     ADDR_RESP=$(docker exec strato_strato_1 bash -c "curl -s -w \"$%{http_code}\" -X GET http://vault-wrapper:8000/strato/v2.3/key -H \"X-USER-UNIQUE-NAME: nodekey\"" | tr '\n' ' ')
     ADDR_RESP_STATUS=$(cut -d$ -f2 <<< ${ADDR_RESP})
@@ -148,7 +149,7 @@ function getAddress {
         exit 23
         ;;
       200):
-        echo "$ADDR_RESP_CONTENT" | awk -F 'address\":\"' '{print $2 FS "."}' | cut -d\" -f1
+        echo "$ADDR_RESP_CONTENT"
         ;;
       *):
         echo -e "${Red}Error: Unknown response from vault${NC}"
@@ -159,6 +160,16 @@ function getAddress {
     echo -e "${Red}STRATO is not running. Start STRATO to get the node's address${NC}"
     exit 20
   fi
+}
+
+function getAddress {
+  nodeKeyData=$(_getNodeKeyData )
+  echo "${nodeKeyData}" | awk -F 'address\":\"' '{print $2 FS "."}' | cut -d\" -f1
+}
+
+function getPublicKey {
+  nodeKeyData=$(_getNodeKeyData )
+  echo "${nodeKeyData}" | awk -F 'pubkey\":\"' '{print $2 FS "."}' | cut -d\" -f1
 }
 
 function fetchLogs {
@@ -327,6 +338,10 @@ while [ ${#} -gt 0 ]; do
     ;;
   --get-address)
     getAddress
+    exit 0
+    ;;
+  --get-pubkey)
+    getPublicKey
     exit 0
     ;;
   *)
