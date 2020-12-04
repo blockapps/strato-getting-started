@@ -1,5 +1,12 @@
 # STRATO Getting Started release notes
 
+## 3.0.4
+
+STRATO versions supported: v4.0+
+
+- Fixed the password not being set on slower machines due to race condition on node initial start
+- Minor optimization fix for strato generation router script
+
 ## 3.0.3
 
 STRATO versions supported: v4.0+
