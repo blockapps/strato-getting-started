@@ -3,8 +3,7 @@ set -e
 
 if [ ! -f docker-compose.yml ]; then
   # docker-compose.yml does not exist and is to be downloaded from latest release - checking latest release generation at the moment
-  # TODO: change to static 'STRATO_GENERATION=6' once STRATO 6.0.0 is released:
-  STRATO_GENERATION=$(curl -s https://github.com/blockapps/strato-getting-started/releases/latest | sed 's/.*tag\/\([^ ]*\).*/\1/' | cut -c1-1)
+  STRATO_GENERATION="6"
 else
   STRATO_VERSION_TAG=$(grep strato-version: docker-compose.yml | cut -d: -f2-)
   if [ -z "${STRATO_VERSION_TAG}" ]; then

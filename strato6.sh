@@ -607,6 +607,7 @@ fi
 ${docker_compose} -f docker-compose-temp.yml up -d --remove-orphans
 
 # SET PASSWORD FOR VAULT (EVEN NON-OAUTH NODES NEED THIS, SINCE STRATO-CORE USES VAULT)
+until docker exec strato_vault-wrapper_1 curl --silent localhost:8000 ; do sleep 1; done
 setPassword
 
 # WAIT FOR STRATO TO RUN
