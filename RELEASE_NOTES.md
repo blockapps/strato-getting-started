@@ -1,5 +1,12 @@
 # STRATO Getting Started release notes
 
+## 3.1.0
+
+STRATO versions supported: v6.0.2+
+
+- Removed OAUTH_ENABLED environment variable as obsolete (always true, non-OAuth mode is deprecated)
+- Removed legacy support for STRATO versions 5 and older
+
 ## 3.0.4
 
 STRATO versions supported: v4.0+
