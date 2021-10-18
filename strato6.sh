@@ -71,10 +71,9 @@ uiPassword         - (default: admin) the basic auth password for 'admin' user, 
 EXT_STORAGE_S3_BUCKET             - enables external storage feature; the AWS S3 bucket name to use as the blockchain data external storage;
 EXT_STORAGE_S3_ACCESS_KEY_ID      - the access key ID for AWS S3 bucket provided;
 EXT_STORAGE_S3_SECRET_ACCESS_KEY  - the secret access key for AWS S3 bucket provided;
-OAUTH_ENABLED               - (default: false) [true|false] Enable the OAuth-OpenId functional;
-OAUTH_DISCOVERY_URL         - (required if OAUTH_ENABLED=true) OAuth provider's OpenID Connect discovery URL;
-OAUTH_CLIENT_ID             - (required if OAUTH_ENABLED=true) Client ID of OAuth provider valid for the future STRATO url (http(s)://<NODE_HOST>:<HTTP_PORT/HTTPS_PORT>);
-OAUTH_CLIENT_SECRET         - (required if OAUTH_ENABLED=true) Client Secret for the client ID specified;
+OAUTH_DISCOVERY_URL         - (required) OAuth provider's OpenID Connect discovery URL;
+OAUTH_CLIENT_ID             - (required) Client ID of OAuth provider valid for the future STRATO url (http(s)://<NODE_HOST>:<HTTP_PORT/HTTPS_PORT>);
+OAUTH_CLIENT_SECRET         - (required) Client Secret for the client ID specified;
 OAUTH_JWT_USERNAME_PROPERTY - (default: email) The name of property of JWT access token payload to be used as STRATO user name;
 OAUTH_SCOPE                 - (default: 'openid email profile') The openid scopes used in session cookie verification (alter for custom OAUTH_JWT_USERNAME_PROPERTY only, refer to your OAuth provider's documentation)
 OAUTH_STRATO42_FALLBACK     - (default: false) - STRATO v4.2 OAuth compatibility mode ('OAUTH_JWT_VALIDATION_' config vars used, no OAuth login feature for UIs);
@@ -413,12 +412,10 @@ if [ "$OAUTH_JWT_VALIDATION_ENABLED" = "true" ]; then
   fi
 fi
 
-if [ "$OAUTH_ENABLED" = true ]; then
-  if [[ -z ${OAUTH_DISCOVERY_URL} || -z ${OAUTH_CLIENT_ID} || -z ${OAUTH_CLIENT_SECRET} ]] ; then
-    echo -e "${Red}OAUTH_DISCOVERY_URL, OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET are required for OAUTH_ENABLED mode"
-    echo -e "For additional help see './strato --help'${NC}"
-    exit 13
-  fi
+if [[ -z ${OAUTH_DISCOVERY_URL} || -z ${OAUTH_CLIENT_ID} || -z ${OAUTH_CLIENT_SECRET} ]] ; then
+  echo -e "${Red}OAUTH_DISCOVERY_URL, OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET are required"
+  echo -e "For additional help see './strato --help'${NC}"
+  exit 13
 fi
 
 echo "" && echo "*** Common Config ***"
@@ -441,7 +438,6 @@ echo "SMD_MODE: $SMD_MODE"
 echo "EXT_STORAGE_S3_BUCKET: ${EXT_STORAGE_S3_BUCKET:-not set}"
 echo "EXT_STORAGE_S3_ACCESS_KEY_ID: $(if [ -z ${EXT_STORAGE_S3_ACCESS_KEY_ID} ]; then echo "not set"; else echo "is set"; fi)"
 echo "EXT_STORAGE_S3_SECRET_ACCESS_KEY: $(if [ -z ${EXT_STORAGE_S3_SECRET_ACCESS_KEY} ]; then echo "not set"; else echo "is set"; fi)"
-echo "OAUTH_ENABLED: ${OAUTH_ENABLED:-false}"
 echo "OAUTH_DISCOVERY_URL: ${OAUTH_DISCOVERY_URL:-not set}"
 echo "OAUTH_CLIENT_ID: $(if [ -z ${OAUTH_CLIENT_ID} ]; then echo "not set"; else echo "is set"; fi)"
 echo "OAUTH_CLIENT_SECRET: $(if [ -z ${OAUTH_CLIENT_SECRET} ]; then echo "not set"; else echo "is set"; fi)"
