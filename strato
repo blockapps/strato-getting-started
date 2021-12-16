@@ -54,29 +54,29 @@ ${Yellow}Optional flags for STRATO:${NC}
 --blockstanbul|--pbft - run the PBFT-blockstanbul node - equal to env var blockstanbul=true; you will need additional environment variables (either isRootNode, or validators and blockstanbulAdmins/isAdmin)
 
 ${Yellow}Environment variables:${NC}
-PASSWORD           - node in-memory password for STRATO v4.5+ with OAuth enabled. To be requested interactively if skipped
-NODE_HOST          - (default: localhost) the hostname or IP of the machine (used for APIs and Dashboard);
-BOOT_NODE_IP       - IP address of the boot node to connect to (required for secondary node to discover other peers), ignored when used with --single flag;
-HTTP_PORT          - (default: 80) Port for HTTP traffic listener;
-HTTPS_PORT         - (default: 443) Port for HTTPS traffic listener; only used with ssl=true;
-generateKey        - (default: true) [true|false] Whether or not to generate this node's key - set this to false if migrating an old node with an existing key
-isRootNode         - (default: false) [true|false] Whether or not to make this node the initial PBFT validator and admin
-isAdmin            - (default: false) [true|false] Whether or not to make this node its own PBFT admin
-blockstanbulAdmins - (default: []) Optional list of PBFT admins who can send votes to this node
+PASSWORD           - node in-memory password for STRATO v4.5+ with OAuth enabled. To be requested interactively if skipped.
+NODE_HOST          - (default: localhost) the hostname or IP of the machine (used for APIs and Dashboard).
+BOOT_NODE_IP       - IP address of the boot node to connect to (required for secondary node to discover other peers), ignored when used with --single flag.
+HTTP_PORT          - (default: 80) Port for HTTP traffic listener.
+HTTPS_PORT         - (default: 443) Port for HTTPS traffic listener; only used with ssl=true.
+generateKey        - (default: true) [true|false] Whether or not to generate this node's key - set this to false if migrating an old node with an existing key.
+isRootNode         - (default: false) [true|false] Whether or not to make this node the initial PBFT validator and admin.
+isAdmin            - (default: false) [true|false] Whether or not to make this node its own PBFT admin.
+blockstanbulAdmins - (default: []) Optional list of PBFT admins who can send votes to this node.
 validators         - (default: []) List of initial PBFT validators - must contain root node address, if joining a network.
-ssl                - (default: false) [true|false] to run the node with SSL/TLS;
-sslCertFileType    - (default: crt) [pem|crt] the SSL certificate type and file extension (should be accessible in ./ssl/certs/ while deploying);
-authBasic          - (default: false) [true|false] use basic access authentication for dashboard and APIs;
-uiPassword         - (default: admin) the basic auth password for 'admin' user, ignored when used with authBasic=false;
-EXT_STORAGE_S3_BUCKET             - enables external storage feature; the AWS S3 bucket name to use as the blockchain data external storage;
-EXT_STORAGE_S3_ACCESS_KEY_ID      - the access key ID for AWS S3 bucket provided;
-EXT_STORAGE_S3_SECRET_ACCESS_KEY  - the secret access key for AWS S3 bucket provided;
-OAUTH_DISCOVERY_URL         - (required) OAuth provider's OpenID Connect discovery URL;
-OAUTH_CLIENT_ID             - (required) Client ID of OAuth provider valid for the future STRATO url (http(s)://<NODE_HOST>:<HTTP_PORT/HTTPS_PORT>);
-OAUTH_CLIENT_SECRET         - (required) Client Secret for the client ID specified;
-OAUTH_JWT_USERNAME_PROPERTY - (default: email) The name of property of JWT access token payload to be used as STRATO user name;
-OAUTH_SCOPE                 - (default: 'openid email profile') The openid scopes used in session cookie verification (alter for custom OAUTH_JWT_USERNAME_PROPERTY only, refer to your OAuth provider's documentation)
-OAUTH_STRATO42_FALLBACK     - (default: false) - STRATO v4.2 OAuth compatibility mode ('OAUTH_JWT_VALIDATION_' config vars used, no OAuth login feature for UIs);
+ssl                - (default: false) [true|false] to run the node with SSL/TLS.
+sslCertFileType    - (default: crt) [pem|crt] the SSL certificate type and file extension (should be accessible in ./ssl/certs/ while deploying).
+authBasic          - (default: false) [true|false] use basic access authentication for dashboard and APIs.
+uiPassword         - (default: admin) the basic auth password for 'admin' user, ignored when used with authBasic=false.
+EXT_STORAGE_S3_BUCKET             - enables external storage feature; the AWS S3 bucket name to use as the blockchain data external storage.
+EXT_STORAGE_S3_ACCESS_KEY_ID      - the access key ID for AWS S3 bucket provided.
+EXT_STORAGE_S3_SECRET_ACCESS_KEY  - the secret access key for AWS S3 bucket provided.
+OAUTH_DISCOVERY_URL         - (required) OAuth provider's OpenID Connect discovery URL.
+OAUTH_CLIENT_ID             - (required) Client ID of OAuth provider valid for the future STRATO url (http(s)://<NODE_HOST>:<HTTP_PORT/HTTPS_PORT>).
+OAUTH_CLIENT_SECRET         - (required) Client Secret for the client ID specified.
+OAUTH_JWT_USERNAME_PROPERTY - (default: 'email') The name of property in JWT access token's payload, the value of which will be used as user name in STRATO, e.g. 'preferred_username', 'email', 'sub' etc.
+OAUTH_SCOPE                 - (default: 'openid email profile') The openid scopes used in session cookie verification (alter for custom OAUTH_JWT_USERNAME_PROPERTY only, refer to your OAuth provider's documentation.)
+OAUTH_STRATO42_FALLBACK     - (default: false) - STRATO v4.2 OAuth compatibility mode ('OAUTH_JWT_VALIDATION_' config vars used, no OAuth login feature for UIs.)
 "
 }
 
