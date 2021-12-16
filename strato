@@ -32,26 +32,26 @@ Kickstart the STRATO node.
 ${Yellow}Alternative entrypoints:${NC}
 The entrypoints are mutually exclusive.
 Provide no entrypoint to start STRATO node.
---help|-h     - this help;
---version|-v  - show strato-getting-started script version;
---set-password  - provide the in-memory password after the node was restarted; use PASSWORD env var to skip interactive input;
---stop        - stop STRATO containers (keeps containers and volumes);
---start       - start the existing STRATO containers after they were stopped (the opposite to --stop)
---remove      - DEPRECATED: choose --down or --drop-chains
---down        - remove strato containers and leave all volumes intact
---drop-chains - remove strato containers and chain data volumes; user data volumes are kept
---wipe        - stop and remove STRATO containers and wipe out volumes;
---compose     - fetch the latest stable docker-compose.yml;
---pull        - pull images used in docker-compose.yml;
---get-address - get the address of the running node
---get-pubkey  - get the public key of the running node
---fetch-logs  - fetch all STRATO logs into strato_logs.zip (for more info and options refer to './fetchlogs --help')
---fetch-logs-with-db  - fetch all STRATO logs and database dump into strato_logs.zip (WARNING: database data may be sensitive; for more info and options refer to './fetchlogs --help')
+--help|-h     - this help.
+--version|-v  - show strato-getting-started script version.
+--set-password  - provide the in-memory password after the node was restarted; use PASSWORD env var to skip interactive input.
+--stop        - stop STRATO containers (keeps containers and volumes.)
+--start       - start the existing STRATO containers after they were stopped (the opposite to --stop.)
+--remove      - DEPRECATED: choose --down or --drop-chains.
+--down        - remove strato containers and leave all volumes intact.
+--drop-chains - remove strato containers and chain data volumes; user data volumes are kept.
+--wipe        - stop and remove STRATO containers and wipe out volumes.
+--compose     - fetch the latest stable docker-compose.yml.
+--pull        - pull images used in docker-compose.yml.
+--get-address - get the address of the running node.
+--get-pubkey  - get the public key of the running node.
+--fetch-logs  - fetch all STRATO logs into strato_logs.zip (for more info and options refer to './fetchlogs --help'.)
+--fetch-logs-with-db  - fetch all STRATO logs and database dump into strato_logs.zip (WARNING: database data may be sensitive; for more info and options refer to './fetchlogs --help'.)
 
 ${Yellow}Optional flags for STRATO:${NC}
---single              - run the single PBFT-blockstanbul node
---lazy                - run the the lazy mining node (single);
---blockstanbul|--pbft - run the PBFT-blockstanbul node - equal to env var blockstanbul=true; you will need additional environment variables (either isRootNode, or validators and blockstanbulAdmins/isAdmin)
+--single              - run the single PBFT-blockstanbul node.
+--lazy                - run the the lazy mining node (single).
+--blockstanbul|--pbft - run the PBFT-blockstanbul node - equal to env var blockstanbul=true; you will need additional environment variables (either isRootNode, or validators and blockstanbulAdmins/isAdmin.)
 
 ${Yellow}Environment variables:${NC}
 PASSWORD           - node in-memory password for STRATO v4.5+ with OAuth enabled. To be requested interactively if skipped.
@@ -65,7 +65,7 @@ isAdmin            - (default: false) [true|false] Whether or not to make this n
 blockstanbulAdmins - (default: []) Optional list of PBFT admins who can send votes to this node.
 validators         - (default: []) List of initial PBFT validators - must contain root node address, if joining a network.
 ssl                - (default: false) [true|false] to run the node with SSL/TLS.
-sslCertFileType    - (default: crt) [pem|crt] the SSL certificate type and file extension (should be accessible in ./ssl/certs/ while deploying).
+sslCertFileType    - (default: crt) [pem|crt] the SSL certificate type and file extension (should be accessible in ./ssl/certs/ while deploying.)
 authBasic          - (default: false) [true|false] use basic access authentication for dashboard and APIs.
 uiPassword         - (default: admin) the basic auth password for 'admin' user, ignored when used with authBasic=false.
 EXT_STORAGE_S3_BUCKET             - enables external storage feature; the AWS S3 bucket name to use as the blockchain data external storage.
