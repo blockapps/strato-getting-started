@@ -262,6 +262,10 @@ while [ ${#} -gt 0 ]; do
     wipe
     exit 0
     ;;
+    -m)
+    echo -e "${BYellow} Mode flag is deprecated and skipped. Update your script${NC}"
+    shift
+    ;;
   --blockstanbul)
     echo -e "${BYellow}--blockstanbul flag is skipped (blockstanbul is default). This flag will be removed in the future.${NC}"
     ;;
