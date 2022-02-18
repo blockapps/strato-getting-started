@@ -1,5 +1,16 @@
 # STRATO Getting Started release notes
 
+## 3.2.0
+
+STRATO versions supported: v6.0.2+
+
+- Added `--get-validators` flag
+- Made the blockstanbul mode the default, `--blockstanbul` flag is now deprecated
+- Changed the `isAdmin` default value from `false` to `true`
+- Updated the README
+- Cleaned out the old deprecated code
+- Done a touch of refactoring
+
 ## 3.1.0
 
 STRATO versions supported: v6.0.2+
