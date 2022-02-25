@@ -1,5 +1,11 @@
 # STRATO Getting Started release notes
 
+## 3.2.1
+
+STRATO versions supported: v6.0.2+
+
+- Added the randomly generated networkID if not provided in --single mode
+
 ## 3.2.0
 
 STRATO versions supported: v6.0.2+

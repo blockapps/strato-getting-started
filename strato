@@ -370,6 +370,8 @@ then
   export generateKey=${generateKey:-true}
   export isAdmin=true
   export isRootNode=true
+  # Generate random networkID if not provided for --single mode
+  export networkID=${networkID:-$(($RANDOM * $RANDOM * $RANDOM))}
   
   if [[ $(docker ps -a | grep strato_strato_1) ]]; then
     echo -e "${BYellow}Updating the existing STRATO Single node instance - getting it's blockstanbul variables...${NC}"
@@ -418,6 +420,7 @@ echo "isAdmin: $isAdmin"
 echo "isRootNode: $isRootNode"
 echo "generateKey: $generateKey"
 echo "numMinPeers: $numMinPeers"
+echo "networkID: ${networkID:-unset - using default}"
 
 echo "" && echo "*** Genesis Block ***"
 if [[ -e "genesis-block.json" && -z ${genesis+x} ]]
