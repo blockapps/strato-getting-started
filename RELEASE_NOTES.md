@@ -1,6 +1,6 @@
 # STRATO Getting Started release notes
 
-## 3.2.2
+## 3.3.0
 
 STRATO versions supported: v6.0.2+
 
