@@ -40,7 +40,8 @@ The entrypoints are mutually exclusive.
 --pull        - pull images used in docker-compose.yml.
 --get-address - get the address of the running node.
 --get-pubkey  - get the public key of the running node.
---get-validators      - get the list of validating nodes in the network on the running node.
+--get-validators          - get the list of validating nodes in the network on the running node.
+--get-single-node-chains  - get the list of all private chains on the node that aren't shared with at least one other node on the network.
 --fetch-logs          - fetch all STRATO logs into strato_logs.zip (for more info and options refer to './fetchlogs --help'.)
 --fetch-logs-with-db  - fetch all STRATO logs and database dump into strato_logs.zip (WARNING: database data may be sensitive; for more info and options refer to './fetchlogs --help'.)
 
@@ -152,6 +153,10 @@ function getPublicKey {
 
 function getValidators {
   docker exec -i strato_strato_1 bash -c "tail -n 100 logs/strato-sequencer | grep showctx/validators | tail -n 1 | cut -d '|' -f 4 | cut -d ' ' -f 2"
+}
+
+function getSingleNodeChains {
+  docker exec strato_postgres_1 psql -U postgres -d `docker exec strato_postgres_1 psql -U postgres -t -c "select datname from pg_database where datname like '%eth_%';" | tr -d "[:space:]"` -c "with m as (select chain_info_id, substring(name from position('@' in name)) as node_name from chain_member_ref), n as (select chain_info_id, node_name from m group by (chain_info_id, node_name)), o as (select chain_info_id, count(*) from n group by chain_info_id) select i.chain_id from chain_info_ref i inner join o on i.id = o.chain_info_id where o.count = 1;"
 }
 
 function fetchLogs {
@@ -306,6 +311,10 @@ while [ ${#} -gt 0 ]; do
     ;;
   --get-validators)
     getValidators
+    exit 0
+    ;;
+  --get-single-node-chains)
+    getSingleNodeChains
     exit 0
     ;;
   *)

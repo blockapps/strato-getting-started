@@ -1,5 +1,11 @@
 # STRATO Getting Started release notes
 
+## 3.2.2
+
+STRATO versions supported: v6.0.2+
+
+- Added `--get-single-node-chains` mode to fetch the list of private chains not shared to the network
+
 ## 3.2.1
 
 STRATO versions supported: v6.0.2+
