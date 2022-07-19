@@ -34,7 +34,7 @@ The entrypoints are mutually exclusive.
 --start       - start the existing STRATO containers after they were stopped (the opposite to --stop.)
 --remove      - DEPRECATED: choose --down or --drop-chains.
 --down        - remove strato containers and leave all volumes intact.
---drop-chains - remove strato containers and chain data volumes; user data volumes are kept.
+--drop-chains - remove strato containers and chain data volumes; user data volumes are preserved. Add '-f' option after the flag to force the removal of single-node private chains.
 --wipe        - stop and remove STRATO containers and wipe out volumes.
 --compose     - fetch the latest stable docker-compose.yml.
 --pull        - pull images used in docker-compose.yml.
@@ -260,6 +260,23 @@ while [ ${#} -gt 0 ]; do
     exit 0
     ;;
   --drop-chains)
+    echo -e "Checking if the node has single-node private chains that were never shared with other nodes (have irrecoverable data)..."
+    if [[ ! $(getSingleNodeChains | grep "0 rows") ]]; then 
+      echo -e "${BYellow}WARNING: Node has single-node private chains that can not be recovered from the network.${NC}"
+      if [[ $* == *\ -f\ * || $* == *\ -f ]]; then
+        echo -e "'-f' option is provided, forcefully removing the single-node private chains..."
+      else
+        echo -e "'-f' option is not provided - expecting user confirmation."
+        read -p "Please confirm if you want to drop these chains. Type 'yes' to continue: " CONT
+        if [ "$CONT" != "yes" ]; then
+          echo -e "User did not confirm the removal of single-node private chains. Exit."
+          exit 3
+        fi
+      fi
+    else 
+      echo "No single-node private chains found, going ahead with dropping chains."
+    fi
+    echo -e "Dropping the node's blockchain data, keeping the Vault data..."
     dropChains
     exit 0
     ;;

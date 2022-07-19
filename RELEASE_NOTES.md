@@ -1,5 +1,11 @@
 # STRATO Getting Started release notes
 
+## 3.4.0
+
+STRATO versions supported: v6.0.2+
+
+- Added the check for single-member private chains when running with `--drop-chains` flag
+
 ## 3.3.0
 
 STRATO versions supported: v6.0.2+
