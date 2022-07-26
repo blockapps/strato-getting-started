@@ -19,7 +19,7 @@ def fetch_logs():
         sys.exit(6)
     try:
         compose_ps_output = subprocess.check_output(
-            "docker-compose --log-level ERROR -p strato ps --services",
+            "docker-compose -p strato ps --services",
             shell=True
         ).split('\n')
         running_containers = ['strato_%s_1' % service_name for service_name in compose_ps_output if service_name]
