@@ -60,7 +60,7 @@ isAdmin            - (default: true) [true|false] Whether or not to make this no
 blockstanbulAdmins - (default: []) Optional list of PBFT admins who can send votes to this node.
 validators         - (default: []) List of initial PBFT validators - must contain root node address, if joining a network.
 ssl                - (default: false) [true|false] to run the node with SSL/TLS.
-sslCertFileType    - (default: crt) [pem|crt] the SSL certificate type and file extension (should be accessible in ./ssl/certs/ while deploying.)
+sslCertFileType    - (default: pem) [pem|crt] the SSL certificate type and file extension (should be accessible at ./ssl/certs/server.<sslCertFileType> at deploy time.)
 EXT_STORAGE_S3_BUCKET             - (no longer supported in STRATO v7.5+) enables external storage feature; the AWS S3 bucket name to use as the blockchain data external storage.
 EXT_STORAGE_S3_ACCESS_KEY_ID      - (no longer supported in STRATO v7.5+) the access key ID for AWS S3 bucket provided.
 EXT_STORAGE_S3_SECRET_ACCESS_KEY  - (no longer supported in STRATO v7.5+) the secret access key for AWS S3 bucket provided.
@@ -355,7 +355,7 @@ else
   http_protocol=http;
   main_port=${HTTP_PORT}
 fi
-export sslCertFileType=${sslCertFileType:-crt}
+export sslCertFileType=${sslCertFileType:-pem}
 export NODE_NAME=${NODE_NAME:-$NODE_HOST}
 export isAdmin=${isAdmin:-true}
 
