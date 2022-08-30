@@ -1,5 +1,12 @@
 # STRATO Getting Started release notes
 
+## 3.4.1
+
+STRATO versions supported: v6.0.2+
+
+- Use `sslCertFileType=pem` by default
+- Updated dummy SSL/TLS certificate
+
 ## 3.4.0
 
 STRATO versions supported: v6.0.2+
