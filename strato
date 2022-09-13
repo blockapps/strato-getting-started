@@ -100,8 +100,8 @@ function start {
 }
 
 function getCompose {
-  echo -e "${Yellow}Downloading the latest stable version of docker-compose.yml${NC}"
-  curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | egrep -o '/blockapps/strato-getting-started/releases/download/.*/docker-compose.yml' | wget --base=http://github.com/ -i - -O docker-compose.yml
+  echo -e "${Yellow}Downloading the latest stable version of docker-compose.yml...${NC}"
+  curl -fLo docker-compose.yml https://github.com/blockapps/strato-getting-started/releases/download/$(curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | grep -o '/blockapps/strato-getting-started/releases/expanded_assets/[^"]*' | grep -oE "[^/]+$")/docker-compose.yml
 }
 
 function pbftVote {

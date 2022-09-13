@@ -6,22 +6,11 @@
 
 ### Dependencies
 
-**Linux/MacOSX:**
+**Linux/MacOS:**
 
 - [Install Docker](https://docs.docker.com/get-docker/) on your machine
 - [Install Docker Compose](https://docs.docker.com/compose/install/) on your machine
-- Python 2.7+ for PBFT network deployment
 
-- For Mac users: Install `wget` using [Homebrew](https://brew.sh/) (use the steps below):
-
-    - Install `homebrew`:
-
-        ```ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"```
-
-    - Install `wget`:
-
-        ```brew install wget```
-    
 ### Usage
 For usage instructions, please refer to [STRATO Documentation - Network Setup section](https://docs.blockapps.net/deployment/network-setup/)
 
