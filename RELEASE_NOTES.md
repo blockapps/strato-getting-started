@@ -1,5 +1,11 @@
 # STRATO Getting Started release notes
 
+## 3.4.3
+
+STRATO versions supported: v6.0.2+
+
+- Comply with more GitHub release page changes to download docker-compose.yml asset
+
 ## 3.4.2
 
 STRATO versions supported: v6.0.2+
