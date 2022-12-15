@@ -29,7 +29,7 @@ ${Yellow}Optional flags:${NC}
 The entrypoints are mutually exclusive.
 --help|-h     - this help.
 --version|-v  - show strato-getting-started script version.
---set-password  - provide the in-memory password after the node was restarted; use PASSWORD env var to skip interactive input.
+--set-vault-password  - set or re-enter the STRATO Vault's in-memory password; use PASSWORD env var to skip interactive input.
 --stop        - stop STRATO containers (keeps containers and volumes.)
 --start       - start the existing STRATO containers after they were stopped (the opposite to --stop.)
 --remove      - DEPRECATED: choose --down or --drop-chains.
@@ -61,14 +61,12 @@ blockstanbulAdmins - (default: []) Optional list of PBFT admins who can send vot
 validators         - (default: []) List of initial PBFT validators - must contain root node address, if joining a network.
 ssl                - (default: false) [true|false] to run the node with SSL/TLS.
 sslCertFileType    - (default: pem) [pem|crt] the SSL certificate type and file extension (should be accessible at ./ssl/certs/server.<sslCertFileType> at deploy time.)
-EXT_STORAGE_S3_BUCKET             - (no longer supported in STRATO v7.5+) enables external storage feature; the AWS S3 bucket name to use as the blockchain data external storage.
-EXT_STORAGE_S3_ACCESS_KEY_ID      - (no longer supported in STRATO v7.5+) the access key ID for AWS S3 bucket provided.
-EXT_STORAGE_S3_SECRET_ACCESS_KEY  - (no longer supported in STRATO v7.5+) the secret access key for AWS S3 bucket provided.
 OAUTH_DISCOVERY_URL         - (required) OAuth provider's OpenID Connect discovery URL.
 OAUTH_CLIENT_ID             - (required) Client ID of OAuth provider valid for the future STRATO url (http(s)://<NODE_HOST>:<HTTP_PORT/HTTPS_PORT>).
 OAUTH_CLIENT_SECRET         - (required) Client Secret for the client ID specified.
 OAUTH_JWT_USERNAME_PROPERTY - (default: 'email') The name of property in JWT access token's payload, the value of which will be used as user name in STRATO, e.g. 'preferred_username', 'email', 'sub' etc.
 OAUTH_SCOPE                 - (default: 'openid email profile') The openid scopes used in session cookie verification (alter for custom OAUTH_JWT_USERNAME_PROPERTY only, refer to your OAuth provider's documentation.)
+VAULT_URL                   - (required) The URL of STRATO Vault in the format '<protocol>://<hostname>:<port>' (e.g. https://example.com or https://example.com:8090)
 "
 }
 
@@ -169,8 +167,6 @@ function fetchLogs {
 }
 
 function setPassword {
-  REQUIRES_PASSWORD=$([[ $(docker exec vault_vault-wrapper_1 curl --write-out %{http_code} --silent --output /dev/null localhost:8000/strato/v2.3/password) == "405" ]] && echo "true" || echo "false")
-  if [[ "$REQUIRES_PASSWORD" == "true" ]]; then
     while [ -z $PASSWORD ]; do
       echo
       echo -n Please enter a password:
@@ -203,9 +199,6 @@ function setPassword {
         exit 16
         ;;
     esac
-  else
-    echo "STRATO version is 4.4.1 or older - skipping global password setting"
-  fi
 }
 
 if [ ! -f $(pwd)/strato ]; then
@@ -262,6 +255,7 @@ while [ ${#} -gt 0 ]; do
     exit 0
     ;;
   --drop-chains)
+    # TODO: merge --wipe and --drop-chains as being the same thing for nodes with Shared Vault
     echo -e "Checking if the node has single-node private chains that were never shared with other nodes (have irrecoverable data)..."
     if [[ ! $(getSingleNodeChains | grep "0 rows") ]]; then 
       echo -e "${BYellow}WARNING: Node has single-node private chains that can not be recovered from the network.${NC}"
@@ -285,13 +279,6 @@ while [ ${#} -gt 0 ]; do
   --wipe)
     wipe
     exit 0
-    ;;
-    -m)
-    echo -e "${BYellow} Mode flag is deprecated and skipped. Update your script${NC}"
-    shift
-    ;;
-  --blockstanbul)
-    echo -e "${BYellow}--blockstanbul flag is skipped (blockstanbul is default). This flag will be removed in the future.${NC}"
     ;;
   --single)
     node_type=single
@@ -317,6 +304,10 @@ while [ ${#} -gt 0 ]; do
     exit 0
     ;;
   --set-password)
+    echo -e "${BYellow}--set-password is deprecated. Use --set-vault-password for nodes with separate STRATO Vault.${NC}"
+    exit 25
+    ;;
+  --set-vault-password)
     setPassword
     exit 0
     ;;
@@ -361,18 +352,14 @@ export sslCertFileType=${sslCertFileType:-pem}
 export NODE_NAME=${NODE_NAME:-$NODE_HOST}
 export isAdmin=${isAdmin:-true}
 
-if [ -n "${EXT_STORAGE_S3_BUCKET}" ]; then
-  if [[ -z ${EXT_STORAGE_S3_ACCESS_KEY_ID} || -z ${EXT_STORAGE_S3_SECRET_ACCESS_KEY} ]]; then
-    echo -e "${Red}The external storage S3 bucket name is provided but one of the credentials is empty. Expected all or none of [EXT_STORAGE_S3_BUCKET, EXT_STORAGE_S3_ACCESS_KEY_ID, EXT_STORAGE_S3_SECRET_ACCESS_KEY]. Exit.${NC}"
-    echo -e "${BYellow}External Storage feature is no longer supported in STRATO v7.5+${NC}"
-    exit 6
-  fi
+if [[ -z ${OAUTH_DISCOVERY_URL} || -z ${OAUTH_CLIENT_ID} || -z ${OAUTH_CLIENT_SECRET} ]] ; then
+  echo -e "${Red}OAUTH_DISCOVERY_URL, OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET are required\nFor additional help see './strato --help'${NC}"
+  exit 13
 fi
 
-if [[ -z ${OAUTH_DISCOVERY_URL} || -z ${OAUTH_CLIENT_ID} || -z ${OAUTH_CLIENT_SECRET} ]] ; then
-  echo -e "${Red}OAUTH_DISCOVERY_URL, OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET are required"
-  echo -e "For additional help see './strato --help'${NC}"
-  exit 13
+if [[ -z ${VAULT_URL} ]] ; then
+  echo -e "${Red}VAULT_URL is a required variable\nFor additional help see './strato --help'${NC}"
+  exit 26
 fi
 
 echo "" && echo "*** Common Config ***"
@@ -382,14 +369,12 @@ echo "HTTPS_PORT: $HTTPS_PORT"
 echo "ssl: $ssl"
 echo "sslCertFileType: $sslCertFileType"
 echo "NODE_NAME: $NODE_NAME"
-echo "EXT_STORAGE_S3_BUCKET (deprecated): ${EXT_STORAGE_S3_BUCKET:-not set}"
-echo "EXT_STORAGE_S3_ACCESS_KEY_ID (deprecated): $(if [ -z ${EXT_STORAGE_S3_ACCESS_KEY_ID} ]; then echo "not set"; else echo "is set"; fi)"
-echo "EXT_STORAGE_S3_SECRET_ACCESS_KEY (deprecated): $(if [ -z ${EXT_STORAGE_S3_SECRET_ACCESS_KEY} ]; then echo "not set"; else echo "is set"; fi)"
 echo "OAUTH_DISCOVERY_URL: ${OAUTH_DISCOVERY_URL:-not set}"
 echo "OAUTH_CLIENT_ID: $(if [ -z ${OAUTH_CLIENT_ID} ]; then echo "not set"; else echo "is set"; fi)"
 echo "OAUTH_CLIENT_SECRET: $(if [ -z ${OAUTH_CLIENT_SECRET} ]; then echo "not set"; else echo "is set"; fi)"
 echo "OAUTH_JWT_USERNAME_PROPERTY: ${OAUTH_JWT_USERNAME_PROPERTY:-not set (using default)}"
 echo "OAUTH_SCOPE: ${OAUTH_SCOPE:-not set (using default)}"
+echo "VAULT_URL: ${VAULT_URL}"
 
 if [ ${node_type} = single ]
 then
@@ -500,11 +485,6 @@ fi
 # END OF COMPOSE FILE PRE-PROCESSING
 
 ${docker_compose} -f docker-compose-temp.yml up -d --remove-orphans
-
-# TODO: remove for shared vault
-## SET PASSWORD FOR VAULT (EVEN NON-OAUTH NODES NEED THIS, SINCE STRATO-CORE USES VAULT)
-#until docker exec vault_vault-wrapper_1 curl --silent localhost:8000 ; do sleep 1; done
-#setPassword
 
 # WAIT FOR STRATO TO RUN
 started=$(date +%s)

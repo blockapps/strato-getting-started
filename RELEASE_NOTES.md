@@ -1,16 +1,32 @@
 # STRATO Getting Started release notes
 
+## 4.0.0
+
+STRATO versions supported: v8.2+
+
+- Added support for STRATO nodes v8.2+ with STRATO Vault separated from the STRATO Node
+- Replaced `--set-password` with `--set-vault-password` to comply with STRATO password moved from STRATO Node to STRATO Vault
+- (TODO) Changed `--get-address`, `--get-pubkey`, `--get-validators` to use Metadata API endpoint to get node info from STRATO Vault
+- Added support for `VAULT_URL` var
+- (TODO) Added support for `OAUTH_VAULT_PROXY_ALT_CLIENT_ID` and `OAUTH_VAULT_PROXY_ALT_CLIENT_SECRET` variables
+- (TODO) Changed `--drop-chains` to be a duplicate of `--wipe` (with STRATO Vault now being a separate application)
+- (TODO) Added the check for single-member private chains when running with `--wipe` flag (previously was only a part of `--drop-chains`)
+- Removed the `--blockstanbul` flag as previously deprecated
+- Removed `EXT_STORAGE_<...>` variables  from help topic as previously deprecated
+- Removed `-m` option as previously deprecated
+- (TODO) Rename chains to shards
+
 ## 3.4.3
 
 STRATO versions supported: v6.0.2+
 
-- Comply with more GitHub release page changes to download docker-compose.yml asset
+- Fixed compatibility with more GitHub release page changes to download docker-compose.yml asset
 
 ## 3.4.2
 
 STRATO versions supported: v6.0.2+
 
-- Comply with updated GitHub release page to download docker-compose.yml asset
+- Fixed compatibility with updated GitHub release page to download docker-compose.yml asset
 - Removed `wget` dependency
 
 ## 3.4.1
