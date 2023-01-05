@@ -29,7 +29,6 @@ ${Yellow}Optional flags:${NC}
 The entrypoints are mutually exclusive.
 --help|-h     - this help.
 --version|-v  - show strato-getting-started script version.
---set-vault-password  - set or re-enter the STRATO Vault's in-memory password; use PASSWORD env var to skip interactive input.
 --stop        - stop STRATO containers (keeps containers and volumes.)
 --start       - start the existing STRATO containers after they were stopped (the opposite to --stop.)
 --remove      - DEPRECATED: choose --down or --drop-chains.
@@ -49,7 +48,6 @@ ${Yellow}Optional flags for STRATO:${NC}
 --single              - run the single node.
 
 ${Yellow}Environment variables:${NC}
-PASSWORD           - node in-memory password for STRATO v4.5+ with OAuth enabled. To be requested interactively if skipped.
 NODE_HOST          - (default: localhost) the hostname or IP of the machine (used for APIs and Dashboard).
 BOOT_NODE_IP       - IP address of the boot node to connect to (required for secondary node to discover other peers), ignored when used with --single flag.
 HTTP_PORT          - (default: 80) Port for HTTP traffic listener.
@@ -64,8 +62,8 @@ sslCertFileType    - (default: pem) [pem|crt] the SSL certificate type and file 
 OAUTH_DISCOVERY_URL         - (required) OAuth provider's OpenID Connect discovery URL.
 OAUTH_CLIENT_ID             - (required) Client ID of OAuth provider valid for the future STRATO url (http(s)://<NODE_HOST>:<HTTP_PORT/HTTPS_PORT>).
 OAUTH_CLIENT_SECRET         - (required) Client Secret for the client ID specified.
-OAUTH_JWT_USERNAME_PROPERTY - (default: 'email') The name of property in JWT access token's payload, the value of which will be used as user name in STRATO, e.g. 'preferred_username', 'email', 'sub' etc.
-OAUTH_SCOPE                 - (default: 'openid email profile') The openid scopes used in session cookie verification (alter for custom OAUTH_JWT_USERNAME_PROPERTY only, refer to your OAuth provider's documentation.)
+OAUTH_JWT_USER_ID_CLAIM     - (default: 'sub') The name of claim (property) in JWT access token's payload, the value of which will be used as user name in STRATO, e.g. 'preferred_username', 'email', 'sub' etc.
+OAUTH_SCOPE                 - (default: 'openid email profile') The openid scopes used in session cookie verification (alter for custom OAUTH_JWT_USER_ID_CLAIM only, refer to your OAuth provider's documentation.)
 VAULT_URL                   - (required) The URL of STRATO Vault in the format '<protocol>://<hostname>:<port>' (e.g. https://example.com or https://example.com:8090)
 "
 }
@@ -166,41 +164,6 @@ function fetchLogs {
   python fetchlogs ${withdb_flag}
 }
 
-function setPassword {
-    while [ -z $PASSWORD ]; do
-      echo
-      echo -n Please enter a password:
-      read -s PASSWORDA || (printf "\nerror: unable to read password, stdin might be closed\n" &&
-                            printf "Set the PASSWORD environment variable in automated environments\n" &&
-                            exit 18)
-      echo
-      echo -n Please re-enter the password:
-      read -s PASSWORDB
-      if [ "${PASSWORDA}" == "${PASSWORDB}" ]; then
-        echo
-        PASSWORD=${PASSWORDA}
-      else
-        echo
-        echo -n Passwords did not match. Please try again.
-      fi
-    done
-
-    PASSWORD_SET_RESPONSE=$(docker exec -i vault_vault-wrapper_1 curl -s -H "Content-Type: application/json" -d @- localhost:8000/strato/v2.3/password <<< \"$PASSWORD\")
-    case ${PASSWORD_SET_RESPONSE} in
-      "\"Could not validate password\"" )
-        echo -e "\033[0;31mWrong password provided, please try again.\033[0m"
-        exit 15
-        ;;
-      "[]" )
-        echo -e "\033[0;32mThe password has been set.\033[0m"
-        ;;
-      "\"Password is already set\"" )
-        echo "Password is already set and node is active"
-        exit 0
-        ;;
-    esac
-}
-
 if [ ! -f $(pwd)/strato ]; then
     echo -e "${Red}Should be run from within the strato-getting-started directory. Exit.${NC}"
     exit 4
@@ -255,7 +218,7 @@ while [ ${#} -gt 0 ]; do
     exit 0
     ;;
   --drop-chains)
-    # TODO: merge --wipe and --drop-chains as being the same thing for nodes with Shared Vault
+    # TODO: merge --wipe and --drop-chains as being the same thing for nodes with Shared Vault. Check if --down can be removed too
     echo -e "Checking if the node has single-node private chains that were never shared with other nodes (have irrecoverable data)..."
     if [[ ! $(getSingleNodeChains | grep "0 rows") ]]; then 
       echo -e "${BYellow}WARNING: Node has single-node private chains that can not be recovered from the network.${NC}"
@@ -304,12 +267,8 @@ while [ ${#} -gt 0 ]; do
     exit 0
     ;;
   --set-password)
-    echo -e "${BYellow}--set-password is deprecated. Use --set-vault-password for nodes with separate STRATO Vault.${NC}"
+    echo -e "${BYellow}./strato --set-password is deprecated. Use ./vault --set-password for nodes with separate STRATO Vault.${NC}"
     exit 25
-    ;;
-  --set-vault-password)
-    setPassword
-    exit 0
     ;;
   --get-address)
     getAddress
@@ -345,8 +304,15 @@ if [ "$ssl" = true ] ; then
   http_protocol=https
   main_port=${HTTPS_PORT}
 else
-  http_protocol=http;
+  http_protocol=http
   main_port=${HTTP_PORT}
+  # To be enabled in future (pending the check finalized in the platform)
+  #if [[ ! "$VAULT_URL" == *"172.17.0.1"* ]]; then
+  #  echo "Expected VAULT_URL to start with 'https://' or 'http://172.17.0.1'"
+  #  exit 14
+  #else
+  #  echo "Running Vault on http with NODE_HOST IP 172.17.0.1(debug mode)"
+  #fi
 fi
 export sslCertFileType=${sslCertFileType:-pem}
 export NODE_NAME=${NODE_NAME:-$NODE_HOST}
@@ -372,7 +338,7 @@ echo "NODE_NAME: $NODE_NAME"
 echo "OAUTH_DISCOVERY_URL: ${OAUTH_DISCOVERY_URL:-not set}"
 echo "OAUTH_CLIENT_ID: $(if [ -z ${OAUTH_CLIENT_ID} ]; then echo "not set"; else echo "is set"; fi)"
 echo "OAUTH_CLIENT_SECRET: $(if [ -z ${OAUTH_CLIENT_SECRET} ]; then echo "not set"; else echo "is set"; fi)"
-echo "OAUTH_JWT_USERNAME_PROPERTY: ${OAUTH_JWT_USERNAME_PROPERTY:-not set (using default)}"
+echo "OAUTH_JWT_USER_ID_CLAIM: ${OAUTH_JWT_USER_ID_CLAIM:-not set (using default)}"
 echo "OAUTH_SCOPE: ${OAUTH_SCOPE:-not set (using default)}"
 echo "VAULT_URL: ${VAULT_URL}"
 
