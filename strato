@@ -196,7 +196,7 @@ function setPassword {
         ;;
       "\"Password is already set\"" )
         echo "Password is already set and node is active"
-        exit 16
+        exit 0
         ;;
     esac
 }
