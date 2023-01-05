@@ -154,7 +154,9 @@ function getValidators {
 }
 
 function getSingleNodeChains {
-  docker exec strato_postgres_1 psql -U postgres -d `docker exec strato_postgres_1 psql -U postgres -t -c "select datname from pg_database where datname like '%eth_%';" | tr -d "[:space:]"` -c "with m as (select chain_info_id, substring(name from position('@' in name)) as node_name from chain_member_ref), n as (select chain_info_id, node_name from m group by (chain_info_id, node_name)), o as (select chain_info_id, count(*) from n group by chain_info_id) select i.chain_id from chain_info_ref i inner join o on i.id = o.chain_info_id where o.count = 1;"
+  # TODO: fix for STRATO 8.1+
+  echo "Skipping the check for single-node private chains"
+  # docker exec strato_postgres_1 psql -U postgres -d `docker exec strato_postgres_1 psql -U postgres -t -c "select datname from pg_database where datname like '%eth_%';" | tr -d "[:space:]"` -c "with m as (select chain_info_id, substring(name from position('@' in name)) as node_name from chain_member_ref), n as (select chain_info_id, node_name from m group by (chain_info_id, node_name)), o as (select chain_info_id, count(*) from n group by chain_info_id) select i.chain_id from chain_info_ref i inner join o on i.id = o.chain_info_id where o.count = 1;"
 }
 
 function fetchLogs {
