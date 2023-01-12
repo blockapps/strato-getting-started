@@ -12,11 +12,12 @@ STRATO versions supported: v9.0+
 - Added support for `VAULT_URL` var
 - Added description for `OAUTH_VAULT_PROXY_ALT_CLIENT_ID` and `OAUTH_VAULT_PROXY_ALT_CLIENT_SECRET` variables
 - Deprecated `--drop-chains` in favor of `--wipe` (with STRATO Vault now being a separate application)
-- Removed the `--blockstanbul` flag as previously deprecated
+- Removed the `--blockstanbul` flag as a previously deprecated
 - Removed `EXT_STORAGE_<...>` variables  from help topic as previously deprecated
 - Removed `-m` option as previously deprecated
 - Replaced OAUTH_JWT_USERNAME_PROPERTY with OAUTH_JWT_USER_ID_CLAIM
 - (TODO) Updated --blockstanbul-vote mode to work with new voting method
+- Removed the deprecated blockstanbulPrivateKey support
 
 ## 3.4.3
 

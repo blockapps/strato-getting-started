@@ -11,12 +11,12 @@ docker_compose="docker-compose -p strato --log-level ERROR"
 
 function outputLogo {
 echo "
-    ____  __           __   ___
-   / __ )/ /___  _____/ /__/   |  ____  ____  _____
-  / __  / / __ \/ ___/ //_/ /| | / __ \/ __ \/ ___/
- / /_/ / / /_/ / /__/ ,< / ___ |/ /_/ / /_/ (__  )
-/_____/_/\____/\___/_/|_/_/  |_/ .___/ .___/____/
-                              /_/   /_/
+    ____  __           __   ___                        _______________  ___  __________ 
+   / __ )/ /___  _____/ /__/   |  ____  ____  _____   / ___/_  __/ __ \/   |/_  __/ __ \
+  / __  / / __ \/ ___/ //_/ /| | / __ \/ __ \/ ___/   \__ \ / / / /_/ / /| | / / / / / /
+ / /_/ / / /_/ / /__/ ,< / ___ |/ /_/ / /_/ (__  )   ___/ // / / _, _/ ___ |/ / / /_/ / 
+/_____/_/\____/\___/_/|_/_/  |_/ .___/ .___/____/   /____//_/ /_/ |_/_/  |_/_/  \____/  
+                              /_/   /_/                                                 
 "
 }
 
@@ -31,9 +31,8 @@ The entrypoints are mutually exclusive.
 --version|-v  - show strato-getting-started script version.
 --stop        - stop STRATO containers (keeps containers and volumes.)
 --start       - start the existing STRATO containers after they were stopped (the opposite to --stop.)
---remove      - DEPRECATED: choose --down or --drop-chains.
 --down        - remove strato containers and leave all volumes intact.
---drop-chains - remove strato containers and chain data volumes; user data volumes are preserved. Add '-f' option after the flag to force the removal of single-node private chains.
+--drop-chains - REMOVED: Use --wipe instead. STRATO 9.0+ now stores user data in separate STRATO Vault, which can be operated using ./vault script.
 --wipe        - stop and remove STRATO containers and wipe out volumes.
 --compose     - fetch the latest stable docker-compose.yml.
 --pull        - pull images used in docker-compose.yml.
@@ -210,16 +209,12 @@ while [ ${#} -gt 0 ]; do
     start
     exit 0
     ;;
-  --remove)
-    remove
-    exit 0
-    ;;
   --down)
     down
     exit 0
     ;;
   --drop-chains)
-    echo -e "${BYellow}./strato --drop-chains is deprecated for STRATO v9.0+. Use ./strato --wipe instead for nodes with separate STRATO Vault.${NC}"
+    echo -e "${BYellow}./strato --drop-chains is removed for STRATO v9.0+. Use ./strato --wipe instead for nodes with separate STRATO Vault.${NC}"
     exit 28
     ;;
   --wipe)
@@ -268,7 +263,7 @@ while [ ${#} -gt 0 ]; do
     exit 0
     ;;
   --set-password)
-    echo -e "${BYellow}./strato --set-password is deprecated. Use ./vault --set-password for nodes with separate STRATO Vault.${NC}"
+    echo -e "${BYellow}./strato --set-password is removed. Use ./vault --set-password for nodes with separate STRATO Vault.${NC}"
     exit 25
     ;;
   --get-address)
@@ -357,25 +352,16 @@ then
   # Generate random networkID if not provided for --single mode
   export networkID=${networkID:-$(($RANDOM * $RANDOM * $RANDOM))}
   
-  if [[ $(docker ps -a | grep strato_strato_1) ]]; then
-    echo -e "${BYellow}Updating the existing STRATO Single node instance - getting it's blockstanbul variables...${NC}"
-    STRATO_ENV_VARS=$(docker inspect --format='{{range .Config.Env}}{{println .}}{{end}}' strato_strato_1)
-    export blockstanbulAdmins=$(echo "${STRATO_ENV_VARS}" | grep blockstanbulAdmins | awk -F"ulAdmins=" '{print $2}')
-    export validators=$(echo "${STRATO_ENV_VARS}" | grep validators | awk -F"alidators=" '{print $2}')
-    export blockstanbulPrivateKey=$(echo "${STRATO_ENV_VARS}" | grep blockstanbulPrivateKey | awk -F"ivateKey=" '{print $2}')
-    export generateKey=false
-    
-    if [[ -n "$blockstanbulPrivateKey" ]]; then
-      echo -e "\n${Red}blockstanbulPrivateKey has been retrieved - you must migrate this key using migrate-nodekey once STRATO is up.${NC}"
-      echo -e "The key:${Green} $blockstanbulPrivateKey${NC}\n"
-    fi
-  fi
+  # TODO: Update and re-enable the in-place single node restart process
+  #if [[ $(docker ps -a | grep strato_strato_1) ]]; then
+  #  echo -e "${BYellow}Updating the existing STRATO Single node instance - getting it's blockstanbul variables...${NC}"
+  #  STRATO_ENV_VARS=$(docker inspect --format='{{range .Config.Env}}{{println .}}{{end}}' strato_strato_1)
+  #  export blockstanbulAdmins=$(echo "${STRATO_ENV_VARS}" | grep blockstanbulAdmins | awk -F"ulAdmins=" '{print $2}')
+  #  export validators=$(echo "${STRATO_ENV_VARS}" | grep validators | awk -F"alidators=" '{print $2}')
+  #  export generateKey=false
+  #fi
 
 else
-  if [[ -n "$blockstanbulPrivateKey" ]]; then
-    echo -e "${Red}Usage of \"blockstanbulPrivateKey\" is deprecated - please remove it. If you wish to upgrade an existing node, please rerun STRATO with generateKey=false, and insert the old key manually using the migrate-nodekey script.${NC}"
-    exit 21
-  fi
   if [[ ${generateKey} = false ]]; then
     echo -e "\n${BYellow}WARNING: STRATO was started with generateKey=false. The node will not start until you manually insert a key into the vault using the migrate-nodekey script${NC}"
   fi
