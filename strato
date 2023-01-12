@@ -97,8 +97,8 @@ function getCompose {
 }
 
 function pbftVote {
-    echo -e "submitting a vote into pbft consensus"
-    docker exec strato_strato_1 bash -c "set -x && blockstanbul-vote $*"
+  echo -e "submitting a vote into pbft consensus"
+  docker exec strato_strato_1 bash -c "set -x && blockstanbul-vote $*"
 }
 
 function pullImages {
@@ -214,7 +214,7 @@ while [ ${#} -gt 0 ]; do
     exit 0
     ;;
   --drop-chains)
-    echo -e "${BYellow}./strato --drop-chains is removed for STRATO v9.0+. Use ./strato --wipe instead for nodes with separate STRATO Vault.${NC}"
+    echo -e "${BYellow}./strato --drop-chains is removed for STRATO 9.0+. Use ./strato --wipe instead for nodes with separate STRATO Vault.${NC}"
     exit 28
     ;;
   --wipe)
@@ -259,7 +259,9 @@ while [ ${#} -gt 0 ]; do
     exit 0
     ;;
   --blockstanbul-vote)
-    pbftVote "${*:2}"
+    # TODO: re-enable when the executable is updated to address the new STRATO 9.0+ voting process
+    echo "The --blockstanbul-vote feature is temporary disabled for STRATO 9.0+ and is kept for future reference."
+    #pbftVote "${*:2}"
     exit 0
     ;;
   --set-password)

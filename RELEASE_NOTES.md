@@ -16,7 +16,6 @@ STRATO versions supported: v9.0+
 - Removed `EXT_STORAGE_<...>` variables  from help topic as previously deprecated
 - Removed `-m` option as previously deprecated
 - Replaced OAUTH_JWT_USERNAME_PROPERTY with OAUTH_JWT_USER_ID_CLAIM
-- (TODO) Updated --blockstanbul-vote mode to work with new voting method
 - Removed the deprecated blockstanbulPrivateKey support
 
 ## 3.4.3
