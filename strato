@@ -40,6 +40,7 @@ The entrypoints are mutually exclusive.
 --get-address - get the address of the running node.
 --get-pubkey  - get the public key of the running node.
 --get-validators          - get the list of validating nodes in the network on the running node.
+--get-metadata            - get the node's metadata in JSON format.
 --get-single-node-chains  - get the list of all private chains on the node that aren't shared with at least one other node on the network.
 --fetch-logs          - fetch all STRATO logs into strato_logs.zip (for more info and options refer to './fetchlogs --help'.)
 --fetch-logs-with-db  - fetch all STRATO logs and database dump into strato_logs.zip (WARNING: database data may be sensitive; for more info and options refer to './fetchlogs --help'.)
@@ -56,7 +57,7 @@ generateKey        - (default: true) [true|false] Whether or not to generate thi
 isRootNode         - (default: false) [true|false] Whether or not to make this node the initial PBFT validator and admin.
 isAdmin            - (default: true) [true|false] Whether or not to make this node its own PBFT admin.
 blockstanbulAdmins - (default: []) Optional list of PBFT admins who can send votes to this node.
-validators         - (default: []) List of initial PBFT validators - must contain root node address, if joining a network.
+validators         - (default: []) List of initial PBFT validators.
 ssl                - (default: false) [true|false] to run the node with SSL/TLS.
 sslCertFileType    - (default: pem) [pem|crt] the SSL certificate type and file extension (should be accessible at ./ssl/certs/server.<sslCertFileType> at deploy time.)
 OAUTH_DISCOVERY_URL         - (required) OAuth provider's OpenID Connect discovery URL.
@@ -64,6 +65,8 @@ OAUTH_CLIENT_ID             - (required) Client ID of OAuth provider valid for t
 OAUTH_CLIENT_SECRET         - (required) Client Secret for the client ID specified.
 OAUTH_JWT_USER_ID_CLAIM     - (default: 'sub') The name of claim (property) in JWT access token's payload, the value of which will be used as user name in STRATO, e.g. 'preferred_username', 'email', 'sub' etc.
 OAUTH_SCOPE                 - (default: 'openid email profile') The openid scopes used in session cookie verification (alter for custom OAUTH_JWT_USER_ID_CLAIM only, refer to your OAuth provider's documentation.)
+OAUTH_VAULT_PROXY_ALT_CLIENT_ID     - (optional) Alternative client id to use in Vault Proxy within STRATO Core for Client Credentials Grant flow (used when Identity Provider does not support multiple grant flows on a single client (e.g. AWS Cognito))
+OAUTH_VAULT_PROXY_ALT_CLIENT_SECRET - (optional) Client secret for alternative client id
 VAULT_URL                   - (required) The URL of STRATO Vault in the format '<protocol>://<hostname>:<port>' (e.g. https://example.com or https://example.com:8090)
 "
 }
@@ -76,13 +79,6 @@ function wipe {
 function down {
   echo -e "${Yellow}Removing STRATO containers${NC}"
   ${docker_compose} down --remove-orphans
-}
-
-function dropChains {
-  set +e
-  down
-  set -e
-  docker volume rm --force strato_blocdata strato_kafkadata strato_redisdata strato_stratodata strato_zookeeperdata
 }
 
 function stop {
@@ -110,52 +106,55 @@ function pullImages {
   ${docker_compose} pull
 }
 
-function _getNodeKeyData {
-  # TODO: change to use the metadata API
+function getMetadata {
   if [[ -n $(docker ps | grep strato_strato_1) ]]; then
-    ADDR_RESP=$(docker exec vault_vault-wrapper_1 bash -c "curl -s -w \"$%{http_code}\" -X GET http://localhost:8000/strato/v2.3/key -H \"X-USER-UNIQUE-NAME: nodekey\"" | tr '\n' ' ')
-    ADDR_RESP_STATUS=$(cut -d$ -f2 <<< ${ADDR_RESP})
-    ADDR_RESP_CONTENT=$(cut -d$ -f1 <<< ${ADDR_RESP})
-    case "${ADDR_RESP_STATUS}" in
-      400):
-        echo -e "${Red}This node does not have its key stored in the vault. You are probably running an older version of STRATO${NC}"
-        exit 19
-        ;;
-      503):
-        echo -e "${Red}${ADDR_RESP_CONTENT}${NC}"
-        exit 23
-        ;;
+    METADATA_RESP=$(sudo docker exec strato_nginx_1 curl -s -w $%{http_code} -X GET http://strato:3000/eth/v1.2/metadata | tr '\n' ' ')
+    METADATA_RESP_STATUS=$(cut -d$ -f2 <<< ${METADATA_RESP})
+    METADATA_RESP_CONTENT=$(cut -d$ -f1 <<< ${METADATA_RESP})
+    case "${METADATA_RESP_STATUS}" in
       200):
-        echo "$ADDR_RESP_CONTENT"
+        echo "${METADATA_RESP_CONTENT}"
         ;;
+      000):
+        echo -e "${Red}Metadata endpoint is unreachable through strato docker network${NC}"
+        ;;      
       *):
-        echo -e "${Red}Error: Unknown response from vault${NC}"
+        echo -e "${Red}Error: Unknown response from metadata endpoint${NC}"
         exit 24
         ;;
     esac
   else
-    echo -e "${Red}STRATO is not running. Start STRATO to get the node's address${NC}"
+    echo -e "${Red}STRATO is not running. Start STRATO to get the node's metadata${NC}"
     exit 20
   fi
 }
 
+function _outputMetadataValue {
+  metadata=$(getMetadata)
+  if (which jq > /dev/null); then
+    echo "${metadata}" | jq -r ".$1"
+  else
+    # Using text processing with awk is not the best idea as validators may have any name including the names of properties of json. So just exit if no jq found.
+    echo "Please install 'jq' library for that feature"
+    exit 27
+  fi
+}
+
 function getAddress {
-  nodeKeyData=$(_getNodeKeyData )
-  echo "${nodeKeyData}" | awk -F 'address\":\"' '{print $2 FS "."}' | cut -d\" -f1
+  _outputMetadataValue nodeAddress
 }
 
 function getPublicKey {
-  nodeKeyData=$(_getNodeKeyData )
-  echo "${nodeKeyData}" | awk -F 'pubkey\":\"' '{print $2 FS "."}' | cut -d\" -f1
+  _outputMetadataValue nodePubKey
 }
 
 function getValidators {
-  docker exec -i strato_strato_1 bash -c "tail -n 100 logs/strato-sequencer | grep showctx/validators | tail -n 1 | cut -d '|' -f 4 | cut -d ' ' -f 2"
+  _outputMetadataValue validators
 }
 
 function getSingleNodeChains {
-  # TODO: fix for STRATO 8.1+
-  echo "Skipping the check for single-node private chains"
+  # TODO: to be re-enabled in future versions
+  echo "Feature is temporary removed and will be re-added in the future versions. Skipping the check for single-node private chains. "
   # docker exec strato_postgres_1 psql -U postgres -d `docker exec strato_postgres_1 psql -U postgres -t -c "select datname from pg_database where datname like '%eth_%';" | tr -d "[:space:]"` -c "with m as (select chain_info_id, substring(name from position('@' in name)) as node_name from chain_member_ref), n as (select chain_info_id, node_name from m group by (chain_info_id, node_name)), o as (select chain_info_id, count(*) from n group by chain_info_id) select i.chain_id from chain_info_ref i inner join o on i.id = o.chain_info_id where o.count = 1;"
 }
 
@@ -220,28 +219,28 @@ while [ ${#} -gt 0 ]; do
     exit 0
     ;;
   --drop-chains)
-    # TODO: merge --wipe and --drop-chains as being the same thing for nodes with Shared Vault. Check if --down can be removed too
-    echo -e "Checking if the node has single-node private chains that were never shared with other nodes (have irrecoverable data)..."
-    if [[ ! $(getSingleNodeChains | grep "0 rows") ]]; then 
-      echo -e "${BYellow}WARNING: Node has single-node private chains that can not be recovered from the network.${NC}"
-      if [[ $* == *\ -f\ * || $* == *\ -f ]]; then
-        echo -e "'-f' option is provided, forcefully removing the single-node private chains..."
-      else
-        echo -e "'-f' option is not provided - expecting user confirmation."
-        read -p "Please confirm if you want to drop these chains. Type 'yes' to continue: " CONT
-        if [ "$CONT" != "yes" ]; then
-          echo -e "User did not confirm the removal of single-node private chains. Exit."
-          exit 3
-        fi
-      fi
-    else 
-      echo "No single-node private chains found, going ahead with dropping chains."
-    fi
-    echo -e "Dropping the node's blockchain data, keeping the Vault data..."
-    dropChains
-    exit 0
+    echo -e "${BYellow}./strato --drop-chains is deprecated for STRATO v9.0+. Use ./strato --wipe instead for nodes with separate STRATO Vault.${NC}"
+    exit 28
     ;;
   --wipe)
+    # TODO: Single-node private chain presence check is to be re-enabled in future versions
+    #echo -e "Checking if the node has single-node private chains that were never shared with other nodes (have unrecoverable data)..."
+    #if [[ ! $(getSingleNodeChains | grep "0 rows") ]]; then 
+    #  echo -e "${BYellow}WARNING: Node has single-node private chains that can not be recovered from the network.${NC}"
+    #  if [[ $* == *\ -f\ * || $* == *\ -f ]]; then
+    #    echo -e "'-f' option is provided, forcefully removing the single-node private chains..."
+    #  else
+    #    echo -e "'-f' option is not provided - expecting user confirmation."
+    #    read -p "Please confirm if you want to wipe these unshared chains. Type 'yes' to continue: " CONT
+    #    if [ "$CONT" != "yes" ]; then
+    #      echo -e "User did not confirm the removal of single-node private chains. Exit."
+    #      exit 3
+    #    fi
+    #  fi
+    #else 
+    #  echo "No single-node private chains found, going ahead with the wipe."
+    #fi
+    #echo -e "Wiping the node..."
     wipe
     exit 0
     ;;
@@ -282,6 +281,10 @@ while [ ${#} -gt 0 ]; do
     ;;
   --get-validators)
     getValidators
+    exit 0
+    ;;
+  --get-metadata)
+    getMetadata
     exit 0
     ;;
   --get-single-node-chains)
