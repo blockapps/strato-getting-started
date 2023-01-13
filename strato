@@ -134,7 +134,7 @@ function _outputMetadataValue {
     echo "${metadata}" | jq -r ".$1"
   else
     # Using text processing with awk is not the best idea as validators may have any name including the names of properties of json. So just exit if no jq found.
-    echo "Please install 'jq' library for that feature"
+    echo "Please install 'jq' library for that feature or use --get-metadata to get a plain response of metadata API endpoint"
     exit 27
   fi
 }
