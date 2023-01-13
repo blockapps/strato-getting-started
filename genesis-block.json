@@ -17,7 +17,7 @@
         "nonce":42,
         "validators": [
                 {
-                        "orgName": "Amazon",
+                        "orgName": "BlockApps",
                         "orgUnit": "Engineering",
                         "commonName": "Admin",
                         "access": true
