@@ -260,7 +260,7 @@ while [ ${#} -gt 0 ]; do
     ;;
   --blockstanbul-vote)
     # TODO: re-enable when the executable is updated to address the new STRATO 9.0+ voting process
-    echo "The --blockstanbul-vote feature is temporary disabled for STRATO 9.0+ and is kept for future reference."
+    echo "The --blockstanbul-vote feature is temporary disabled for STRATO 9.0+ and is kept for future use."
     #pbftVote "${*:2}"
     exit 0
     ;;
