@@ -17,6 +17,7 @@ STRATO versions supported: v9.0+
 - Removed `-m` option as previously deprecated
 - Replaced OAUTH_JWT_USERNAME_PROPERTY with OAUTH_JWT_USER_ID_CLAIM
 - Removed the deprecated blockstanbulPrivateKey support
+- Removed the deprecated strato.sh symlink to strato
 
 ## 3.4.3
 
