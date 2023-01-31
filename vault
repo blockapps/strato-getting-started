@@ -173,7 +173,7 @@ while [ ${#} -gt 0 ]; do
     ;;
   --set-password)
     echo -e "${BYellow}Set or re-enter STRATO Vault password.${NC}"
-    exit 25
+    setPassword
     ;;
   *)
     echo -e "${Red}Unknown flag ${1} provided, please check --help. Exit.${NC}"
