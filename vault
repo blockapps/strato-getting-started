@@ -100,15 +100,14 @@ function setPassword {
     PASSWORD_SET_RESPONSE=$(docker exec -i vault_vault-wrapper_1 curl -s -H "Content-Type: application/json" -d @- localhost:8000/strato/v2.3/password <<< \"$PASSWORD\")
     case ${PASSWORD_SET_RESPONSE} in
       "\"Could not validate password\"" )
-        echo -e "\033[0;31mWrong password provided, please try again.\033[0m"
+        echo -e "${Red}Wrong password provided, please try again.${NC}"
         exit 15
         ;;
       "[]" )
-        echo -e "\033[0;32mThe password has been set.\033[0m"
+        echo -e "${Green}The password has been set.${NC}"
         ;;
       "\"Password is already set\"" )
-        echo "Password is already set and Vault is active."
-        exit 16
+        echo -e "${Yellow}The password has been set earlier and the Vault is currently active. No need to re-enter the password.${NC}"
         ;;
     esac
 }
