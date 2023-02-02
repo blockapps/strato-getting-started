@@ -1,16 +1,35 @@
 # STRATO Getting Started release notes
 
+## 4.0.0
+
+STRATO versions supported: v9.0+
+
+- Added support for STRATO nodes v9.0+ with STRATO Vault separated from the STRATO Node
+- Added `vault` script to manage STRATO Vault deployment
+- Moved `--set-password` flag to `vault` executable
+- Changed `--get-address`, `--get-pubkey`, `--get-validators` to use Metadata API endpoint to get node info from STRATO Vault
+- Added `--get-metadata` to get the full Metadata API JSON response
+- Added support for `VAULT_URL` var
+- Added description for `OAUTH_VAULT_PROXY_ALT_CLIENT_ID` and `OAUTH_VAULT_PROXY_ALT_CLIENT_SECRET` variables
+- Deprecated `--drop-chains` in favor of `--wipe` (with STRATO Vault now being a separate application)
+- Removed the `--blockstanbul` flag as a previously deprecated
+- Removed `EXT_STORAGE_<...>` variables  from help topic as previously deprecated
+- Removed `-m` option as previously deprecated
+- Replaced OAUTH_JWT_USERNAME_PROPERTY with OAUTH_JWT_USER_ID_CLAIM
+- Removed the deprecated blockstanbulPrivateKey support
+- Removed the deprecated strato.sh symlink to strato
+
 ## 3.4.3
 
 STRATO versions supported: v6.0.2+
 
-- Comply with more GitHub release page changes to download docker-compose.yml asset
+- Fixed compatibility with more GitHub release page changes to download docker-compose.yml asset
 
 ## 3.4.2
 
 STRATO versions supported: v6.0.2+
 
-- Comply with updated GitHub release page to download docker-compose.yml asset
+- Fixed compatibility with updated GitHub release page to download docker-compose.yml asset
 - Removed `wget` dependency
 
 ## 3.4.1

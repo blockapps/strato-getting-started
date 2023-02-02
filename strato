@@ -11,12 +11,12 @@ docker_compose="docker-compose -p strato --log-level ERROR"
 
 function outputLogo {
 echo "
-    ____  __           __   ___
-   / __ )/ /___  _____/ /__/   |  ____  ____  _____
-  / __  / / __ \/ ___/ //_/ /| | / __ \/ __ \/ ___/
- / /_/ / / /_/ / /__/ ,< / ___ |/ /_/ / /_/ (__  )
-/_____/_/\____/\___/_/|_/_/  |_/ .___/ .___/____/
-                              /_/   /_/
+    ____  __           __   ___                        _______________  ___  __________ 
+   / __ )/ /___  _____/ /__/   |  ____  ____  _____   / ___/_  __/ __ \/   |/_  __/ __ \
+  / __  / / __ \/ ___/ //_/ /| | / __ \/ __ \/ ___/   \__ \ / / / /_/ / /| | / / / / / /
+ / /_/ / / /_/ / /__/ ,< / ___ |/ /_/ / /_/ (__  )   ___/ // / / _, _/ ___ |/ / / /_/ / 
+/_____/_/\____/\___/_/|_/_/  |_/ .___/ .___/____/   /____//_/ /_/ |_/_/  |_/_/  \____/  
+                              /_/   /_/                                                 
 "
 }
 
@@ -29,18 +29,17 @@ ${Yellow}Optional flags:${NC}
 The entrypoints are mutually exclusive.
 --help|-h     - this help.
 --version|-v  - show strato-getting-started script version.
---set-password  - provide the in-memory password after the node was restarted; use PASSWORD env var to skip interactive input.
 --stop        - stop STRATO containers (keeps containers and volumes.)
 --start       - start the existing STRATO containers after they were stopped (the opposite to --stop.)
---remove      - DEPRECATED: choose --down or --drop-chains.
 --down        - remove strato containers and leave all volumes intact.
---drop-chains - remove strato containers and chain data volumes; user data volumes are preserved. Add '-f' option after the flag to force the removal of single-node private chains.
+--drop-chains - REMOVED: Use --wipe instead. STRATO 9.0+ now stores user data in separate STRATO Vault, which can be operated using ./vault script.
 --wipe        - stop and remove STRATO containers and wipe out volumes.
 --compose     - fetch the latest stable docker-compose.yml.
 --pull        - pull images used in docker-compose.yml.
 --get-address - get the address of the running node.
 --get-pubkey  - get the public key of the running node.
 --get-validators          - get the list of validating nodes in the network on the running node.
+--get-metadata            - get the node's metadata in JSON format.
 --get-single-node-chains  - get the list of all private chains on the node that aren't shared with at least one other node on the network.
 --fetch-logs          - fetch all STRATO logs into strato_logs.zip (for more info and options refer to './fetchlogs --help'.)
 --fetch-logs-with-db  - fetch all STRATO logs and database dump into strato_logs.zip (WARNING: database data may be sensitive; for more info and options refer to './fetchlogs --help'.)
@@ -49,7 +48,6 @@ ${Yellow}Optional flags for STRATO:${NC}
 --single              - run the single node.
 
 ${Yellow}Environment variables:${NC}
-PASSWORD           - node in-memory password for STRATO v4.5+ with OAuth enabled. To be requested interactively if skipped.
 NODE_HOST          - (default: localhost) the hostname or IP of the machine (used for APIs and Dashboard).
 BOOT_NODE_IP       - IP address of the boot node to connect to (required for secondary node to discover other peers), ignored when used with --single flag.
 HTTP_PORT          - (default: 80) Port for HTTP traffic listener.
@@ -58,17 +56,17 @@ generateKey        - (default: true) [true|false] Whether or not to generate thi
 isRootNode         - (default: false) [true|false] Whether or not to make this node the initial PBFT validator and admin.
 isAdmin            - (default: true) [true|false] Whether or not to make this node its own PBFT admin.
 blockstanbulAdmins - (default: []) Optional list of PBFT admins who can send votes to this node.
-validators         - (default: []) List of initial PBFT validators - must contain root node address, if joining a network.
+validators         - (default: []) List of initial PBFT validators.
 ssl                - (default: false) [true|false] to run the node with SSL/TLS.
 sslCertFileType    - (default: pem) [pem|crt] the SSL certificate type and file extension (should be accessible at ./ssl/certs/server.<sslCertFileType> at deploy time.)
-EXT_STORAGE_S3_BUCKET             - (no longer supported in STRATO v7.5+) enables external storage feature; the AWS S3 bucket name to use as the blockchain data external storage.
-EXT_STORAGE_S3_ACCESS_KEY_ID      - (no longer supported in STRATO v7.5+) the access key ID for AWS S3 bucket provided.
-EXT_STORAGE_S3_SECRET_ACCESS_KEY  - (no longer supported in STRATO v7.5+) the secret access key for AWS S3 bucket provided.
 OAUTH_DISCOVERY_URL         - (required) OAuth provider's OpenID Connect discovery URL.
 OAUTH_CLIENT_ID             - (required) Client ID of OAuth provider valid for the future STRATO url (http(s)://<NODE_HOST>:<HTTP_PORT/HTTPS_PORT>).
 OAUTH_CLIENT_SECRET         - (required) Client Secret for the client ID specified.
-OAUTH_JWT_USERNAME_PROPERTY - (default: 'email') The name of property in JWT access token's payload, the value of which will be used as user name in STRATO, e.g. 'preferred_username', 'email', 'sub' etc.
-OAUTH_SCOPE                 - (default: 'openid email profile') The openid scopes used in session cookie verification (alter for custom OAUTH_JWT_USERNAME_PROPERTY only, refer to your OAuth provider's documentation.)
+OAUTH_JWT_USER_ID_CLAIM     - (default: 'sub') The name of claim (property) in JWT access token's payload, the value of which will be used as user name in STRATO, e.g. 'preferred_username', 'email', 'sub' etc.
+OAUTH_SCOPE                 - (default: 'openid email profile') The openid scopes used in session cookie verification (alter for custom OAUTH_JWT_USER_ID_CLAIM only, refer to your OAuth provider's documentation.)
+OAUTH_VAULT_PROXY_ALT_CLIENT_ID     - (optional) Alternative client id to use in Vault Proxy within STRATO Core for Client Credentials Grant flow (used when Identity Provider does not support multiple grant flows on a single client (e.g. AWS Cognito))
+OAUTH_VAULT_PROXY_ALT_CLIENT_SECRET - (optional) Client secret for alternative client id
+VAULT_URL                   - (required) The URL of STRATO Vault in the format '<protocol>://<hostname>:<port>' (e.g. https://example.com or https://example.com:8090)
 "
 }
 
@@ -80,13 +78,6 @@ function wipe {
 function down {
   echo -e "${Yellow}Removing STRATO containers${NC}"
   ${docker_compose} down --remove-orphans
-}
-
-function dropChains {
-  set +e
-  down
-  set -e
-  docker volume rm --force strato_blocdata strato_kafkadata strato_redisdata strato_stratodata strato_zookeeperdata
 }
 
 function stop {
@@ -106,58 +97,64 @@ function getCompose {
 }
 
 function pbftVote {
-    echo -e "submitting a vote into pbft consensus"
-    docker exec strato_strato_1 bash -c "set -x && blockstanbul-vote $*"
+  echo -e "submitting a vote into pbft consensus"
+  docker exec strato_strato_1 bash -c "set -x && blockstanbul-vote $*"
 }
 
 function pullImages {
   ${docker_compose} pull
 }
 
-function _getNodeKeyData {
+function getMetadata {
   if [[ -n $(docker ps | grep strato_strato_1) ]]; then
-    ADDR_RESP=$(docker exec strato_strato_1 bash -c "curl -s -w \"$%{http_code}\" -X GET http://vault-wrapper:8000/strato/v2.3/key -H \"X-USER-UNIQUE-NAME: nodekey\"" | tr '\n' ' ')
-    ADDR_RESP_STATUS=$(cut -d$ -f2 <<< ${ADDR_RESP})
-    ADDR_RESP_CONTENT=$(cut -d$ -f1 <<< ${ADDR_RESP})
-    case "${ADDR_RESP_STATUS}" in
-      400):
-        echo -e "${Red}This node does not have its key stored in the vault. You are probably running an older version of STRATO${NC}"
-        exit 19
-        ;;
-      503):
-        echo -e "${Red}${ADDR_RESP_CONTENT}${NC}"
-        exit 23
-        ;;
+    METADATA_RESP=$(sudo docker exec strato_nginx_1 curl -s -w $%{http_code} -X GET http://strato:3000/eth/v1.2/metadata | tr '\n' ' ')
+    METADATA_RESP_STATUS=$(cut -d$ -f2 <<< ${METADATA_RESP})
+    METADATA_RESP_CONTENT=$(cut -d$ -f1 <<< ${METADATA_RESP})
+    case "${METADATA_RESP_STATUS}" in
       200):
-        echo "$ADDR_RESP_CONTENT"
+        echo "${METADATA_RESP_CONTENT}"
         ;;
+      000):
+        echo -e "${Red}Metadata endpoint is unreachable through strato docker network${NC}"
+        ;;      
       *):
-        echo -e "${Red}Error: Unknown response from vault${NC}"
+        echo -e "${Red}Error: Unknown response from metadata endpoint${NC}"
         exit 24
         ;;
     esac
   else
-    echo -e "${Red}STRATO is not running. Start STRATO to get the node's address${NC}"
+    echo -e "${Red}STRATO is not running. Start STRATO to get the node's metadata${NC}"
     exit 20
   fi
 }
 
+function _outputMetadataValue {
+  metadata=$(getMetadata)
+  if (which jq > /dev/null); then
+    echo "${metadata}" | jq -r ".$1"
+  else
+    # Using text processing with awk is not the best idea as validators may have any name including the names of properties of json. So just exit if no jq found.
+    echo "Please install 'jq' library for that feature or use --get-metadata to get a plain response of metadata API endpoint"
+    exit 27
+  fi
+}
+
 function getAddress {
-  nodeKeyData=$(_getNodeKeyData )
-  echo "${nodeKeyData}" | awk -F 'address\":\"' '{print $2 FS "."}' | cut -d\" -f1
+  _outputMetadataValue nodeAddress
 }
 
 function getPublicKey {
-  nodeKeyData=$(_getNodeKeyData )
-  echo "${nodeKeyData}" | awk -F 'pubkey\":\"' '{print $2 FS "."}' | cut -d\" -f1
+  _outputMetadataValue nodePubKey
 }
 
 function getValidators {
-  docker exec -i strato_strato_1 bash -c "tail -n 100 logs/strato-sequencer | grep showctx/validators | tail -n 1 | cut -d '|' -f 4 | cut -d ' ' -f 2"
+  _outputMetadataValue validators
 }
 
 function getSingleNodeChains {
-  docker exec strato_postgres_1 psql -U postgres -d `docker exec strato_postgres_1 psql -U postgres -t -c "select datname from pg_database where datname like '%eth_%';" | tr -d "[:space:]"` -c "with m as (select chain_info_id, substring(name from position('@' in name)) as node_name from chain_member_ref), n as (select chain_info_id, node_name from m group by (chain_info_id, node_name)), o as (select chain_info_id, count(*) from n group by chain_info_id) select i.chain_id from chain_info_ref i inner join o on i.id = o.chain_info_id where o.count = 1;"
+  # TODO: to be re-enabled in future versions
+  echo "Feature is temporary removed and will be re-added in the future versions. Skipping the check for single-node private chains. "
+  # docker exec strato_postgres_1 psql -U postgres -d `docker exec strato_postgres_1 psql -U postgres -t -c "select datname from pg_database where datname like '%eth_%';" | tr -d "[:space:]"` -c "with m as (select chain_info_id, substring(name from position('@' in name)) as node_name from chain_member_ref), n as (select chain_info_id, node_name from m group by (chain_info_id, node_name)), o as (select chain_info_id, count(*) from n group by chain_info_id) select i.chain_id from chain_info_ref i inner join o on i.id = o.chain_info_id where o.count = 1;"
 }
 
 function fetchLogs {
@@ -165,46 +162,6 @@ function fetchLogs {
     withdb_flag="--db-dump"
   fi
   python fetchlogs ${withdb_flag}
-}
-
-function setPassword {
-  REQUIRES_PASSWORD=$([[ $(docker exec strato_vault-wrapper_1 curl --write-out %{http_code} --silent --output /dev/null localhost:8000/strato/v2.3/password) == "405" ]] && echo "true" || echo "false")
-  if [[ "$REQUIRES_PASSWORD" == "true" ]]; then
-    while [ -z $PASSWORD ]; do
-      echo
-      echo -n Please enter a password:
-      read -s PASSWORDA || (printf "\nerror: unable to read password, stdin might be closed\n" &&
-                            printf "Set the PASSWORD environment variable in automated environments\n" &&
-                            exit 18)
-      echo
-      echo -n Please re-enter the password:
-      read -s PASSWORDB
-      if [ "${PASSWORDA}" == "${PASSWORDB}" ]; then
-        echo
-        PASSWORD=${PASSWORDA}
-      else
-        echo
-        echo -n Passwords did not match. Please try again.
-      fi
-    done
-
-    PASSWORD_SET_RESPONSE=$(docker exec -i strato_vault-wrapper_1 curl -s -H "Content-Type: application/json" -d @- localhost:8000/strato/v2.3/password <<< \"$PASSWORD\")
-    case ${PASSWORD_SET_RESPONSE} in
-      "\"Could not validate password\"" )
-        echo -e "\033[0;31mWrong password provided, please try again.\033[0m"
-        exit 15
-        ;;
-      "[]" )
-        echo -e "\033[0;32mThe password has been set.\033[0m"
-        ;;
-      "\"Password is already set\"" )
-        echo "Password is already set and node is active"
-        exit 16
-        ;;
-    esac
-  else
-    echo "STRATO version is 4.4.1 or older - skipping global password setting"
-  fi
 }
 
 if [ ! -f $(pwd)/strato ]; then
@@ -252,45 +209,35 @@ while [ ${#} -gt 0 ]; do
     start
     exit 0
     ;;
-  --remove)
-    remove
-    exit 0
-    ;;
   --down)
     down
     exit 0
     ;;
   --drop-chains)
-    echo -e "Checking if the node has single-node private chains that were never shared with other nodes (have irrecoverable data)..."
-    if [[ ! $(getSingleNodeChains | grep "0 rows") ]]; then 
-      echo -e "${BYellow}WARNING: Node has single-node private chains that can not be recovered from the network.${NC}"
-      if [[ $* == *\ -f\ * || $* == *\ -f ]]; then
-        echo -e "'-f' option is provided, forcefully removing the single-node private chains..."
-      else
-        echo -e "'-f' option is not provided - expecting user confirmation."
-        read -p "Please confirm if you want to drop these chains. Type 'yes' to continue: " CONT
-        if [ "$CONT" != "yes" ]; then
-          echo -e "User did not confirm the removal of single-node private chains. Exit."
-          exit 3
-        fi
-      fi
-    else 
-      echo "No single-node private chains found, going ahead with dropping chains."
-    fi
-    echo -e "Dropping the node's blockchain data, keeping the Vault data..."
-    dropChains
-    exit 0
+    echo -e "${BYellow}./strato --drop-chains is removed for STRATO 9.0+. Use ./strato --wipe instead for nodes with separate STRATO Vault.${NC}"
+    exit 28
     ;;
   --wipe)
+    # TODO: Single-node private chain presence check is to be re-enabled in future versions
+    #echo -e "Checking if the node has single-node private chains that were never shared with other nodes (have unrecoverable data)..."
+    #if [[ ! $(getSingleNodeChains | grep "0 rows") ]]; then 
+    #  echo -e "${BYellow}WARNING: Node has single-node private chains that can not be recovered from the network.${NC}"
+    #  if [[ $* == *\ -f\ * || $* == *\ -f ]]; then
+    #    echo -e "'-f' option is provided, forcefully removing the single-node private chains..."
+    #  else
+    #    echo -e "'-f' option is not provided - expecting user confirmation."
+    #    read -p "Please confirm if you want to wipe these unshared chains. Type 'yes' to continue: " CONT
+    #    if [ "$CONT" != "yes" ]; then
+    #      echo -e "User did not confirm the removal of single-node private chains. Exit."
+    #      exit 3
+    #    fi
+    #  fi
+    #else 
+    #  echo "No single-node private chains found, going ahead with the wipe."
+    #fi
+    #echo -e "Wiping the node..."
     wipe
     exit 0
-    ;;
-    -m)
-    echo -e "${BYellow} Mode flag is deprecated and skipped. Update your script${NC}"
-    shift
-    ;;
-  --blockstanbul)
-    echo -e "${BYellow}--blockstanbul flag is skipped (blockstanbul is default). This flag will be removed in the future.${NC}"
     ;;
   --single)
     node_type=single
@@ -312,12 +259,14 @@ while [ ${#} -gt 0 ]; do
     exit 0
     ;;
   --blockstanbul-vote)
-    pbftVote "${*:2}"
+    # TODO: re-enable when the executable is updated to address the new STRATO 9.0+ voting process
+    echo "The --blockstanbul-vote feature is temporary disabled for STRATO 9.0+ and is kept for future use."
+    #pbftVote "${*:2}"
     exit 0
     ;;
   --set-password)
-    setPassword
-    exit 0
+    echo -e "${BYellow}./strato --set-password is removed. Use ./vault --set-password for nodes with separate STRATO Vault.${NC}"
+    exit 25
     ;;
   --get-address)
     getAddress
@@ -331,13 +280,17 @@ while [ ${#} -gt 0 ]; do
     getValidators
     exit 0
     ;;
+  --get-metadata)
+    getMetadata
+    exit 0
+    ;;
   --get-single-node-chains)
     getSingleNodeChains
     exit 0
     ;;
   *)
     echo -e "${Red}Unknown flag ${1} provided, please check --help. Exit.${NC}"
-    exit 7
+    exit 5
     ;;
   esac
   shift 1
@@ -353,25 +306,28 @@ if [ "$ssl" = true ] ; then
   http_protocol=https
   main_port=${HTTPS_PORT}
 else
-  http_protocol=http;
+  http_protocol=http
   main_port=${HTTP_PORT}
+  # To be enabled in future (pending the check finalized in the platform)
+  #if [[ ! "$VAULT_URL" == *"172.17.0.1"* ]]; then
+  #  echo "Expected VAULT_URL to start with 'https://' or 'http://172.17.0.1'"
+  #  exit 14
+  #else
+  #  echo "Running Vault on http with NODE_HOST IP 172.17.0.1(debug mode)"
+  #fi
 fi
 export sslCertFileType=${sslCertFileType:-pem}
 export NODE_NAME=${NODE_NAME:-$NODE_HOST}
 export isAdmin=${isAdmin:-true}
 
-if [ -n "${EXT_STORAGE_S3_BUCKET}" ]; then
-  if [[ -z ${EXT_STORAGE_S3_ACCESS_KEY_ID} || -z ${EXT_STORAGE_S3_SECRET_ACCESS_KEY} ]]; then
-    echo -e "${Red}The external storage S3 bucket name is provided but one of the credentials is empty. Expected all or none of [EXT_STORAGE_S3_BUCKET, EXT_STORAGE_S3_ACCESS_KEY_ID, EXT_STORAGE_S3_SECRET_ACCESS_KEY]. Exit.${NC}"
-    echo -e "${BYellow}External Storage feature is no longer supported in STRATO v7.5+${NC}"
-    exit 6
-  fi
+if [[ -z ${OAUTH_DISCOVERY_URL} || -z ${OAUTH_CLIENT_ID} || -z ${OAUTH_CLIENT_SECRET} ]] ; then
+  echo -e "${Red}OAUTH_DISCOVERY_URL, OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET are required\nFor additional help see './strato --help'${NC}"
+  exit 13
 fi
 
-if [[ -z ${OAUTH_DISCOVERY_URL} || -z ${OAUTH_CLIENT_ID} || -z ${OAUTH_CLIENT_SECRET} ]] ; then
-  echo -e "${Red}OAUTH_DISCOVERY_URL, OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET are required"
-  echo -e "For additional help see './strato --help'${NC}"
-  exit 13
+if [[ -z ${VAULT_URL} ]] ; then
+  echo -e "${Red}VAULT_URL is a required variable\nFor additional help see './strato --help'${NC}"
+  exit 26
 fi
 
 echo "" && echo "*** Common Config ***"
@@ -381,14 +337,12 @@ echo "HTTPS_PORT: $HTTPS_PORT"
 echo "ssl: $ssl"
 echo "sslCertFileType: $sslCertFileType"
 echo "NODE_NAME: $NODE_NAME"
-echo "EXT_STORAGE_S3_BUCKET (deprecated): ${EXT_STORAGE_S3_BUCKET:-not set}"
-echo "EXT_STORAGE_S3_ACCESS_KEY_ID (deprecated): $(if [ -z ${EXT_STORAGE_S3_ACCESS_KEY_ID} ]; then echo "not set"; else echo "is set"; fi)"
-echo "EXT_STORAGE_S3_SECRET_ACCESS_KEY (deprecated): $(if [ -z ${EXT_STORAGE_S3_SECRET_ACCESS_KEY} ]; then echo "not set"; else echo "is set"; fi)"
 echo "OAUTH_DISCOVERY_URL: ${OAUTH_DISCOVERY_URL:-not set}"
 echo "OAUTH_CLIENT_ID: $(if [ -z ${OAUTH_CLIENT_ID} ]; then echo "not set"; else echo "is set"; fi)"
 echo "OAUTH_CLIENT_SECRET: $(if [ -z ${OAUTH_CLIENT_SECRET} ]; then echo "not set"; else echo "is set"; fi)"
-echo "OAUTH_JWT_USERNAME_PROPERTY: ${OAUTH_JWT_USERNAME_PROPERTY:-not set (using default)}"
+echo "OAUTH_JWT_USER_ID_CLAIM: ${OAUTH_JWT_USER_ID_CLAIM:-not set (using default)}"
 echo "OAUTH_SCOPE: ${OAUTH_SCOPE:-not set (using default)}"
+echo "VAULT_URL: ${VAULT_URL}"
 
 if [ ${node_type} = single ]
 then
@@ -400,25 +354,16 @@ then
   # Generate random networkID if not provided for --single mode
   export networkID=${networkID:-$(($RANDOM * $RANDOM * $RANDOM))}
   
-  if [[ $(docker ps -a | grep strato_strato_1) ]]; then
-    echo -e "${BYellow}Updating the existing STRATO Single node instance - getting it's blockstanbul variables...${NC}"
-    STRATO_ENV_VARS=$(docker inspect --format='{{range .Config.Env}}{{println .}}{{end}}' strato_strato_1)
-    export blockstanbulAdmins=$(echo "${STRATO_ENV_VARS}" | grep blockstanbulAdmins | awk -F"ulAdmins=" '{print $2}')
-    export validators=$(echo "${STRATO_ENV_VARS}" | grep validators | awk -F"alidators=" '{print $2}')
-    export blockstanbulPrivateKey=$(echo "${STRATO_ENV_VARS}" | grep blockstanbulPrivateKey | awk -F"ivateKey=" '{print $2}')
-    export generateKey=false
-    
-    if [[ -n "$blockstanbulPrivateKey" ]]; then
-      echo -e "\n${Red}blockstanbulPrivateKey has been retrieved - you must migrate this key using migrate-nodekey once STRATO is up.${NC}"
-      echo -e "The key:${Green} $blockstanbulPrivateKey${NC}\n"
-    fi
-  fi
+  # TODO: Update and re-enable the in-place single node restart process
+  #if [[ $(docker ps -a | grep strato_strato_1) ]]; then
+  #  echo -e "${BYellow}Updating the existing STRATO Single node instance - getting it's blockstanbul variables...${NC}"
+  #  STRATO_ENV_VARS=$(docker inspect --format='{{range .Config.Env}}{{println .}}{{end}}' strato_strato_1)
+  #  export blockstanbulAdmins=$(echo "${STRATO_ENV_VARS}" | grep blockstanbulAdmins | awk -F"ulAdmins=" '{print $2}')
+  #  export validators=$(echo "${STRATO_ENV_VARS}" | grep validators | awk -F"alidators=" '{print $2}')
+  #  export generateKey=false
+  #fi
 
 else
-  if [[ -n "$blockstanbulPrivateKey" ]]; then
-    echo -e "${Red}Usage of \"blockstanbulPrivateKey\" is deprecated - please remove it. If you wish to upgrade an existing node, please rerun STRATO with generateKey=false, and insert the old key manually using the migrate-nodekey script.${NC}"
-    exit 21
-  fi
   if [[ ${generateKey} = false ]]; then
     echo -e "\n${BYellow}WARNING: STRATO was started with generateKey=false. The node will not start until you manually insert a key into the vault using the migrate-nodekey script${NC}"
   fi
@@ -499,10 +444,6 @@ fi
 # END OF COMPOSE FILE PRE-PROCESSING
 
 ${docker_compose} -f docker-compose-temp.yml up -d --remove-orphans
-
-# SET PASSWORD FOR VAULT (EVEN NON-OAUTH NODES NEED THIS, SINCE STRATO-CORE USES VAULT)
-until docker exec strato_vault-wrapper_1 curl --silent localhost:8000 ; do sleep 1; done
-setPassword
 
 # WAIT FOR STRATO TO RUN
 started=$(date +%s)
