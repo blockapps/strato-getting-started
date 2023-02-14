@@ -1,5 +1,13 @@
 # STRATO Getting Started release notes
 
+## 4.0.1
+
+STRATO versions supported: v9.0+
+
+- Added the STRATO Mercata Beta genesis-block.json to be used by default
+- Fixed the ASCII logo formatting in the stdout
+
+
 ## 4.0.0
 
 STRATO versions supported: v9.0+
