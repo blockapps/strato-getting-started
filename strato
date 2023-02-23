@@ -330,9 +330,22 @@ if [[ -z ${VAULT_URL} ]] ; then
   exit 26
 fi
 
+while [[ -z ${myOrgName} ]] ; do
+    read -p "Enter your organization name: " myOrgName
+    export myOrgName=${myOrgName}
+done
+if [[ -z ${myOrgUnit} ]] ; then
+    read -p "Enter your organization unit name (optional): " myOrgUnit
+    export myOrgUnit=${myOrgUnit}
+fi
+while [[ -z ${myCommonName} ]] ; do
+    read -p "Enter your organization common name: " myCommonName
+    export myCommonName=${myCommonName}
+done
+
 echo "" && echo "*** Common Config ***"
 echo "NODE_HOST: $NODE_HOST"
-echo "HTTP_PORT: $HTTP_PORT"
+echo "HTTP_PORT: $HTTP_PORT"  
 echo "HTTPS_PORT: $HTTPS_PORT"
 echo "ssl: $ssl"
 echo "sslCertFileType: $sslCertFileType"
@@ -343,8 +356,11 @@ echo "OAUTH_CLIENT_SECRET: $(if [ -z ${OAUTH_CLIENT_SECRET} ]; then echo "not se
 echo "OAUTH_JWT_USER_ID_CLAIM: ${OAUTH_JWT_USER_ID_CLAIM:-not set (using default)}"
 echo "OAUTH_SCOPE: ${OAUTH_SCOPE:-not set (using default)}"
 echo "VAULT_URL: ${VAULT_URL}"
+echo "Organization name: ${myOrgName}"
+echo "Organization unit name: $(if [ -z ${myOrgUnit} ]; then echo "not set"; else echo ${myOrgUnit}; fi)"
+echo "Organization common name: ${myCommonName}"
 
-if [ ${node_type} = single ]
+if [[ ${node_type} = single ]] ;
 then
   echo "" && echo -e "${BYellow}Running single node with PBFT-blockstanbul${NC}"
   export blockstanbul=true
