@@ -1,5 +1,9 @@
 # STRATO Getting Started release notes
 
+## 4.0.2
+
+- Updated genesis-block.json to match the Mercata Beta network
+
 ## 4.0.1
 
 STRATO versions supported: v9.0+
