@@ -283,7 +283,7 @@ while [ ${#} -gt 0 ]; do
     exit 0
     ;;
   --get-single-node-chains)
-    getSingleNodeChains
+    getSingleNodeShards
     exit 0
     ;;
   *)
