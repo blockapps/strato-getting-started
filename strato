@@ -216,24 +216,23 @@ while [ ${#} -gt 0 ]; do
     exit 28
     ;;
   --wipe)
-    # TODO: Single-node private chain presence check is to be re-enabled in future versions
-    #echo -e "Checking if the node has single-node private chains that were never shared with other nodes (have unrecoverable data)..."
-    #if [[ ! $(getSingleNodeChains | grep "0 rows") ]]; then 
-    #  echo -e "${BYellow}WARNING: Node has single-node private chains that can not be recovered from the network.${NC}"
-    #  if [[ $* == *\ -f\ * || $* == *\ -f ]]; then
-    #    echo -e "'-f' option is provided, forcefully removing the single-node private chains..."
-    #  else
-    #    echo -e "'-f' option is not provided - expecting user confirmation."
-    #    read -p "Please confirm if you want to wipe these unshared chains. Type 'yes' to continue: " CONT
-    #    if [ "$CONT" != "yes" ]; then
-    #      echo -e "User did not confirm the removal of single-node private chains. Exit."
-    #      exit 3
-    #    fi
-    #  fi
-    #else 
-    #  echo "No single-node private chains found, going ahead with the wipe."
-    #fi
-    #echo -e "Wiping the node..."
+    echo -e "Checking if the node has single-node private shards that were never shared with other nodes (have unrecoverable data)..."
+    if [[ ! $(getSingleNodeShards | grep "0 rows") ]]; then 
+     echo -e "${BYellow}WARNING: Node has single-node private shards that can not be recovered from the network.${NC}"
+     if [[ $* == *\ -f\ * || $* == *\ -f ]]; then
+       echo -e "'-f' option is provided, forcefully removing the single-node private shards..."
+     else
+       echo -e "'-f' option is not provided - expecting user confirmation."
+       read -p "Please confirm if you want to wipe these unshared shards. Type 'yes' to continue: " CONT
+       if [ "$CONT" != "yes" ]; then
+         echo -e "User did not confirm the removal of single-node private shards. Exit."
+         exit 3
+       fi
+     fi
+    else 
+     echo "No single-node private shards found, going ahead with the wipe."
+    fi
+    echo -e "Wiping the node..."
     wipe
     exit 0
     ;;
@@ -282,7 +281,7 @@ while [ ${#} -gt 0 ]; do
     getMetadata
     exit 0
     ;;
-  --get-single-node-chains)
+  --get-single-node-shards)
     getSingleNodeShards
     exit 0
     ;;
