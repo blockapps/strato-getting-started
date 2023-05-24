@@ -330,6 +330,19 @@ if [[ -z ${VAULT_URL} ]] ; then
   exit 26
 fi
 
+# Validate configuration
+if [ "${MP_IS_BOOTNODE}" = "true" ]; then
+  if [[ -z ${GLOBAL_ADMIN_NAME} || -z ${GLOBAL_ADMIN_PASSWORD} ]] ; then
+    echo -e "${Red}MP_IS_BOOTNODE=true but there were no GLOBAL_ADMIN_NAME or GLOBAL_ADMIN_PASSWORD values provided. Exiting.\n${NC}"
+    exit 13
+  fi
+fi
+
+if [[ -z ${EXT_STORAGE_S3_ACCESS_KEY_ID} || -z ${EXT_STORAGE_S3_SECRET_ACCESS_KEY} ]] ; then
+  echo -e "${Red}EXT_STORAGE_S3_ACCESS_KEY_ID, EXT_STORAGE_S3_SECRET_ACCESS_KEY are required. Exiting.\n${NC}"
+  exit 13
+fi
+
 echo "" && echo "*** Common Config ***"
 echo "NODE_HOST: $NODE_HOST"
 echo "HTTP_PORT: $HTTP_PORT"
