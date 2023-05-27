@@ -67,6 +67,15 @@ OAUTH_SCOPE                 - (default: 'openid email profile') The openid scope
 OAUTH_VAULT_PROXY_ALT_CLIENT_ID     - (optional) Alternative client id to use in Vault Proxy within STRATO Core for Client Credentials Grant flow (used when Identity Provider does not support multiple grant flows on a single client (e.g. AWS Cognito))
 OAUTH_VAULT_PROXY_ALT_CLIENT_SECRET - (optional) Client secret for alternative client id
 VAULT_URL                   - (required) The URL of STRATO Vault in the format '<protocol>://<hostname>:<port>' (e.g. https://example.com or https://example.com:8090)
+
+Marketplace App variables:
+MP_IS_BOOTNODE                    - (default: false) [true|false] Whether or not to run the Markeplace in boot node mode or connect to the existing marketplace deployment based on address provided in MP_DAPP_ADDRESS
+MP_DAPP_ADDRESS                   - When in MP_IS_BOOTNODE=false mode, this address is used to connect to the existing Marketplace contract on the chain
+EXT_STORAGE_S3_BUCKET             - (required for STRATO versions bundled with Marketplace) - AWS S3 bucket name to be used in the Marketplace App
+EXT_STORAGE_S3_ACCESS_KEY_ID      - (required for STRATO versions bundled with Marketplace) - Access key id of AWS IAM user with access to the bucket provided in EXT_STORAGE_S3_BUCKET
+EXT_STORAGE_S3_SECRET_ACCESS_KEY  - (required for STRATO versions bundled with Marketplace) - Secret access key of AWS IAM user
+GLOBAL_ADMIN_NAME                 - (required for STRATO versions bundled with Marketplace and running in MP_IS_BOOTNODE=true mode)
+GLOBAL_ADMIN_PASSWORD             - (required for STRATO versions bundled with Marketplace and running in MP_IS_BOOTNODE=true mode)
 "
 }
 
@@ -181,16 +190,6 @@ then
     exit 2
 fi
 
-STRATOGS_REQUIRED_VERSION=$(grep strato-getting-started-min-version docker-compose.yml | awk -F":" '{print $NF}')
-if [ ${STRATOGS_REQUIRED_VERSION} ]; then
-  STRATOGS_CURRENT_VERSION=$(< VERSION)
-  if ! awk -v VER=${STRATOGS_CURRENT_VERSION//.} -v REQ_VER=${STRATOGS_REQUIRED_VERSION//.} 'BEGIN {exit (VER < REQ_VER)}'
-  then
-      echo -e "${Red}The STRATO version from docker-compose.yml is incompatible with this strato-getting-started. Please update to v${STRATOGS_REQUIRED_VERSION}."
-      exit 12
-  fi
-fi
-
 while [ ${#} -gt 0 ]; do
   case "${1}" in
   --help|-h)
@@ -298,6 +297,23 @@ done
 
 outputLogo
 
+if [ ! -f docker-compose.yml ]
+then
+  getCompose
+else
+  echo -e "${BYellow}Using the existing docker-compose.yml (to download the most recent stable version - remove the file and restart the script)${NC}"
+fi
+
+STRATOGS_REQUIRED_VERSION=$(grep strato-getting-started-min-version docker-compose.yml | awk -F":" '{print $NF}')
+if [ ${STRATOGS_REQUIRED_VERSION} ]; then
+  STRATOGS_CURRENT_VERSION=$(< VERSION)
+  if ! awk -v VER=${STRATOGS_CURRENT_VERSION//.} -v REQ_VER=${STRATOGS_REQUIRED_VERSION//.} 'BEGIN {exit (VER < REQ_VER)}'
+  then
+      echo -e "${Red}The STRATO version from docker-compose.yml is incompatible with this strato-getting-started. Please update to v${STRATOGS_REQUIRED_VERSION}."
+      exit 12
+  fi
+fi
+
 export NODE_HOST=${NODE_HOST:-localhost}
 export HTTP_PORT=${HTTP_PORT:-80}
 export HTTPS_PORT=${HTTPS_PORT:-443}
@@ -328,6 +344,20 @@ fi
 if [[ -z ${VAULT_URL} ]] ; then
   echo -e "${Red}VAULT_URL is a required variable\nFor additional help see './strato --help'${NC}"
   exit 26
+fi
+
+# Additional env vars check for version of STRATO with marketplace
+if grep "marketplace" docker-compose.yml > /dev/null; then
+  if [ "${MP_IS_BOOTNODE}" = "true" ]; then
+    if [[ -z ${GLOBAL_ADMIN_NAME} || -z ${GLOBAL_ADMIN_PASSWORD} ]] ; then
+      echo -e "${Red}MP_IS_BOOTNODE=true but there were no GLOBAL_ADMIN_NAME or GLOBAL_ADMIN_PASSWORD values provided\nFor additional help see './strato --help${NC}"
+      exit 15
+    fi
+  fi
+  if [[ -z ${EXT_STORAGE_S3_BUCKET} || -z ${EXT_STORAGE_S3_ACCESS_KEY_ID} || -z ${EXT_STORAGE_S3_SECRET_ACCESS_KEY} ]] ; then
+    echo -e "${Red}EXT_STORAGE_S3_BUCKET, EXT_STORAGE_S3_ACCESS_KEY_ID, EXT_STORAGE_S3_SECRET_ACCESS_KEY are required\nFor additional help see './strato --help'${NC}"
+    exit 16
+  fi
 fi
 
 echo "" && echo "*** Common Config ***"
@@ -418,13 +448,6 @@ if [ ${main_port} != "80" ] && [ ${main_port} != "443" ] && [[ ${NODE_HOST} != *
   exit 8
 fi
 ## END OF PARAMETERS VALIDATION
-
-if [ ! -f docker-compose.yml ]
-then
-  getCompose
-else
-  echo -e "${BYellow}Using the existing docker-compose.yml (to download the most recent stable version - remove the file and restart the script)${NC}"
-fi
 
 # COMPOSE FILE PRE-PROCESSING
 function cleanup {

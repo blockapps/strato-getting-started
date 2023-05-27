@@ -1,6 +1,15 @@
 # STRATO Getting Started release notes
 
+## 4.1.0
+
+STRATO versions supported: v9.0+
+
+- Added support for Marketplace app bundled with newer STRATO versions
+
+
 ## 4.0.2
+
+STRATO versions supported: v9.0+
 
 - Updated genesis-block.json to match the Mercata Beta network
 
