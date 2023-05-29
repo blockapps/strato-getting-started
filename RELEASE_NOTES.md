@@ -1,5 +1,11 @@
 # STRATO Getting Started release notes
 
+## 4.1.1
+
+STRATO versions supported: v9.0+
+
+- Check STRIPE env vars when running STRATO with Marketplace
+
 ## 4.1.0
 
 STRATO versions supported: v9.0+
