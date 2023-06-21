@@ -9,6 +9,17 @@ import sys
 import zipfile
 
 
+p = subprocess.Popen("docker compose version > /dev/null 2>&1", shell=True)
+p.wait()
+if p.returncode != 0:
+    CNAME_SEP = '_'
+    DC_COMMAND = 'docker-compose -p strato --log-level=ERROR'
+    print("Docker Compose V1. Using '_' as a container name separator")
+else:
+    CNAME_SEP = '-'
+    DC_COMMAND = 'docker compose -p strato'
+    print("Docker Compose V2. Using '-' as a container name separator")
+    
 def fetch_logs():
     containers_with_logfiles = {
         'bloc': '/logs',
@@ -19,17 +30,19 @@ def fetch_logs():
         sys.exit(6)
     try:
         compose_ps_output = subprocess.check_output(
-            "docker-compose --log-level ERROR -p strato ps --services",
+            "%s ps --services" % DC_COMMAND,
             shell=True
         ).split('\n')
-        running_containers = ['strato_%s_1' % service_name for service_name in compose_ps_output if service_name]
+        running_containers = ['strato%(sep)s%(service)s%(sep)s1' % {'service': service_name, 'sep': CNAME_SEP} for service_name in compose_ps_output if service_name]
     except exceptions.Exception as e:
         sys.stderr.write('ERROR: Unable to fetch the currently running containers:\n%s' % e)
         sys.exit(7)
 
     for container_name in running_containers:
-        container_name_split = container_name.split('_')
-        if len(container_name_split) != 3:
+        container_name_split = container_name.split(CNAME_SEP)
+        if len(container_name_split) > 3:
+            container_name_split = [container_name_split[0], CNAME_SEP.join(str(item) for item in container_name_split[1:-1]) , container_name_split[-1]]
+        elif len(container_name_split) != 3:
             sys.stderr.write('ERROR: Unexpected container name: %s' % container_name)
             sys.exit(8)
         container_subname = container_name_split[1]
@@ -63,7 +76,7 @@ def fetch_logs():
                 deferred_errors.append(error_message)
 
     if args.db_dump:
-        postgres_container_name = [cname for cname in running_containers if '_postgres_' in cname][0]
+        postgres_container_name = [cname for cname in running_containers if '%(sep)spostgres%(sep)s' % {'sep': CNAME_SEP} in cname][0]
         sys.stdout.write('Creating Posgtres DBs dump - this may take up to several minutes...\n')
         pgdump_filename = 'pgdump'
         try:
