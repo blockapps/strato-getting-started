@@ -7,7 +7,6 @@ Yellow='\033[0;33m'
 BYellow='\033[1;33m'
 NC='\033[0m'
 
-docker_compose="docker-compose -p vault -f docker-compose.vault.yml --log-level ERROR"
 
 function outputLogo {
 echo "
@@ -128,6 +127,13 @@ if ! docker-compose -v &> /dev/null
 then
     echo -e "${Red}Error: docker-compose is required: https://docs.docker.com/compose/install/"
     exit 2
+else
+  if ! docker compose version &> /dev/null
+  then
+    docker_compose="docker-compose -p strato --log-level ERROR"
+  else
+    docker_compose="docker compose -p strato"
+  fi
 fi
 
 STRATOGS_REQUIRED_VERSION=$(grep strato-getting-started-min-version docker-compose.vault.yml | awk -F":" '{print $NF}')
