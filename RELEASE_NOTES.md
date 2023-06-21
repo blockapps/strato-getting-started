@@ -1,10 +1,16 @@
 # STRATO Getting Started release notes
 
+## 4.2.0
+
+STRATO versions supported: v9.0+
+
+- Added Support for Docker Compose V2, with backwards compatibility for Docker Compose V1
+
 ## 4.1.1
 
 STRATO versions supported: v9.0+
 
-- Check STRIPE env vars when running STRATO with Marketplace
+- Added the check for STRIPE env vars when running STRATO with the Marketplace
 
 ## 4.1.0
 

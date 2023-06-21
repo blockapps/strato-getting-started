@@ -7,7 +7,6 @@ Yellow='\033[0;33m'
 BYellow='\033[1;33m'
 NC='\033[0m'
 
-docker_compose="docker-compose -p strato --log-level ERROR"
 
 function outputLogo {
 echo "
@@ -107,7 +106,7 @@ function getCompose {
 
 function pbftVote {
   echo -e "submitting a vote into pbft consensus"
-  docker exec strato_strato_1 bash -c "set -x && blockstanbul-vote $*"
+  docker exec strato${CNAME_SEP}strato${CNAME_SEP}1 bash -c "set -x && blockstanbul-vote $*"
 }
 
 function pullImages {
@@ -115,8 +114,8 @@ function pullImages {
 }
 
 function getMetadata {
-  if [[ -n $(docker ps | grep strato_strato_1) ]]; then
-    METADATA_RESP=$(sudo docker exec strato_nginx_1 curl -s -w $%{http_code} -X GET http://strato:3000/eth/v1.2/metadata | tr '\n' ' ')
+  if [[ -n $(docker ps | grep strato${CNAME_SEP}strato${CNAME_SEP}1) ]]; then
+    METADATA_RESP=$(sudo docker exec strato${CNAME_SEP}nginx${CNAME_SEP}1 curl -s -w $%{http_code} -X GET http://strato:3000/eth/v1.2/metadata | tr '\n' ' ')
     METADATA_RESP_STATUS=$(cut -d$ -f2 <<< ${METADATA_RESP})
     METADATA_RESP_CONTENT=$(cut -d$ -f1 <<< ${METADATA_RESP})
     case "${METADATA_RESP_STATUS}" in
@@ -163,7 +162,7 @@ function getValidators {
 function getSingleNodeChains {
   # TODO: to be re-enabled in future versions
   echo "Feature is temporary removed and will be re-added in the future versions. Skipping the check for single-node private chains. "
-  # docker exec strato_postgres_1 psql -U postgres -d `docker exec strato_postgres_1 psql -U postgres -t -c "select datname from pg_database where datname like '%eth_%';" | tr -d "[:space:]"` -c "with m as (select chain_info_id, substring(name from position('@' in name)) as node_name from chain_member_ref), n as (select chain_info_id, node_name from m group by (chain_info_id, node_name)), o as (select chain_info_id, count(*) from n group by chain_info_id) select i.chain_id from chain_info_ref i inner join o on i.id = o.chain_info_id where o.count = 1;"
+  # docker exec strato${CNAME_SEP}postgres${CNAME_SEP}1 psql -U postgres -d `docker exec strato${CNAME_SEP}postgres${CNAME_SEP}1 psql -U postgres -t -c "select datname from pg_database where datname like '%eth_%';" | tr -d "[:space:]"` -c "with m as (select chain_info_id, substring(name from position('@' in name)) as node_name from chain_member_ref), n as (select chain_info_id, node_name from m group by (chain_info_id, node_name)), o as (select chain_info_id, count(*) from n group by chain_info_id) select i.chain_id from chain_info_ref i inner join o on i.id = o.chain_info_id where o.count = 1;"
 }
 
 function fetchLogs {
@@ -188,6 +187,15 @@ if ! docker-compose -v &> /dev/null
 then
     echo -e "${Red}Error: docker-compose is required: https://docs.docker.com/compose/install/"
     exit 2
+else
+  if ! docker compose version &> /dev/null
+  then
+    docker_compose="docker-compose -p strato --log-level ERROR"
+    CNAME_SEP="_"
+  else
+    docker_compose="docker compose -p strato"
+    CNAME_SEP="-"
+  fi
 fi
 
 while [ ${#} -gt 0 ]; do
@@ -389,9 +397,9 @@ then
   export networkID=${networkID:-$(($RANDOM * $RANDOM * $RANDOM))}
   
   # TODO: Update and re-enable the in-place single node restart process
-  #if [[ $(docker ps -a | grep strato_strato_1) ]]; then
+  #if [[ $(docker ps -a | grep strato${CNAME_SEP}strato${CNAME_SEP}1) ]]; then
   #  echo -e "${BYellow}Updating the existing STRATO Single node instance - getting it's blockstanbul variables...${NC}"
-  #  STRATO_ENV_VARS=$(docker inspect --format='{{range .Config.Env}}{{println .}}{{end}}' strato_strato_1)
+  #  STRATO_ENV_VARS=$(docker inspect --format='{{range .Config.Env}}{{println .}}{{end}}' strato${CNAME_SEP}strato${CNAME_SEP}1)
   #  export blockstanbulAdmins=$(echo "${STRATO_ENV_VARS}" | grep blockstanbulAdmins | awk -F"ulAdmins=" '{print $2}')
   #  export validators=$(echo "${STRATO_ENV_VARS}" | grep validators | awk -F"alidators=" '{print $2}')
   #  export generateKey=false

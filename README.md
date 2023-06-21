@@ -8,8 +8,7 @@
 
 **Linux/MacOS:**
 
-- [Install Docker](https://docs.docker.com/get-docker/) on your machine
-- [Install Docker Compose](https://docs.docker.com/compose/install/) on your machine
+- [Install Docker](https://docs.docker.com) on your machine (Docker Engine v.20.10+) with Docker Compose V2 included
 
 ### Usage
 For usage instructions, please refer to [STRATO Documentation - Network Setup section](https://docs.blockapps.net/deployment/network-setup/)
