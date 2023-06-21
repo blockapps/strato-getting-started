@@ -130,9 +130,9 @@ then
 else
   if ! docker compose version &> /dev/null
   then
-    docker_compose="docker-compose -p strato --log-level ERROR"
+    docker_compose="docker-compose -p vault -f docker-compose.vault.yml --log-level ERROR"
   else
-    docker_compose="docker compose -p strato"
+    docker_compose="docker compose -p vault -f docker-compose.vault.yml"
   fi
 fi
 
