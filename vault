@@ -96,7 +96,7 @@ function setPassword {
       fi
     done
 
-    PASSWORD_SET_RESPONSE=$(docker exec -i vault_vault-wrapper_1 curl -s -H "Content-Type: application/json" -d @- localhost:8000/strato/v2.3/password <<< \"$PASSWORD\")
+    PASSWORD_SET_RESPONSE=$(docker exec -i vault${CNAME_SEP}vault-wrapper${CNAME_SEP}1 curl -s -H "Content-Type: application/json" -d @- localhost:8000/strato/v2.3/password <<< \"$PASSWORD\")
     case ${PASSWORD_SET_RESPONSE} in
       "\"Could not validate password\"" )
         echo -e "${Red}Wrong password provided, please try again.${NC}"
@@ -131,8 +131,10 @@ else
   if ! docker compose version &> /dev/null
   then
     docker_compose="docker-compose -p vault -f docker-compose.vault.yml --log-level ERROR"
+    CNAME_SEP="_"
   else
     docker_compose="docker compose -p vault -f docker-compose.vault.yml"
+    CNAME_SEP="-"
   fi
 fi
 
