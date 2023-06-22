@@ -7,7 +7,6 @@ Yellow='\033[0;33m'
 BYellow='\033[1;33m'
 NC='\033[0m'
 
-docker_compose="docker-compose -p vault -f docker-compose.vault.yml --log-level ERROR"
 
 function outputLogo {
 echo "
@@ -97,7 +96,7 @@ function setPassword {
       fi
     done
 
-    PASSWORD_SET_RESPONSE=$(docker exec -i vault_vault-wrapper_1 curl -s -H "Content-Type: application/json" -d @- localhost:8000/strato/v2.3/password <<< \"$PASSWORD\")
+    PASSWORD_SET_RESPONSE=$(docker exec -i vault${CNAME_SEP}vault-wrapper${CNAME_SEP}1 curl -s -H "Content-Type: application/json" -d @- localhost:8000/strato/v2.3/password <<< \"$PASSWORD\")
     case ${PASSWORD_SET_RESPONSE} in
       "\"Could not validate password\"" )
         echo -e "${Red}Wrong password provided, please try again.${NC}"
@@ -128,6 +127,15 @@ if ! docker-compose -v &> /dev/null
 then
     echo -e "${Red}Error: docker-compose is required: https://docs.docker.com/compose/install/"
     exit 2
+else
+  if ! docker compose version &> /dev/null
+  then
+    docker_compose="docker-compose -p vault -f docker-compose.vault.yml --log-level ERROR"
+    CNAME_SEP="_"
+  else
+    docker_compose="docker compose -p vault -f docker-compose.vault.yml"
+    CNAME_SEP="-"
+  fi
 fi
 
 STRATOGS_REQUIRED_VERSION=$(grep strato-getting-started-min-version docker-compose.vault.yml | awk -F":" '{print $NF}')
