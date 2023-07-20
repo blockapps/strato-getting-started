@@ -12,11 +12,11 @@ docker_compose="docker-compose -p identity -f docker-compose.identity.yml --log-
 function outputLogo {
 echo "
 
-███████ ████████ ██████   █████  ████████  ██████      ██    ██  █████  ██    ██ ██      ████████ 
-██         ██    ██   ██ ██   ██    ██    ██    ██     ██    ██ ██   ██ ██    ██ ██         ██    
-███████    ██    ██████  ███████    ██    ██    ██     ██    ██ ███████ ██    ██ ██         ██    
-     ██    ██    ██   ██ ██   ██    ██    ██    ██      ██  ██  ██   ██ ██    ██ ██         ██    
-███████    ██    ██   ██ ██   ██    ██     ██████        ████   ██   ██  ██████  ███████    ██    
+███████ ████████ ██████   █████  ████████  ██████      ██ ██████  
+██         ██    ██   ██ ██   ██    ██    ██    ██     ██ ██   ██
+███████    ██    ██████  ███████    ██    ██    ██     ██ ██   ██
+     ██    ██    ██   ██ ██   ██    ██    ██    ██     ██ ██   ██
+███████    ██    ██   ██ ██   ██    ██     ██████      ██ ██████ 
 
 "
 }
@@ -170,11 +170,6 @@ while [ ${#} -gt 0 ]; do
     pullImages
     exit 0
     ;;
-  --set-password)
-    echo -e "${BYellow}Set or re-enter STRATO Provider password.${NC}"
-    setPassword
-    exit 0
-    ;;
   *)
     echo -e "${Red}Unknown flag ${1} provided, please check --help. Exit.${NC}"
     exit 5
@@ -194,8 +189,8 @@ else
 fi
 export sslCertFileType=${sslCertFileType:-pem}
 
-if [[ -z ${INITIAL_OAUTH_DISCOVERY_URL} || -z ${INITIAL_OAUTH_ISSUER} ]] ; then
-  echo -e "${Red}INITIAL_OAUTH_DISCOVERY_URL, INITIAL_OAUTH_ISSUER are required to start STRATO Provider.\nFor additional help see './strato --help'${NC}"
+if [[ -z ${OAUTH_DISCOVERY_URL} || -z ${OAUTH_CLIENT_ID} || -z ${OAUTH_CLIENT_SECRET} ]] ; then
+  echo -e "${Red}OAUTH_DISCOVERY_URL, OAUTH_CLIENT_ID, and OAUTH_CLIENT_SECRET are required to start the STRATO identity server.\nFor additional help see './identity-server --help'${NC}"
   exit 13
 fi
 
@@ -242,6 +237,4 @@ fi
 ${docker_compose} -f docker-compose-identity-temp.yml up -d --remove-orphans
 until curl --silent --output /dev/null --fail --insecure --location "${http_protocol}://localhost:${main_port}/_ping" ; do sleep 0.5; done
 
-setPassword
-
-echo -e "\n${Green}Provider has awoken. Check ${http_protocol}://your.hostname:${main_port}${NC}"
+echo -e "\n${Green}STRATO Identity Server has awoken. Check ${http_protocol}://your.hostname:${main_port}${NC}"
