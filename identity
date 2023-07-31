@@ -235,6 +235,6 @@ fi
 # END OF COMPOSE FILE PRE-PROCESSING
 
 ${docker_compose} -f docker-compose-identity-temp.yml up -d --remove-orphans
-until curl --silent --output /dev/null --fail --insecure --location "${http_protocol}://localhost:${main_port}/ping" ; do sleep 0.5; done
+until curl --silent --output /dev/null --fail --insecure --location "${http_protocol}://localhost:${main_port}/_ping" ; do sleep 0.5; done
 
 echo -e "\n${Green}STRATO Identity Server has awoken. Check ${http_protocol}://your.hostname:${main_port}${NC}"
