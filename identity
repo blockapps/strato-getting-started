@@ -226,7 +226,7 @@ trap cleanup EXIT
 if [ "$ssl" != true ]; then
   sed -n '/#TAG_REMOVE_WHEN_NO_SSL/!p' docker-compose.identity.yml > docker-compose-identity-temp.yml
 else
-  if [ ${HTTPS_PORT} != "8093" ]; then
+  if [ "$HTTPS_PORT" != "8093" ]; then
     sed -n '/#TAG_REMOVE_WHEN_SSL_CUSTOM_HTTPS_PORT/!p' docker-compose.identity.yml > docker-compose-identity-temp.yml
   else
     cp docker-compose.identity.yml docker-compose-identity-temp.yml
