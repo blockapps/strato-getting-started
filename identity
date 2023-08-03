@@ -23,29 +23,31 @@ echo "
 
 function help {
   outputLogo
-  echo -e "${BYellow}STRATO run script${NC}
-Kickstart the STRATO node.
+  echo -e "${BYellow}Identity server run script${NC}
+Kickstart an identity server.
 
 ${Yellow}Optional flags:${NC}
 The entrypoints are mutually exclusive.
 --help|-h       - this help.
---set-password  - set or re-enter the STRATO Provider's in-memory password; use PASSWORD env var to skip interactive input.
---stop          - stop STRATO containers (keeps containers and volumes.)
---start         - start the existing STRATO containers after they were stopped (the opposite to --stop.)
---down          - remove strato containers and leave all volumes intact.
---wipe          - stop and remove STRATO containers and wipe out volumes.
+--stop          - stop identity server containers (keeps containers and volumes.)
+--start         - start the existing identity server containers after they were stopped (the opposite to --stop.)
+--down          - remove identity server containers and leave all volumes intact.
+--wipe          - stop and remove identity server containers and wipe out volumes.
 --compose       - fetch the latest stable docker-compose.identity.yml.
 --pull          - pull images used in docker-compose.identity.yml.
 
 ${Yellow}Environment variables:${NC}
-PASSWORD           - STRATO Provider's in-memory password. To be requested interactively if skipped.
 HTTP_PORT          - (default: 8090) Port for HTTP traffic listener.
 HTTPS_PORT         - (default: 8093) Port for HTTPS traffic listener; only used with ssl=true.
 ssl                - (default: false) [true|false] to run the node with SSL/TLS.
 sslCertFileType    - (default: pem) [pem|crt] the SSL certificate type and file extension (should be accessible at ./ssl/certs/server.<sslCertFileType> at deploy time.)
-INITIAL_OAUTH_DISCOVERY_URL       - (required) OpenID Connect discovery URL for initial OAuth2 provider. Additional ones can be added at run time.
-INITIAL_OAUTH_ISSUER              - (required) Issuer value for initial OAuth2 provider.
-INITIAL_OAUTH_JWT_USERNAME_CLAIM  - (default: sub) The claim (payload property) of JWT token to use as unique user id within STRATO Provider."
+OAUTH_DISCOVERY_URL         - (required) OAuth provider's OpenID Connect discovery URL.
+OAUTH_CLIENT_ID             - (required) Client ID of OAuth provider valid for the future STRATO url (http(s)://<NODE_HOST>:<HTTP_PORT/HTTPS_PORT>).
+OAUTH_CLIENT_SECRET         - (required) Client Secret for the client ID specified.
+VAULT_URL                   - (required) The URL of STRATO Vault in the format '<protocol>://<hostname>:<port>' (e.g. https://example.com or https://example.com:8090)
+
+**NOTE: for your identity server to function properly, you must provide the files rootCert.pem and rootPriv.pem in the subdirectory identity-provider-certs
+"
 }
 
 function wipe {
@@ -76,40 +78,6 @@ function getCompose {
 
 function pullImages {
   ${docker_compose} pull
-}
-
-function setPassword {
-    while [ -z $PASSWORD ]; do
-      echo
-      echo -n Please enter a password:
-      read -s PASSWORDA || (printf "\nerror: unable to read password, stdin might be closed\n" &&
-                            printf "Set the PASSWORD environment variable in automated environments\n" &&
-                            exit 18)
-      echo
-      echo -n Please re-enter the password:
-      read -s PASSWORDB
-      if [ "${PASSWORDA}" == "${PASSWORDB}" ]; then
-        echo
-        PASSWORD=${PASSWORDA}
-      else
-        echo
-        echo -n Passwords did not match. Please try again.
-      fi
-    done
-
-    PASSWORD_SET_RESPONSE=$(docker exec -i identity_identity-provider_1 curl -s -H "Content-Type: application/json" -d @- localhost:8000/strato/v2.3/password <<< \"$PASSWORD\")
-    case ${PASSWORD_SET_RESPONSE} in
-      "\"Could not validate password\"" )
-        echo -e "${Red}Wrong password provided, please try again.${NC}"
-        exit 15
-        ;;
-      "[]" )
-        echo -e "${Green}The password has been set.${NC}"
-        ;;
-      "\"Password is already set\"" )
-        echo -e "${Yellow}The password has been set earlier and the Provider is currently active. No need to re-enter the password.${NC}"
-        ;;
-    esac
 }
 
 
@@ -199,11 +167,9 @@ echo "HTTP_PORT: $HTTP_PORT"
 echo "HTTPS_PORT: $HTTPS_PORT"
 echo "ssl: $ssl"
 echo "sslCertFileType: $sslCertFileType"
-echo "INITIAL_OAUTH_DISCOVERY_URL: ${INITIAL_OAUTH_DISCOVERY_URL}"
-echo "INITIAL_OAUTH_ISSUER: ${INITIAL_OAUTH_ISSUER}"
-echo "INITIAL_OAUTH_JWT_USERNAME_CLAIM: ${INITIAL_OAUTH_ISSUER:-'using default'}"
-echo "PASSWORD: $(if [ -z ${PASSWORD} ]; then echo "not provided (to be set in stdin)"; else echo "provided in env var"; fi)"
-
+echo "OAUTH_DISCOVERY_URL: ${OAUTH_DISCOVERY_URL}"
+echo "OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID}"
+echo "VAULT_URL: ${VAULT_URL}"
 
 if [[ ${HTTP_PORT} == ${HTTPS_PORT} ]]; then
   echo -e "${Red}Can not bind HTTP and HTTPS listeners to same port (${HTTP_PORT})${NC}"
