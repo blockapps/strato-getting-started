@@ -39,12 +39,14 @@ HTTP_PORT          - (default: 8090) Port for HTTP traffic listener.
 HTTPS_PORT         - (default: 8093) Port for HTTPS traffic listener; only used with ssl=true.
 ssl                - (default: false) [true|false] to run the node with SSL/TLS.
 sslCertFileType    - (default: pem) [pem|crt] the SSL certificate type and file extension (should be accessible at ./ssl/certs/server.<sslCertFileType> at deploy time.)
-OAUTH_DISCOVERY_URL         - (required) OAuth provider's OpenID Connect discovery URL.
-OAUTH_CLIENT_ID             - (required) Client ID of OAuth provider valid for the future STRATO url (http(s)://<NODE_HOST>:<HTTP_PORT/HTTPS_PORT>).
-OAUTH_CLIENT_SECRET         - (required) Client Secret for the client ID specified.
 VAULT_URL                   - (required) The URL of STRATO Vault in the format '<protocol>://<hostname>:<port>' (e.g. https://example.com or https://example.com:8090)
 
-**NOTE: for your identity server to function properly, you must provide the files rootCert.pem and rootPriv.pem in the subdirectory identity-provider-certs
+${Yellow}Mounted volumes:${NC}
+**IMPORTANT**
+For your identity server to function properly, you must provide the following files to mount onto the docker containers
+./identity-provider/certs/rootCert.pem
+./identity-provider/certs/rootPriv.pem
+./identity-provider/idconf.yaml
 "
 }
 
@@ -172,8 +174,6 @@ echo "HTTP_PORT: $HTTP_PORT"
 echo "HTTPS_PORT: $HTTPS_PORT"
 echo "ssl: $ssl"
 echo "sslCertFileType: $sslCertFileType"
-echo "OAUTH_DISCOVERY_URL: ${OAUTH_DISCOVERY_URL}"
-echo "OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID}"
 echo "VAULT_URL: ${VAULT_URL}"
 
 if [[ ${HTTP_PORT} == ${HTTPS_PORT} ]]; then

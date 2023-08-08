@@ -1,0 +1,10 @@
+# copy section below per realm you want to support
+- realmName: master #realmName is optional, just nice for readability
+  discoveryUrl: https://keycloak.blockapps.net/auth/realms/master/.well-known/openid-configuration
+  clientId: <id>
+  clientSecret: <secret>
+
+- realmName: mercata-testnet2
+  discoveryUrl: https://keycloak.blockapps.net/auth/realms/mercata-testnet2/.well-known/openid-configuration
+  clientId: <id>
+  clientSecret: <secret>
