@@ -92,16 +92,16 @@ then
     exit 1
 fi
 
-if command -v docker compose &> /dev/null 
-then 
-  docker_compose="docker compose -p identity -f docker-compose.identity.yml"
+if ! docker-compose -v &> /dev/null
+then
+    echo -e "${Red}Error: docker-compose is required: https://docs.docker.com/compose/install/"
+    exit 2
 else
-  if command -v docker-compose&> /dev/null
+  if ! docker compose version &> /dev/null
   then
-    docker_compose="docker-compose -p identity -f docker-compose.identity.yml --log-level ERROR"
+    docker_compose="docker-compose -p strato --log-level ERROR"
   else
-    echo -e "${Red}Error: docker compose is required: https://docs.docker.com/compose/install/"
-    exit 2 
+    docker_compose="docker compose -p strato"
   fi
 fi
 
