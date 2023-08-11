@@ -1,10 +1,10 @@
 # copy section below per realm you want to support
-- realmName: master #realmName is optional, just nice for readability
-  discoveryUrl: https://keycloak.blockapps.net/auth/realms/master/.well-known/openid-configuration
+- realmName: <realm> # optional, just nice for readability
+  discoveryUrl: <url>
   clientId: <id>
   clientSecret: <secret>
+  nodeUrl: <url> # optional; if not provided, will post to https://node2.{realmName}.blockapps.net
 
-- realmName: mercata-testnet2
-  discoveryUrl: https://keycloak.blockapps.net/auth/realms/mercata-testnet2/.well-known/openid-configuration
+- discoveryUrl: <url>
   clientId: <id>
   clientSecret: <secret>
