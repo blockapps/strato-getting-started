@@ -99,9 +99,9 @@ then
 else
   if ! docker compose version &> /dev/null
   then
-    docker_compose="docker-compose -p strato --log-level ERROR"
+    docker_compose="docker-compose -p identity -f docker-compose.identity.yml --log-level ERROR"
   else
-    docker_compose="docker compose -p strato"
+    docker_compose="docker compose -p identity -f docker-compose.identity.yml"
   fi
 fi
 
