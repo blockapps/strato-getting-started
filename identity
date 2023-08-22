@@ -35,11 +35,15 @@ The entrypoints are mutually exclusive.
 --pull          - pull images used in docker-compose.identity.yml.
 
 ${Yellow}Environment variables:${NC}
-HTTP_PORT          - (default: 8090) Port for HTTP traffic listener.
-HTTPS_PORT         - (default: 8093) Port for HTTPS traffic listener; only used with ssl=true.
-ssl                - (default: false) [true|false] to run the node with SSL/TLS.
-sslCertFileType    - (default: pem) [pem|crt] the SSL certificate type and file extension (should be accessible at ./ssl/certs/server.<sslCertFileType> at deploy time.)
-VAULT_URL                   - (required) The URL of STRATO Vault in the format '<protocol>://<hostname>:<port>' (e.g. https://example.com or https://example.com:8090)
+HTTP_PORT           - (default: 8090) Port for HTTP traffic listener.
+HTTPS_PORT          - (default: 8093) Port for HTTPS traffic listener; only used with ssl=true.
+ssl                 - (default: false) [true|false] to run the node with SSL/TLS.
+sslCertFileType     - (default: pem) [pem|crt] the SSL certificate type and file extension (should be accessible at ./ssl/certs/server.<sslCertFileType> at deploy time.)
+VAULT_URL           - (required) The URL of STRATO Vault in the format '<protocol>://<hostname>:<port>' (e.g. https://example.com or https://example.com:8090)
+OAUTH_DISCOVERY_URL - (required) OAuth provider's OpenID Connect discovery URL.
+OAUTH_CLIENT_ID     - (required) Client ID of OAuth provider valid for the future STRATO url (http(s)://<NODE_HOST>:<HTTP_PORT/HTTPS_PORT>).
+OAUTH_CLIENT_SECRET - (required) Client Secret for the client ID specified.
+SENDGRID_APIKEY     - (optional) API key to send welcome emails after registering a user
 
 ${Yellow}Mounted volumes:${NC}
 **IMPORTANT**
