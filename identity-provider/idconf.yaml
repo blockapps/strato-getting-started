@@ -4,3 +4,4 @@
   clientId: <id>
   clientSecret: <secret>
   nodeUrl: <url> # optional; if not provided, will post to https://node2.{realmName}.blockapps.net
+  fallbackNodeUrl: <url> # optional; if not provided, will post to https://node1.{realmName}.blockapps.net
