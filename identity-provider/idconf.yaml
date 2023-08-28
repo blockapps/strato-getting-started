@@ -1,0 +1,6 @@
+# copy section below per realm you want to support
+- realmName: <realm> # optional, just nice for readability
+  discoveryUrl: <url>
+  clientId: <id>
+  clientSecret: <secret>
+  nodeUrl: <url> # optional; if not provided, will post to https://node2.{realmName}.blockapps.net
