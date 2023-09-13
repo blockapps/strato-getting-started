@@ -1,5 +1,11 @@
 # STRATO Getting Started release notes
 
+## 4.2.1
+
+STRATO versions supported: v9.0+
+
+- Removed the OAUTH_ vars checks from identity script to comply with newer Identity Provider
+
 ## 4.2.0
 
 STRATO versions supported: v9.0+
