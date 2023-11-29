@@ -169,11 +169,6 @@ echo "HTTPS_PORT: $HTTPS_PORT"
 echo "ssl: $ssl"
 echo "sslCertFileType: $sslCertFileType"
 
-if [[ ${HTTP_PORT} == ${HTTPS_PORT} ]]; then
-  echo -e "${Red}Can not bind HTTP and HTTPS listeners to same port (${HTTP_PORT})${NC}"
-  exit 7
-fi
-
 if [ ! -f docker-compose.highway.yml ]
 then
   getCompose
