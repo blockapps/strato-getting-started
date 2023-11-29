@@ -39,8 +39,6 @@ HTTP_PORT           - (default: 8090) Port for HTTP traffic listener.
 HTTPS_PORT          - (default: 8093) Port for HTTPS traffic listener; only used with ssl=true.
 ssl                 - (default: false) [true|false] to run the node with SSL/TLS.
 sslCertFileType     - (default: pem) [pem|crt] the SSL certificate type and file extension (should be accessible at ./ssl/certs/server.<sslCertFileType> at deploy time.)
-VAULT_URL           - (required) The URL of STRATO Vault in the format '<protocol>://<hostname>:<port>' (e.g. https://example.com or https://example.com:8090)
-SENDGRID_APIKEY     - (optional) API key to send welcome emails after registering a user
 
 ${Yellow}Mounted volumes:${NC}
 **IMPORTANT**
@@ -170,7 +168,6 @@ echo "HTTP_PORT: $HTTP_PORT"
 echo "HTTPS_PORT: $HTTPS_PORT"
 echo "ssl: $ssl"
 echo "sslCertFileType: $sslCertFileType"
-echo "VAULT_URL: ${VAULT_URL}"
 
 if [[ ${HTTP_PORT} == ${HTTPS_PORT} ]]; then
   echo -e "${Red}Can not bind HTTP and HTTPS listeners to same port (${HTTP_PORT})${NC}"
