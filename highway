@@ -1,0 +1,207 @@
+#!/usr/bin/env bash
+set -e
+
+Green='\033[0;32m'
+Red='\033[0;31m'
+Yellow='\033[0;33m'
+BYellow='\033[1;33m'
+NC='\033[0m'
+
+function outputLogo {
+echo "
+
+███████ ████████ ██████   █████  ████████  ██████      ██   ██ ██  ██████  ██   ██ ██     ██  █████  ██    ██ 
+██         ██    ██   ██ ██   ██    ██    ██    ██     ██   ██ ██ ██       ██   ██ ██     ██ ██   ██  ██  ██  
+███████    ██    ██████  ███████    ██    ██    ██     ███████ ██ ██   ███ ███████ ██  █  ██ ███████   ████   
+     ██    ██    ██   ██ ██   ██    ██    ██    ██     ██   ██ ██ ██    ██ ██   ██ ██ ███ ██ ██   ██    ██    
+███████    ██    ██   ██ ██   ██    ██     ██████      ██   ██ ██  ██████  ██   ██  ███ ███  ██   ██    ██    
+
+"
+}
+
+function help {
+  outputLogo
+  echo -e "${BYellow}Highway server run script${NC}
+Kickstart a highway server.
+
+${Yellow}Optional flags:${NC}
+The entrypoints are mutually exclusive.
+--help|-h       - this help.
+--stop          - stop highway server containers (keeps containers and volumes.)
+--start         - start the existing highway server containers after they were stopped (the opposite to --stop.)
+--down          - remove highway server containers and leave all volumes intact.
+--wipe          - stop and remove highway server containers and wipe out volumes.
+--compose       - fetch the latest stable docker-compose.highway.yml.
+--pull          - pull images used in docker-compose.highway.yml.
+
+${Yellow}Environment variables:${NC}
+HTTP_PORT           - (default: 8090) Port for HTTP traffic listener.
+HTTPS_PORT          - (default: 8093) Port for HTTPS traffic listener; only used with ssl=true.
+ssl                 - (default: false) [true|false] to run the node with SSL/TLS.
+sslCertFileType     - (default: pem) [pem|crt] the SSL certificate type and file extension (should be accessible at ./ssl/certs/server.<sslCertFileType> at deploy time.)
+VAULT_URL           - (required) The URL of STRATO Vault in the format '<protocol>://<hostname>:<port>' (e.g. https://example.com or https://example.com:8090)
+SENDGRID_APIKEY     - (optional) API key to send welcome emails after registering a user
+
+${Yellow}Mounted volumes:${NC}
+**IMPORTANT**
+For your highway server to function properly, you must provide the following files to mount onto the docker containers
+./highway-provider/certs/rootCert.pem
+./highway-provider/certs/rootPriv.pem
+./highway-provider/idconf.yaml
+"
+}
+
+function wipe {
+  echo -e "${Yellow}Removing Provider containers and wiping out volumes${NC}"
+  ${docker_compose} down -vt 0 --remove-orphans
+}
+
+function down {
+  echo -e "${Yellow}Removing Provider containers${NC}"
+  ${docker_compose} down --remove-orphans
+}
+
+function stop {
+  echo -e "${Yellow}Gently stopping Provider containers${NC}"
+  ${docker_compose} stop
+}
+
+function start {
+  echo -e "${Yellow}Starting the earlier stopped Provider containers${NC}"
+  ${docker_compose} start
+}
+
+function getCompose {
+  echo -e "${Yellow}Downloading the latest stable version of docker-compose.highway.yml...${NC}"
+  curl -fLo docker-compose.highway.yml https://github.com/blockapps/strato-getting-started/releases/download/$(curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | grep -om1 '"/blockapps/strato-getting-started/releases/tag/[^"]*' | grep -oE "[^/]+$")/docker-compose.highway.yml
+  echo -e "${Yellow}docker-compose.highway.yml downloaded successfully.${NC}"
+}
+
+function pullImages {
+  ${docker_compose} pull
+}
+
+
+if [ ! -f $(pwd)/strato ]; then
+    echo -e "${Red}Should be run from within the strato-getting-started directory. Exit.${NC}"
+    exit 4
+fi
+
+if ! docker ps &> /dev/null
+then
+    echo -e "${Red}Error: docker is required: https://www.docker.com/ . If you have it installed - you may need to execute as super user${NC}"
+    exit 1
+fi
+
+if ! docker-compose -v &> /dev/null
+then
+    echo -e "${Red}Error: docker-compose is required: https://docs.docker.com/compose/install/"
+    exit 2
+else
+  if ! docker compose version &> /dev/null
+  then
+    docker_compose="docker-compose -p highway -f docker-compose.highway.yml --log-level ERROR"
+  else
+    docker_compose="docker compose -p highway -f docker-compose.highway.yml"
+  fi
+fi
+
+STRATOGS_REQUIRED_VERSION=$(grep strato-getting-started-min-version docker-compose.highway.yml | awk -F":" '{print $NF}')
+if [ ${STRATOGS_REQUIRED_VERSION} ]; then
+  STRATOGS_CURRENT_VERSION=$(< VERSION)
+  if ! awk -v VER=${STRATOGS_CURRENT_VERSION//.} -v REQ_VER=${STRATOGS_REQUIRED_VERSION//.} 'BEGIN {exit (VER < REQ_VER)}'
+  then
+      echo -e "${Red}The STRATO version from docker-compose.highway.yml is incompatible with this strato-getting-started. Please update to v${STRATOGS_REQUIRED_VERSION}."
+      exit 12
+  fi
+fi
+
+while [ ${#} -gt 0 ]; do
+  case "${1}" in
+  --help|-h)
+    help
+    exit 0
+    ;;
+  --stop)
+    stop
+    exit 0
+    ;;
+  --start)
+    start
+    exit 0
+    ;;
+  --down)
+    down
+    exit 0
+    ;;
+  --wipe)
+    wipe
+    exit 0
+    ;;
+  --compose)
+    getCompose
+    exit 0
+    ;;
+  --pull)
+    pullImages
+    exit 0
+    ;;
+  *)
+    echo -e "${Red}Unknown flag ${1} provided, please check --help. Exit.${NC}"
+    exit 5
+    ;;
+  esac
+  shift 1
+done
+
+outputLogo
+
+if [ "$ssl" = true ] ; then
+  http_protocol=https
+  main_port=${HTTPS_PORT}
+else
+  http_protocol=http
+  main_port=${HTTP_PORT}
+fi
+export sslCertFileType=${sslCertFileType:-pem}
+
+echo "" && echo "*** Common Config ***"
+echo "HTTP_PORT: $HTTP_PORT"
+echo "HTTPS_PORT: $HTTPS_PORT"
+echo "ssl: $ssl"
+echo "sslCertFileType: $sslCertFileType"
+echo "VAULT_URL: ${VAULT_URL}"
+
+if [[ ${HTTP_PORT} == ${HTTPS_PORT} ]]; then
+  echo -e "${Red}Can not bind HTTP and HTTPS listeners to same port (${HTTP_PORT})${NC}"
+  exit 7
+fi
+
+if [ ! -f docker-compose.highway.yml ]
+then
+  getCompose
+else
+  echo -e "${BYellow}Using the existing docker-compose.highway.yml (to download the most recent stable version - remove the file and restart the script)${NC}"
+fi
+
+# COMPOSE FILE PRE-PROCESSING
+function cleanup {
+  rm docker-compose-highway-temp.yml
+}
+trap cleanup EXIT
+
+if [ "$ssl" != true ]; then
+  sed -n '/#TAG_REMOVE_WHEN_NO_SSL/!p' docker-compose.highway.yml > docker-compose-highway-temp.yml
+else
+  if [ "$HTTPS_PORT" != "8093" ]; then
+    sed -n '/#TAG_REMOVE_WHEN_SSL_CUSTOM_HTTPS_PORT/!p' docker-compose.highway.yml > docker-compose-highway-temp.yml
+  else
+    cp docker-compose.highway.yml docker-compose-highway-temp.yml
+  fi
+fi
+# END OF COMPOSE FILE PRE-PROCESSING
+
+${docker_compose} -f docker-compose-highway-temp.yml up -d --remove-orphans
+until curl --silent --output /dev/null --fail --insecure --location "${http_protocol}://localhost:${main_port}/_ping" ; do sleep 0.5; done
+
+echo -e "\n${Green}STRATO Highway Server has awoken. Check ${http_protocol}://your.hostname:${main_port}${NC}"
