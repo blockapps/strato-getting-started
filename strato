@@ -31,7 +31,6 @@ The entrypoints are mutually exclusive.
 --stop        - stop STRATO containers (keeps containers and volumes.)
 --start       - start the existing STRATO containers after they were stopped (the opposite to --stop.)
 --down        - remove strato containers and leave all volumes intact.
---drop-chains - REMOVED: Use --wipe instead. STRATO 9.0+ now stores user data in separate STRATO Vault, which can be operated using ./vault script.
 --wipe        - stop and remove STRATO containers and wipe out volumes.
 --compose     - fetch the latest stable docker-compose.yml.
 --pull        - pull images used in docker-compose.yml.
@@ -39,7 +38,6 @@ The entrypoints are mutually exclusive.
 --get-pubkey  - get the public key of the running node.
 --get-validators          - get the list of validating nodes in the network on the running node.
 --get-metadata            - get the node's metadata in JSON format.
---get-single-node-chains  - get the list of all private chains on the node that aren't shared with at least one other node on the network.
 --fetch-logs          - fetch all STRATO logs into strato_logs.zip (for more info and options refer to './fetchlogs --help'.)
 --fetch-logs-with-db  - fetch all STRATO logs and database dump into strato_logs.zip (WARNING: database data may be sensitive; for more info and options refer to './fetchlogs --help'.)
 
@@ -104,11 +102,6 @@ function getCompose {
   echo -e "${Yellow}docker-compose.yml downloaded successfully.${NC}"
 }
 
-function pbftVote {
-  echo -e "submitting a vote into pbft consensus"
-  docker exec strato${CNAME_SEP}strato${CNAME_SEP}1 bash -c "set -x && blockstanbul-vote $*"
-}
-
 function pullImages {
   ${docker_compose} pull
 }
@@ -157,12 +150,6 @@ function getPublicKey {
 
 function getValidators {
   _outputMetadataValue validators
-}
-
-function getSingleNodeChains {
-  # TODO: to be re-enabled in future versions
-  echo "Feature is temporary removed and will be re-added in the future versions. Skipping the check for single-node private chains. "
-  # docker exec strato${CNAME_SEP}postgres${CNAME_SEP}1 psql -U postgres -d `docker exec strato${CNAME_SEP}postgres${CNAME_SEP}1 psql -U postgres -t -c "select datname from pg_database where datname like '%eth_%';" | tr -d "[:space:]"` -c "with m as (select chain_info_id, substring(name from position('@' in name)) as node_name from chain_member_ref), n as (select chain_info_id, node_name from m group by (chain_info_id, node_name)), o as (select chain_info_id, count(*) from n group by chain_info_id) select i.chain_id from chain_info_ref i inner join o on i.id = o.chain_info_id where o.count = 1;"
 }
 
 function fetchLogs {
@@ -220,29 +207,7 @@ while [ ${#} -gt 0 ]; do
     down
     exit 0
     ;;
-  --drop-chains)
-    echo -e "${BYellow}./strato --drop-chains is removed for STRATO 9.0+. Use ./strato --wipe instead for nodes with separate STRATO Vault.${NC}"
-    exit 28
-    ;;
   --wipe)
-    # TODO: Single-node private chain presence check is to be re-enabled in future versions
-    #echo -e "Checking if the node has single-node private chains that were never shared with other nodes (have unrecoverable data)..."
-    #if [[ ! $(getSingleNodeChains | grep "0 rows") ]]; then 
-    #  echo -e "${BYellow}WARNING: Node has single-node private chains that can not be recovered from the network.${NC}"
-    #  if [[ $* == *\ -f\ * || $* == *\ -f ]]; then
-    #    echo -e "'-f' option is provided, forcefully removing the single-node private chains..."
-    #  else
-    #    echo -e "'-f' option is not provided - expecting user confirmation."
-    #    read -p "Please confirm if you want to wipe these unshared chains. Type 'yes' to continue: " CONT
-    #    if [ "$CONT" != "yes" ]; then
-    #      echo -e "User did not confirm the removal of single-node private chains. Exit."
-    #      exit 3
-    #    fi
-    #  fi
-    #else 
-    #  echo "No single-node private chains found, going ahead with the wipe."
-    #fi
-    #echo -e "Wiping the node..."
     wipe
     exit 0
     ;;
@@ -265,12 +230,6 @@ while [ ${#} -gt 0 ]; do
     fetchLogs "withdb"
     exit 0
     ;;
-  --blockstanbul-vote)
-    # TODO: re-enable when the executable is updated to address the new STRATO 9.0+ voting process
-    echo "The --blockstanbul-vote feature is temporary disabled for STRATO 9.0+ and is kept for future use."
-    #pbftVote "${*:2}"
-    exit 0
-    ;;
   --set-password)
     echo -e "${BYellow}./strato --set-password is removed. Use ./vault --set-password for nodes with separate STRATO Vault.${NC}"
     exit 25
@@ -289,10 +248,6 @@ while [ ${#} -gt 0 ]; do
     ;;
   --get-metadata)
     getMetadata
-    exit 0
-    ;;
-  --get-single-node-chains)
-    getSingleNodeChains
     exit 0
     ;;
   *)
@@ -445,8 +400,7 @@ if [ -z ${genesisBlock+x} ]
 then
   echo "Genesis block is not set (using default)"
 else
-  echo "Using genesis block from genesis-block.json:"
-  echo "${genesisBlock}"
+  echo "Using genesis block from genesis-block.json"
 fi
 
 # PARAMETERS VALIDATION
