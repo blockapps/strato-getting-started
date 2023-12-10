@@ -70,9 +70,6 @@ VAULT_URL                   - (required) The URL of STRATO Vault in the format '
 Marketplace App variables:
 MP_IS_BOOTNODE                    - (default: false) [true|false] Whether or not to run the Markeplace in boot node mode or connect to the existing marketplace deployment based on address provided in MP_DAPP_ADDRESS
 MP_DAPP_ADDRESS                   - (default: c93f9a422a4508a6501a63537291128122f7bcf2) When in MP_IS_BOOTNODE=false mode, this address is used to connect to the existing Marketplace contract on the chain
-EXT_STORAGE_S3_BUCKET             - (required for STRATO versions bundled with Marketplace) - AWS S3 bucket name to be used in the Marketplace App
-EXT_STORAGE_S3_ACCESS_KEY_ID      - (required for STRATO versions bundled with Marketplace) - Access key id of AWS IAM user with access to the bucket provided in EXT_STORAGE_S3_BUCKET
-EXT_STORAGE_S3_SECRET_ACCESS_KEY  - (required for STRATO versions bundled with Marketplace) - Secret access key of AWS IAM user
 GLOBAL_ADMIN_NAME                 - (required for STRATO versions bundled with Marketplace and running in MP_IS_BOOTNODE=true mode)
 GLOBAL_ADMIN_PASSWORD             - (required for STRATO versions bundled with Marketplace and running in MP_IS_BOOTNODE=true mode)
 "
@@ -361,10 +358,6 @@ if grep "marketplace" docker-compose.yml > /dev/null; then
       echo -e "${Red}MP_IS_BOOTNODE=true but there were no GLOBAL_ADMIN_NAME or GLOBAL_ADMIN_PASSWORD values provided\nFor additional help see './strato --help${NC}"
       exit 15
     fi
-  fi
-  if [[ -z ${EXT_STORAGE_S3_BUCKET} || -z ${EXT_STORAGE_S3_ACCESS_KEY_ID} || -z ${EXT_STORAGE_S3_SECRET_ACCESS_KEY} ]] ; then
-    echo -e "${Red}EXT_STORAGE_S3_BUCKET, EXT_STORAGE_S3_ACCESS_KEY_ID, EXT_STORAGE_S3_SECRET_ACCESS_KEY are required for this STRATO version\nFor additional help see './strato --help'${NC}"
-    exit 16
   fi
   if [[ -z ${STRIPE_PUBLISHABLE_KEY} || -z ${STRIPE_SECRET_KEY} ]] ; then
     echo -e "${Red}STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY are required for this STRATO version\nFor additional help see './strato --help'${NC}"
