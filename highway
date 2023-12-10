@@ -43,31 +43,26 @@ VAULT_URL           - (required) The URL of STRATO Vault in the format '<protoco
 SENDGRID_APIKEY     - (optional) API key to send welcome emails after registering a user
 
 ${Yellow}Mounted volumes:${NC}
-**IMPORTANT**
-For your highway server to function properly, you must provide the following files to mount onto the docker containers
-./highway/certs/rootCert.pem
-./highway/certs/rootPriv.pem
-./highway/idconf.yaml
 "
 }
 
 function wipe {
-  echo -e "${Yellow}Removing Provider containers and wiping out volumes${NC}"
+  echo -e "${Yellow}Removing Highway containers and wiping out volumes${NC}"
   ${docker_compose} down -vt 0 --remove-orphans
 }
 
 function down {
-  echo -e "${Yellow}Removing Provider containers${NC}"
+  echo -e "${Yellow}Removing Highway containers${NC}"
   ${docker_compose} down --remove-orphans
 }
 
 function stop {
-  echo -e "${Yellow}Gently stopping Provider containers${NC}"
+  echo -e "${Yellow}Gently stopping Highway containers${NC}"
   ${docker_compose} stop
 }
 
 function start {
-  echo -e "${Yellow}Starting the earlier stopped Provider containers${NC}"
+  echo -e "${Yellow}Starting the earlier stopped Highway containers${NC}"
   ${docker_compose} start
 }
 
