@@ -1,10 +1,18 @@
 # STRATO Getting Started release notes
 
-## 4.2.1
+## 4.3.1
 
 STRATO versions supported: v9.0+
 
-- Removed the OAUTH_ vars checks from identity script to comply with newer Identity Provider
+- Updated fetchlogs script to use python3
+- Removed the output of genesis block content in strato script
+- Removed flags for deprecated features of STRATO v8 and older
+
+## 4.3 (=4.2.1)
+
+STRATO versions supported: v9.0+
+
+- Added the Identity Provider support and the identity script
 
 ## 4.2.0
 
