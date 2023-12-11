@@ -61,8 +61,7 @@ sslCertFileType    - (default: pem) [pem|crt] the SSL certificate type and file 
 OAUTH_DISCOVERY_URL         - (required) OAuth provider's OpenID Connect discovery URL.
 OAUTH_CLIENT_ID             - (required) Client ID of OAuth provider valid for the future STRATO url (http(s)://<NODE_HOST>:<HTTP_PORT/HTTPS_PORT>).
 OAUTH_CLIENT_SECRET         - (required) Client Secret for the client ID specified.
-OAUTH_JWT_USER_ID_CLAIM     - DEPRECATED (default: 'sub') The name of claim (property) in JWT access token's payload, the value of which will be used as user name in STRATO, e.g. 'preferred_username', 'email', 'sub' etc.
-OAUTH_SCOPE                 - (default: 'openid email profile') The openid scopes used in session cookie verification (alter for custom OAUTH_JWT_USER_ID_CLAIM only, refer to your OAuth provider's documentation.)
+OAUTH_SCOPE                 - (default: 'openid email profile') The openid scopes used in session cookie verification
 OAUTH_VAULT_PROXY_ALT_CLIENT_ID     - (optional) Alternative client id to use in Vault Proxy within STRATO Core for Client Credentials Grant flow (used when Identity Provider does not support multiple grant flows on a single client (e.g. AWS Cognito))
 OAUTH_VAULT_PROXY_ALT_CLIENT_SECRET - (optional) Client secret for alternative client id
 VAULT_URL                   - (required) The URL of STRATO Vault in the format '<protocol>://<hostname>:<port>' (e.g. https://example.com or https://example.com:8090)

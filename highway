@@ -10,19 +10,19 @@ NC='\033[0m'
 function outputLogo {
 echo "
 
-███████ ████████ ██████   █████  ████████  ██████ 
-██         ██    ██   ██ ██   ██    ██    ██    ██
-███████    ██    ██████  ███████    ██    ██    ██
-     ██    ██    ██   ██ ██   ██    ██    ██    ██
-███████    ██    ██   ██ ██   ██    ██     ██████ 
-Highway Robbery!
+███████ ████████ ██████   █████  ████████  ██████      ██   ██ ██  ██████  ██   ██ ██     ██  █████  ██    ██ 
+██         ██    ██   ██ ██   ██    ██    ██    ██     ██   ██ ██ ██       ██   ██ ██     ██ ██   ██  ██  ██  
+███████    ██    ██████  ███████    ██    ██    ██     ███████ ██ ██   ███ ███████ ██  █  ██ ███████   ████   
+     ██    ██    ██   ██ ██   ██    ██    ██    ██     ██   ██ ██ ██    ██ ██   ██ ██ ███ ██ ██   ██    ██    
+███████    ██    ██   ██ ██   ██    ██     ██████      ██   ██ ██  ██████  ██   ██  ███ ███  ██   ██    ██    
+
 "
 }
 
 function help {
   outputLogo
-  echo -e "${BYellow}Identity server run script${NC}
-Kickstart a highway file server.
+  echo -e "${BYellow}Highway server run script${NC}
+Kickstart a highway server.
 
 ${Yellow}Optional flags:${NC}
 The entrypoints are mutually exclusive.
@@ -35,14 +35,14 @@ The entrypoints are mutually exclusive.
 --pull          - pull images used in docker-compose.highway.yml.
 
 ${Yellow}Environment variables:${NC}
-HTTP_PORT           - (default: 8090) Port for HTTP traffic listener.
-HTTPS_PORT          - (default: 8093) Port for HTTPS traffic listener; only used with ssl=true.
+HTTP_PORT           - (default: 80) Port for HTTP traffic listener.
+HTTPS_PORT          - (default: 443) Port for HTTPS traffic listener; only used with ssl=true.
+OAUTH_DISCOVERY_URL         - (required) OAuth provider's OpenID Connect discovery URL.
+OAUTH_CLIENT_ID             - (required) Client ID of OAuth provider valid for the future STRATO url (http(s)://<NODE_HOST>:<HTTP_PORT/HTTPS_PORT>).
+OAUTH_CLIENT_SECRET         - (required) Client Secret for the client ID specified.
+OAUTH_SCOPE                 - (default: 'openid email profile') The openid scopes used in session cookie verification
 ssl                 - (default: false) [true|false] to run the node with SSL/TLS.
 sslCertFileType     - (default: pem) [pem|crt] the SSL certificate type and file extension (should be accessible at ./ssl/certs/server.<sslCertFileType> at deploy time.)
-VAULT_URL           - (required) The URL of STRATO Vault in the format '<protocol>://<hostname>:<port>' (e.g. https://example.com or https://example.com:8090)
-SENDGRID_APIKEY     - (optional) API key to send welcome emails after registering a user
-
-${Yellow}Mounted volumes:${NC}
 "
 }
 
@@ -161,7 +161,8 @@ fi
 export sslCertFileType=${sslCertFileType:-pem}
 
 echo "" && echo "*** Common Config ***"
-echo "HIGHWAY_PORT: $HIGHWAY_PORT"
+echo "HTTP_PORT: $HTTP_PORT"
+echo "HTTPS_PORT: $HTTPS_PORT"
 echo "ssl: $ssl"
 echo "sslCertFileType: $sslCertFileType"
 
@@ -181,7 +182,7 @@ trap cleanup EXIT
 if [ "$ssl" != true ]; then
   sed -n '/#TAG_REMOVE_WHEN_NO_SSL/!p' docker-compose.highway.yml > docker-compose-highway-temp.yml
 else
-  if [ "$HTTPS_PORT" != "8093" ]; then
+  if [ "$HTTPS_PORT" != "443" ]; then
     sed -n '/#TAG_REMOVE_WHEN_SSL_CUSTOM_HTTPS_PORT/!p' docker-compose.highway.yml > docker-compose-highway-temp.yml
   else
     cp docker-compose.highway.yml docker-compose-highway-temp.yml
@@ -192,4 +193,4 @@ fi
 ${docker_compose} -f docker-compose-highway-temp.yml up -d --remove-orphans
 until curl --silent --output /dev/null --fail --insecure --location "${http_protocol}://localhost:${main_port}/_ping" ; do sleep 0.5; done
 
-echo -e "\n${Green}STRATO Identity Server has awoken. Check ${http_protocol}://your.hostname:${main_port}${NC}"
+echo -e "\n${Green}STRATO Highway Server has awoken. Check ${http_protocol}://your.hostname:${main_port}${NC}"
