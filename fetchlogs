@@ -1,7 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import argparse
-import exceptions
 import os
 import shutil
 import subprocess
@@ -32,9 +31,9 @@ def fetch_logs():
         compose_ps_output = subprocess.check_output(
             "%s ps --services" % DC_COMMAND,
             shell=True
-        ).split('\n')
+        ).decode('utf-8').split('\n')
         running_containers = ['strato%(sep)s%(service)s%(sep)s1' % {'service': service_name, 'sep': CNAME_SEP} for service_name in compose_ps_output if service_name]
-    except exceptions.Exception as e:
+    except Exception as e:
         sys.stderr.write('ERROR: Unable to fetch the currently running containers:\n%s' % e)
         sys.exit(7)
 
@@ -56,7 +55,7 @@ def fetch_logs():
             )
             try:
                 subprocess.check_output(docker_cp_command, shell=True)
-            except exceptions.Exception as e:
+            except Exception as e:
                 error_message = 'ERROR: Unable to fetch logs from %s container with error:\n%s' % (container_name, e)
                 sys.stderr.write('%s\n' % error_message)
                 create_text_file(os.path.join(current_container_logs_dir, '%s_error.txt' % container_subname),
@@ -69,7 +68,7 @@ def fetch_logs():
                     'docker logs %s > %s 2>&1' % (container_name, os.path.join(temp_dir_path, container_subname)),
                     shell=True
                 )
-            except exceptions.Exception as e:
+            except Exception as e:
                 error_message = 'ERROR: Unable to fetch logs of %s container with error:\n%s' % (container_name, e)
                 sys.stderr.write('%s\n' % error_message)
                 create_text_file(os.path.join(temp_dir_path, '%s_error.txt' % container_subname), error_message)
@@ -92,7 +91,7 @@ def fetch_logs():
                 ),
                 shell=True
             )
-        except exceptions.Exception as e:
+        except Exception as e:
             error_message = 'ERROR: unable to process the database dump with error:\n%s' % e
             sys.stderr.write('%s\n' % error_message)
             create_text_file(os.path.join(temp_dir_path, '%s_error.txt' % pgdump_filename), error_message)
@@ -107,7 +106,7 @@ def fetch_logs():
                 except OSError:
                     pass
             zip_logs(output_zip_name)
-        except exceptions.Exception as e:
+        except Exception as e:
             sys.stderr.write(
                 'ERROR: Unable to archive the directory %s into zip archive. Check the logs in directory: %s\nError:\n%s' % (
                     archive_output_dir,
@@ -117,7 +116,7 @@ def fetch_logs():
             sys.exit(9)
         try:
             shutil.rmtree(temp_dir_path)
-        except exceptions.Exception as e:
+        except Exception as e:
             sys.stderr.write(
                 'ERROR: Unable to clean the temporary directory (%s) with the error:\n%s\n' % (temp_dir_path, e))
 
@@ -126,7 +125,7 @@ def create_text_file(file_path, text):
     try:
         with open(file_path, "w") as f:
             f.write(text)
-    except exceptions.Exception as e:
+    except Exception as e:
         error_message = 'SCRIPT ERROR: unable to create file %s with an error: %s' % (file_path, e)
         sys.stderr.write('%s\n' % error_message)
         deferred_errors.append(error_message)
@@ -176,7 +175,7 @@ if __name__ == "__main__":
     if not os.path.isdir(archive_output_dir):
         try:
             os.makedirs(archive_output_dir)
-        except exceptions.Exception as e:
+        except Exception as e:
             sys.stderr.write('ERROR: Unable to create directory %s:\n%s' % (archive_output_dir, e))
             sys.exit(2)
     if not os.access(archive_output_dir, os.W_OK):
@@ -198,7 +197,7 @@ if __name__ == "__main__":
     else:
         if os.path.isfile(output_zip_path):
             error_message = 'Output zip file already exists (%s)' % os.path.abspath(output_zip_path)
-            overwrite_input = raw_input('%s, remove? (y/n): ' % error_message)[0].lower()
+            overwrite_input = input('%s, remove? (y/n): ' % error_message)[0].lower()
             if overwrite_input == 'y':
                 os.remove(output_zip_path)
             else:
@@ -208,7 +207,7 @@ if __name__ == "__main__":
             os.makedirs(temp_dir_path)
         except OSError as e:
             error_message = 'Temporary directory exists (%s)' % os.path.abspath(temp_dir_path)
-            overwrite_input = raw_input('%s, overwrite? (y/n): ' % error_message)[0].lower()
+            overwrite_input = input('%s, overwrite? (y/n): ' % error_message)[0].lower()
             if overwrite_input == 'y':
                 shutil.rmtree(temp_dir_path)
                 os.makedirs(temp_dir_path)
