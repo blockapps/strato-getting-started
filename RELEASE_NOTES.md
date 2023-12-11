@@ -1,5 +1,12 @@
 # STRATO Getting Started release notes
 
+## 4.4.0
+
+STRATO versions supported: v10.1+
+
+- Added Highway server deployment script
+- Removed the EXT_STORAGE vars from the 'strato' script
+
 ## 4.3.1
 
 STRATO versions supported: v9.0+
