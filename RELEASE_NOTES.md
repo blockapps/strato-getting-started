@@ -6,6 +6,7 @@ STRATO versions supported: v10.1+
 
 - Added Highway server deployment script
 - Removed the EXT_STORAGE vars from the 'strato' script
+- Minor fixes and formatting
 
 ## 4.3.1
 

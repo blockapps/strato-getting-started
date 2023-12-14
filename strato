@@ -333,7 +333,7 @@ echo "OAUTH_JWT_USER_ID_CLAIM: ${OAUTH_JWT_USER_ID_CLAIM:-not set (using default
 echo "OAUTH_SCOPE: ${OAUTH_SCOPE:-not set (using default)}"
 echo "VAULT_URL: ${VAULT_URL}"
 
-if [ ${node_type} = single ]
+if [ "${node_type}" == "single" ]
 then
   echo "" && echo -e "${BYellow}Running single node with PBFT-blockstanbul${NC}"
   export blockstanbul=true
@@ -383,7 +383,6 @@ echo "generateKey: $generateKey"
 echo "numMinPeers: $numMinPeers"
 echo "networkID: ${networkID:-unset - using default}"
 
-echo "" && echo "*** Genesis Block ***"
 if [[ -e "genesis-block.json" && -z ${genesis+x} ]]
 then
   export genesisBlock=$(< genesis-block.json)
