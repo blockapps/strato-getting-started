@@ -5,6 +5,7 @@
 STRATO versions supported: v10.1+
 
 - Added Highway server deployment script
+- Added Stripe PS deployment script
 - Removed the EXT_STORAGE vars from strato script
 - Removed the Stripe keys vars check from strato script
 - Minor fixes and formatting
