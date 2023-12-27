@@ -152,7 +152,7 @@ function fetchLogs {
   if [[ "$1" = withdb ]]; then
     withdb_flag="--db-dump"
   fi
-  python fetchlogs ${withdb_flag}
+  python3 fetchlogs ${withdb_flag}
 }
 
 if [ ! -f $(pwd)/strato ]; then
