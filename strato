@@ -67,6 +67,7 @@ VAULT_URL                   - (required) The URL of STRATO Vault in the format '
 Marketplace App variables:
 MP_IS_BOOTNODE                    - (default: false) [true|false] Whether or not to run the Markeplace in boot node mode or connect to the existing marketplace deployment based on address provided in MP_DAPP_ADDRESS
 MP_DAPP_ADDRESS                   - (default: c93f9a422a4508a6501a63537291128122f7bcf2) When in MP_IS_BOOTNODE=false mode, this address is used to connect to the existing Marketplace contract on the chain
+STRIPE_PAYMENT_SERVER_URL         - (required for STRATO versions bundled with Marketplace) - URL of payment server be used in the Marketplace App
 GLOBAL_ADMIN_NAME                 - (required for STRATO versions bundled with Marketplace and running in MP_IS_BOOTNODE=true mode)
 GLOBAL_ADMIN_PASSWORD             - (required for STRATO versions bundled with Marketplace and running in MP_IS_BOOTNODE=true mode)
 "
@@ -312,6 +313,10 @@ if grep "marketplace" docker-compose.yml > /dev/null; then
       echo -e "${Red}MP_IS_BOOTNODE=true but there were no GLOBAL_ADMIN_NAME or GLOBAL_ADMIN_PASSWORD values provided\nFor additional help see './strato --help${NC}"
       exit 15
     fi
+  fi
+  if [[ -z ${STRIPE_PAYMENT_SERVER_URL} ]] ; then
+    echo -e "${Red}STRIPE_PAYMENT_SERVER_URL is required for this STRATO version\nFor additional help see './strato --help'${NC}"
+    exit 16
   fi
 fi
 

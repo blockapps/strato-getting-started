@@ -8,6 +8,7 @@ STRATO versions supported: v10.1+
 - Added Stripe PS deployment script
 - Removed the EXT_STORAGE vars from strato script
 - Removed the Stripe keys vars check from strato script
+- Added the STRIPE_PAYMENT_SERVER_URL var as a required
 - Minor fixes and formatting
 
 ## 4.3.1
