@@ -2,7 +2,7 @@
 
 ## 4.4.0
 
-STRATO versions supported: v10.1+
+STRATO versions supported: v11.0+
 
 - Added Highway server deployment script
 - Added Stripe PS deployment script
