@@ -1,5 +1,16 @@
 # STRATO Getting Started release notes
 
+## 4.4.0
+
+STRATO versions supported: v11.0+
+
+- Added Highway server deployment script
+- Added Stripe PS deployment script
+- Removed the EXT_STORAGE vars from strato script
+- Removed the Stripe keys vars check from strato script
+- Added the STRIPE_PAYMENT_SERVER_URL var as a required
+- Minor fixes and formatting
+
 ## 4.3.1
 
 STRATO versions supported: v9.0+
