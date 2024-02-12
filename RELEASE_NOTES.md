@@ -1,5 +1,11 @@
 # STRATO Getting Started release notes
 
+## 4.4.1
+
+STRATO versions supported: v11.0+
+
+- Fixed the `./strato --wipe` returning the "could not find container" error if any of the containers are gone
+
 ## 4.4.0
 
 STRATO versions supported: v11.0+
