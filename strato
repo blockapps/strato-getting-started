@@ -56,18 +56,19 @@ blockstanbulAdmins - (default: []) Optional list of PBFT admins who can send vot
 validators         - (default: []) List of initial PBFT validators.
 ssl                - (default: false) [true|false] to run the node with SSL/TLS.
 sslCertFileType    - (default: pem) [pem|crt] the SSL certificate type and file extension (should be accessible at ./ssl/certs/server.<sslCertFileType> at deploy time.)
-OAUTH_DISCOVERY_URL         - (required) OAuth provider's OpenID Connect discovery URL.
+OAUTH_DISCOVERY_URL         - (can be derived by network) OAuth provider's OpenID Connect discovery URL.
 OAUTH_CLIENT_ID             - (required) Client ID of OAuth provider valid for the future STRATO url (http(s)://<NODE_HOST>:<HTTP_PORT/HTTPS_PORT>).
 OAUTH_CLIENT_SECRET         - (required) Client Secret for the client ID specified.
 OAUTH_SCOPE                 - (default: 'openid email profile') The openid scopes used in session cookie verification
 OAUTH_VAULT_PROXY_ALT_CLIENT_ID     - (optional) Alternative client id to use in Vault Proxy within STRATO Core for Client Credentials Grant flow (used when Identity Provider does not support multiple grant flows on a single client (e.g. AWS Cognito))
 OAUTH_VAULT_PROXY_ALT_CLIENT_SECRET - (optional) Client secret for alternative client id
-VAULT_URL                   - (required) The URL of STRATO Vault in the format '<protocol>://<hostname>:<port>' (e.g. https://example.com or https://example.com:8090)
+VAULT_URL                   - (default: https://vault.blockapps.net:8093) The URL of STRATO Vault in the format '<protocol>://<hostname>:<port>' (e.g. https://example.com or https://example.com:8090)
 
 Marketplace App variables:
 MP_IS_BOOTNODE                    - (default: false) [true|false] Whether or not to run the Markeplace in boot node mode or connect to the existing marketplace deployment based on address provided in MP_DAPP_ADDRESS
 MP_DAPP_ADDRESS                   - (default: c93f9a422a4508a6501a63537291128122f7bcf2) When in MP_IS_BOOTNODE=false mode, this address is used to connect to the existing Marketplace contract on the chain
-STRIPE_PAYMENT_SERVER_URL         - (required for STRATO versions bundled with Marketplace) - URL of payment server be used in the Marketplace App
+STRIPE_PAYMENT_SERVER_URL         - (can be derived by network) URL of payment server be used in the Marketplace App
+FILE_SERVER_URL                   - (can be derived by network) URL of file server be used in the Marketplace App
 GLOBAL_ADMIN_NAME                 - (required for STRATO versions bundled with Marketplace and running in MP_IS_BOOTNODE=true mode)
 GLOBAL_ADMIN_PASSWORD             - (required for STRATO versions bundled with Marketplace and running in MP_IS_BOOTNODE=true mode)
 "
@@ -296,14 +297,9 @@ export sslCertFileType=${sslCertFileType:-pem}
 export NODE_NAME=${NODE_NAME:-$NODE_HOST}
 export isAdmin=${isAdmin:-true}
 
-if [[ -z ${OAUTH_DISCOVERY_URL} || -z ${OAUTH_CLIENT_ID} || -z ${OAUTH_CLIENT_SECRET} ]] ; then
-  echo -e "${Red}OAUTH_DISCOVERY_URL, OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET are required\nFor additional help see './strato --help'${NC}"
+if [[ -z ${OAUTH_CLIENT_ID} || -z ${OAUTH_CLIENT_SECRET} ]] ; then
+  echo -e "${Red} OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET are required\nFor additional help see './strato --help'${NC}"
   exit 13
-fi
-
-if [[ -z ${VAULT_URL} ]] ; then
-  echo -e "${Red}VAULT_URL is a required variable\nFor additional help see './strato --help'${NC}"
-  exit 26
 fi
 
 # Additional env vars check for version of STRATO with marketplace
@@ -313,10 +309,6 @@ if grep "marketplace" docker-compose.yml > /dev/null; then
       echo -e "${Red}MP_IS_BOOTNODE=true but there were no GLOBAL_ADMIN_NAME or GLOBAL_ADMIN_PASSWORD values provided\nFor additional help see './strato --help${NC}"
       exit 15
     fi
-  fi
-  if [[ -z ${STRIPE_PAYMENT_SERVER_URL} ]] ; then
-    echo -e "${Red}STRIPE_PAYMENT_SERVER_URL is required for this STRATO version\nFor additional help see './strato --help'${NC}"
-    exit 16
   fi
 fi
 
