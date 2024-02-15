@@ -1,0 +1,2 @@
+./strato --compose
+./strato --pull
