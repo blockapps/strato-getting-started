@@ -177,7 +177,8 @@ else
     docker_compose="docker-compose -p strato --log-level ERROR"
     CNAME_SEP="_"
   else
-    docker_compose="docker compose -p strato"
+    # The `-f docker-compose.yml` is required for the command to work correctly despite it's the default (docker bug?)
+    docker_compose="docker compose -p strato -f docker-compose.yml"
     CNAME_SEP="-"
   fi
 fi
