@@ -4,6 +4,7 @@
 
 STRATO versions supported: v11.0+
 
+- Fixed the support for Compose V2 as a plugin when no docker-compose executable is available
 - Fixed the `./strato --wipe` returning the "could not find container" error if any of the containers are gone
 
 ## 4.4.0
