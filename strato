@@ -167,7 +167,7 @@ then
     exit 1
 fi
 
-if ! docker compose version && ! docker-compose -v  &> /dev/null
+if ! docker compose version  &> /dev/null && ! docker-compose -v  &> /dev/null
 then
     echo -e "${Red}Error: docker-compose is required: https://docs.docker.com/compose/install/"
     exit 2
