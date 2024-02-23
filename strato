@@ -62,7 +62,7 @@ OAUTH_CLIENT_SECRET         - (required) Client Secret for the client ID specifi
 OAUTH_SCOPE                 - (default: 'openid email profile') The openid scopes used in session cookie verification
 OAUTH_VAULT_PROXY_ALT_CLIENT_ID     - (optional) Alternative client id to use in Vault Proxy within STRATO Core for Client Credentials Grant flow (used when Identity Provider does not support multiple grant flows on a single client (e.g. AWS Cognito))
 OAUTH_VAULT_PROXY_ALT_CLIENT_SECRET - (optional) Client secret for alternative client id
-VAULT_URL                   - (default: https://vault.blockapps.net:8093) The URL of STRATO Vault in the format '<protocol>://<hostname>:<port>' (e.g. https://example.com or https://example.com:8090)
+VAULT_URL                   - (default: BlockApps Vault) The URL of STRATO Vault in the format '<protocol>://<hostname>:<port>' (e.g. https://example.com or https://example.com:8090)
 
 Marketplace App variables:
 MP_IS_BOOTNODE                    - (default: false) [true|false] Whether or not to run the Markeplace in boot node mode or connect to the existing marketplace deployment based on address provided in MP_DAPP_ADDRESS
