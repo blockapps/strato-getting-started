@@ -175,11 +175,13 @@ then
 else
   if ! docker compose version &> /dev/null
   then
-    docker_compose="docker-compose -p strato --log-level ERROR"
+    marketplace_enabled=$(if [[ ${DISABLE_MARKETPLACE} = true ]]; then echo ""; else echo "--profile marketplace"; fi)
+    docker_compose="docker-compose ${marketplace_enabled} -p strato --log-level ERROR"
     CNAME_SEP="_"
   else
     # The `-f docker-compose.yml` is required for the command to work correctly despite it's the default (docker bug?)
-    docker_compose="docker -l error compose -p strato -f docker-compose.yml"
+    docker_compose="docker -l ${marketplace_enabled} error compose -p strato -f docker-compose.yml"
+    marketplace_enabled=$(if [[ ${DISABLE_MARKETPLACE} = true ]]; then echo ""; else echo "--profile marketplace"; fi)
     CNAME_SEP="-"
   fi
 fi
