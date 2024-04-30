@@ -66,6 +66,7 @@ VAULT_URL                   - (default: BlockApps Vault) The URL of STRATO Vault
 
 Marketplace App variables:
 MP_IS_BOOTNODE                    - (default: false) [true|false] Whether or not to run the Markeplace in boot node mode or connect to the existing marketplace deployment based on address provided in MP_DAPP_ADDRESS
+DISABLE_MARKETPLACE               - (default: false) [true|false] Whether or not to run the Marketplace backend & UI containers
 MP_DAPP_ADDRESS                   - (default: c93f9a422a4508a6501a63537291128122f7bcf2) When in MP_IS_BOOTNODE=false mode, this address is used to connect to the existing Marketplace contract on the chain
 STRIPE_PAYMENT_SERVER_URL         - (can be derived by network) URL of payment server be used in the Marketplace App
 FILE_SERVER_URL                   - (can be derived by network) URL of file server be used in the Marketplace App
