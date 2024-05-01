@@ -66,7 +66,7 @@ VAULT_URL                   - (default: BlockApps Vault) The URL of STRATO Vault
 
 Marketplace App variables:
 MP_IS_BOOTNODE                    - (default: false) [true|false] Whether or not to run the Markeplace in boot node mode or connect to the existing marketplace deployment based on address provided in MP_DAPP_ADDRESS
-DISABLE_MARKETPLACE               - (default: false) [true|false] Whether or not to run the Marketplace backend & UI containers
+MP_DISABLED               - (default: false) [true|false] Whether or not to run the Marketplace backend & UI containers
 MP_DAPP_ADDRESS                   - (default: c93f9a422a4508a6501a63537291128122f7bcf2) When in MP_IS_BOOTNODE=false mode, this address is used to connect to the existing Marketplace contract on the chain
 STRIPE_PAYMENT_SERVER_URL         - (can be derived by network) URL of payment server be used in the Marketplace App
 FILE_SERVER_URL                   - (can be derived by network) URL of file server be used in the Marketplace App
@@ -169,6 +169,7 @@ then
     exit 1
 fi
 
+marketplace_enabled=$(if [[ ${MP_DISABLED} = true ]]; then echo ""; else echo "--profile marketplace"; fi)
 if ! docker compose version  &> /dev/null && ! docker-compose -v  &> /dev/null
 then
     echo -e "${Red}Error: docker-compose is required: https://docs.docker.com/compose/install/"
@@ -176,13 +177,11 @@ then
 else
   if ! docker compose version &> /dev/null
   then
-    marketplace_enabled=$(if [[ ${DISABLE_MARKETPLACE} = true ]]; then echo ""; else echo "--profile marketplace"; fi)
     docker_compose="docker-compose ${marketplace_enabled} -p strato --log-level ERROR"
     CNAME_SEP="_"
   else
     # The `-f docker-compose.yml` is required for the command to work correctly despite it's the default (docker bug?)
     docker_compose="docker -l ${marketplace_enabled} error compose -p strato -f docker-compose.yml"
-    marketplace_enabled=$(if [[ ${DISABLE_MARKETPLACE} = true ]]; then echo ""; else echo "--profile marketplace"; fi)
     CNAME_SEP="-"
   fi
 fi
