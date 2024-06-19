@@ -56,6 +56,8 @@ blockstanbulAdmins - (default: []) Optional list of PBFT admins who can send vot
 validators         - (default: []) List of initial PBFT validators.
 ssl                - (default: false) [true|false] to run the node with SSL/TLS.
 sslCertFileType    - (default: pem) [pem|crt] the SSL certificate type and file extension (should be accessible at ./ssl/certs/server.<sslCertFileType> at deploy time.)
+STRATO_MODE                 - Flag to select STRATO mode (FULL, SERVER, and CLIENT are currently supported)
+AUTH_MODE                   - Flag to select authorization mode (OAUTH and PEM are currently supported)
 OAUTH_DISCOVERY_URL         - (can be derived by network) OAuth provider's OpenID Connect discovery URL.
 OAUTH_CLIENT_ID             - (required) Client ID of OAuth provider valid for the future STRATO url (http(s)://<NODE_HOST>:<HTTP_PORT/HTTPS_PORT>).
 OAUTH_CLIENT_SECRET         - (required) Client Secret for the client ID specified.
@@ -157,6 +159,17 @@ function fetchLogs {
   python3 fetchlogs ${withdb_flag}
 }
 
+if [ "${STRATO_MODE}" = "SERVER" ]; then
+    docker_compose_network_suffix="-server"
+    docker_compose_file_suffix=".server"
+elif [ "${STRATO_MODE}" = "CLIENT" ]; then
+    docker_compose_network_suffix="-client"
+    docker_compose_file_suffix=".client"
+else
+    docker_compose_network_suffix=""
+    docker_compose_file_suffix=""
+fi
+
 if [ ! -f $(pwd)/strato ]; then
     echo -e "${Red}Should be run from within the strato-getting-started directory. Exit.${NC}"
     exit 4
@@ -175,11 +188,11 @@ then
 else
   if ! docker compose version &> /dev/null
   then
-    docker_compose="docker-compose -p strato --log-level ERROR"
+    docker_compose="docker-compose -p strato${docker_compose_network_suffix} --log-level ERROR"
     CNAME_SEP="_"
   else
     # The `-f docker-compose.yml` is required for the command to work correctly despite it's the default (docker bug?)
-    docker_compose="docker -l error compose -p strato -f docker-compose.yml"
+    docker_compose="docker -l error compose -p strato${docker_compose_network_suffix} -f docker-compose${docker_compose_file_suffix}.yml"
     CNAME_SEP="-"
   fi
 fi
@@ -263,7 +276,7 @@ if [ ! -f docker-compose.yml ]
 then
   getCompose
 else
-  echo -e "${BYellow}Using the existing docker-compose.yml (to download the most recent stable version - remove the file and restart the script)${NC}"
+  echo -e "${BYellow}Using the existing docker-compose${docker_compose_file_suffix}.yml (to download the most recent stable version - remove the file and restart the script)${NC}"
 fi
 
 STRATOGS_REQUIRED_VERSION=$(grep strato-getting-started-min-version docker-compose.yml | awk -F":" '{print $NF}')
@@ -271,7 +284,7 @@ if [ ${STRATOGS_REQUIRED_VERSION} ]; then
   STRATOGS_CURRENT_VERSION=$(< VERSION)
   if ! awk -v VER=${STRATOGS_CURRENT_VERSION//.} -v REQ_VER=${STRATOGS_REQUIRED_VERSION//.} 'BEGIN {exit (VER < REQ_VER)}'
   then
-      echo -e "${Red}The STRATO version from docker-compose.yml is incompatible with this strato-getting-started. Please update to v${STRATOGS_REQUIRED_VERSION}."
+      echo -e "${Red}The STRATO version from docker-compose${docker_compose_file_suffix}.yml is incompatible with this strato-getting-started. Please update to v${STRATOGS_REQUIRED_VERSION}."
       exit 12
   fi
 fi
@@ -298,7 +311,7 @@ export sslCertFileType=${sslCertFileType:-pem}
 export NODE_NAME=${NODE_NAME:-$NODE_HOST}
 export isAdmin=${isAdmin:-true}
 
-if [[ -z ${OAUTH_CLIENT_ID} || -z ${OAUTH_CLIENT_SECRET} ]] ; then
+if [[ ${AUTH_MODE} = "OAUTH" && (-z ${OAUTH_CLIENT_ID} || -z ${OAUTH_CLIENT_SECRET}) ]] ; then
   echo -e "${Red} OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET are required\nFor additional help see './strato --help'${NC}"
   exit 13
 fi
@@ -320,6 +333,8 @@ echo "HTTPS_PORT: $HTTPS_PORT"
 echo "ssl: $ssl"
 echo "sslCertFileType: $sslCertFileType"
 echo "NODE_NAME: $NODE_NAME"
+echo "STRATO_MODE: ${STRATO_MODE:-FULL}"
+echo "AUTH_MODE: ${AUTH_MODE:-OAUTH}"
 echo "OAUTH_DISCOVERY_URL: ${OAUTH_DISCOVERY_URL:-not set}"
 echo "OAUTH_CLIENT_ID: $(if [ -z ${OAUTH_CLIENT_ID} ]; then echo "not set"; else echo "is set"; fi)"
 echo "OAUTH_CLIENT_SECRET: $(if [ -z ${OAUTH_CLIENT_SECRET} ]; then echo "not set"; else echo "is set"; fi)"
@@ -407,12 +422,12 @@ function cleanup {
 trap cleanup EXIT
 
 if [ "$ssl" != true ]; then
-  sed -n '/#TAG_REMOVE_WHEN_NO_SSL/!p' docker-compose.yml > docker-compose-temp.yml
+  sed -n '/#TAG_REMOVE_WHEN_NO_SSL/!p' docker-compose${docker_compose_file_suffix}.yml > docker-compose-temp.yml
 else
   if [ ${HTTPS_PORT} != "443" ]; then
-    sed -n '/#TAG_REMOVE_WHEN_SSL_CUSTOM_HTTPS_PORT/!p' docker-compose.yml > docker-compose-temp.yml
+    sed -n '/#TAG_REMOVE_WHEN_SSL_CUSTOM_HTTPS_PORT/!p' docker-compose${docker_compose_file_suffix}.yml > docker-compose-temp.yml
   else
-    cp docker-compose.yml docker-compose-temp.yml
+    cp docker-compose${docker_compose_file_suffix}.yml docker-compose-temp.yml
   fi
 fi
 # END OF COMPOSE FILE PRE-PROCESSING
