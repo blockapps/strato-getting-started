@@ -188,7 +188,7 @@ then
 else
   if ! docker compose version &> /dev/null
   then
-    docker_compose="docker-compose -p strato${docker_compose_network_suffix} --log-level ERROR"
+    docker_compose="docker-compose -p strato${docker_compose_network_suffix}"
     CNAME_SEP="_"
   else
     # The `-f docker-compose.yml` is required for the command to work correctly despite it's the default (docker bug?)
@@ -327,7 +327,8 @@ if [[ "${AUTH_MODE}" = "PEM" ]] ; then
   if [[ -z ${MERCATA_USERNAME} ]]; then
     SKIP_IDENTITY=true
   else
-    DEFAULT_PEM_FILE="/home/${USERNAME}/.ssh/strato.pem"
+    LOGNAME=$(logname)
+    DEFAULT_PEM_FILE="/home/${LOGNAME}/.ssh/strato.pem"
     PEM_FILE=${PEM_FILE:-$DEFAULT_PEM_FILE}
     export PEM_FILE=${PEM_FILE}
     if [[ ! -f "${PEM_FILE}" ]]; then
