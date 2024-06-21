@@ -311,9 +311,32 @@ export sslCertFileType=${sslCertFileType:-pem}
 export NODE_NAME=${NODE_NAME:-$NODE_HOST}
 export isAdmin=${isAdmin:-true}
 
-if [[ ${AUTH_MODE} = "OAUTH" && (-z ${OAUTH_CLIENT_ID} || -z ${OAUTH_CLIENT_SECRET}) ]] ; then
+if [[ "${AUTH_MODE}" = "OAUTH" && (-z ${OAUTH_CLIENT_ID} || -z ${OAUTH_CLIENT_SECRET}) ]] ; then
   echo -e "${Red} OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET are required\nFor additional help see './strato --help'${NC}"
   exit 13
+fi
+
+if [[ "${AUTH_MODE}" = "PEM" ]] ; then
+  if [[ -z "${MERCATA_USERNAME}" ]]; then
+    echo
+    echo -n "Please enter a username: "
+    read USERNAMEA
+    MERCATA_USERNAME=${USERNAMEA}
+    export MERCATA_USERNAME=${MERCATA_USERNAME}
+  fi
+  if [[ -z ${MERCATA_USERNAME} ]]; then
+    SKIP_IDENTITY=true
+  else
+    DEFAULT_PEM_FILE="/home/${USERNAME}/.ssh/strato.pem"
+    PEM_FILE=${PEM_FILE:-$DEFAULT_PEM_FILE}
+    export PEM_FILE=${PEM_FILE}
+    if [[ ! -f "${PEM_FILE}" ]]; then
+      openssl ecparam -name secp256k1 -genkey -noout -out ${PEM_FILE}
+    else
+      SKIP_IDENTITY=true
+    fi
+  fi
+  export SKIP_IDENTITY=${SKIP_IDENTITY}
 fi
 
 # Additional env vars check for version of STRATO with marketplace
