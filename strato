@@ -289,7 +289,6 @@ if [ ${STRATOGS_REQUIRED_VERSION} ]; then
   fi
 fi
 
-export NODE_HOST=${NODE_HOST:-localhost}
 export HTTP_PORT=${HTTP_PORT:-80}
 export HTTPS_PORT=${HTTPS_PORT:-443}
 export ssl=${ssl:-false}
@@ -308,7 +307,6 @@ else
   #fi
 fi
 export sslCertFileType=${sslCertFileType:-pem}
-export NODE_NAME=${NODE_NAME:-$NODE_HOST}
 export isAdmin=${isAdmin:-true}
 
 if [[ "${AUTH_MODE}" = "OAUTH" && (-z ${OAUTH_CLIENT_ID} || -z ${OAUTH_CLIENT_SECRET}) ]] ; then
@@ -317,27 +315,63 @@ if [[ "${AUTH_MODE}" = "OAUTH" && (-z ${OAUTH_CLIENT_ID} || -z ${OAUTH_CLIENT_SE
 fi
 
 if [[ "${AUTH_MODE}" = "PEM" ]] ; then
-  if [[ -z "${MERCATA_USERNAME}" ]]; then
-    echo
-    echo -n "Please enter a username: "
-    read USERNAMEA
-    MERCATA_USERNAME=${USERNAMEA}
-    export MERCATA_USERNAME=${MERCATA_USERNAME}
-  fi
-  if [[ -z ${MERCATA_USERNAME} ]]; then
-    SKIP_IDENTITY=true
-  else
-    LOGNAME=$(logname)
-    DEFAULT_PEM_FILE="/home/${LOGNAME}/.ssh/strato.pem"
-    PEM_FILE=${PEM_FILE:-$DEFAULT_PEM_FILE}
-    export PEM_FILE=${PEM_FILE}
-    if [[ ! -f "${PEM_FILE}" ]]; then
-      openssl ecparam -name secp256k1 -genkey -noout -out ${PEM_FILE}
+  LOGNAME=$(logname)
+  DEFAULT_PEM_FILE="/home/${LOGNAME}/.ssh/strato.pem"
+  PEM_FILE=${PEM_FILE:-$DEFAULT_PEM_FILE}
+  export PEM_FILE=${PEM_FILE}
+  if [[ ! -f "${PEM_FILE}" ]]; then
+    if [ "$ssl" = true ]; then
+      if [[ -z "${NODE_HOST}" ]]; then
+	echo
+	echo -n "Please enter the server's hostname: "
+        read HOSTNAMEA
+        NODE_HOST=${HOSTNAMEA}
+        export NODE_HOST=${NODE_HOST}
+        export NODE_NAME=${NODE_NAME:-$NODE_HOST}
+      fi
+      if [[ -z "${ADMIN_EMAIL}" ]]; then
+        echo -n "Please enter the admin's email address: "
+        read ADMINEMAILA
+        ADMIN_EMAIL=${ADMINEMAILA}
+        export ADMIN_EMAIL=${ADMIN_EMAIL}
+      fi
+      sslParam="-v ./ssl/certs/server.pem:/ssl.pem"
+      git clone https://github.com/blockapps/letsencrypt-tool
+      pushd letsencrypt-tool
+      if HOST_NAME=$NODE_HOST ADMIN_EMAIL=$ADMIN_EMAIL DEST_PATHS='temp' ./get-first-cert.sh; then
+        cp letsencrypt-data/etc/letsencrypt/live/$NODE_HOST/fullchain.pem ../ssl/certs/server.pem
+        cp letsencrypt-data/etc/letsencrypt/live/$NODE_HOST/privkey.pem ../ssl/private/server.key
+        popd
+        sudo rm -rf letsencrypt-tool
+      else
+        popd
+        sudo rm -rf letsencrypt-tool
+        exit 30
+      fi
     else
-      SKIP_IDENTITY=true
+      sslParam=""
+      if [[ -z "${MERCATA_USERNAME}" ]]; then
+        echo
+        echo -n "Please enter a username: "
+        read USERNAMEA
+        MERCATA_USERNAME=${USERNAMEA}
+        export MERCATA_USERNAME=${MERCATA_USERNAME}
+      fi
+    fi
+    echo "${PEM_FILE} does not exist, creating new private key"
+    openssl ecparam -name secp256k1 -genkey -noout -out ${PEM_FILE}
+    signedCert=$(docker run -e MERCATA_USERNAME=${MERCATA_USERNAME} -v ${PEM_FILE}:/priv.pem ${sslParam} $(cat docker-compose.subject-signing-tool.yml | grep IMAGE | cut -d '-' -f 2- | cut -d '}' -f 1))
+    echo "Registering X.509 certificate at ${idServerUrl}"
+    curlResponse=$(curl -X POST "${idServerUrl}/identity" -H 'Content-Type: application/json' -d "${signedCert}")
+    echo $curlResponse
+    if ! echo $curlResponse | grep BEGIN; then
+      echo "X.509 certificate registration failed"
+      exit 31
     fi
   fi
-  export SKIP_IDENTITY=${SKIP_IDENTITY}
+else
+  export NODE_HOST=${NODE_HOST:-localhost}
+  export NODE_NAME=${NODE_NAME:-$NODE_HOST}
 fi
 
 # Additional env vars check for version of STRATO with marketplace
@@ -364,6 +398,7 @@ echo "OAUTH_CLIENT_ID: $(if [ -z ${OAUTH_CLIENT_ID} ]; then echo "not set"; else
 echo "OAUTH_CLIENT_SECRET: $(if [ -z ${OAUTH_CLIENT_SECRET} ]; then echo "not set"; else echo "is set"; fi)"
 echo "OAUTH_JWT_USER_ID_CLAIM: ${OAUTH_JWT_USER_ID_CLAIM:-not set (using default)}"
 echo "OAUTH_SCOPE: ${OAUTH_SCOPE:-not set (using default)}"
+echo "SERVER_NODE_URL: ${SERVER_NODE_URL:-not set}"
 echo "VAULT_URL: ${VAULT_URL}"
 
 if [ "${node_type}" == "single" ]
