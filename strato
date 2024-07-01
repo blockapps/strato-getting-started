@@ -99,6 +99,9 @@ function start {
 function getCompose {
   echo -e "${Yellow}Downloading the latest stable version of docker-compose.yml...${NC}"
   curl -fLo docker-compose.yml https://github.com/blockapps/strato-getting-started/releases/download/$(curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | grep -om1 '"/blockapps/strato-getting-started/releases/tag/[^"]*' | grep -oE "[^/]+$")/docker-compose.yml
+  curl -fLo docker-compose.server.yml https://github.com/blockapps/strato-getting-started/releases/download/$(curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | grep -om1 '"/blockapps/strato-getting-started/releases/tag/[^"]*' | grep -oE "[^/]+$")/docker-compose.server.yml
+  curl -fLo docker-compose.client.yml https://github.com/blockapps/strato-getting-started/releases/download/$(curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | grep -om1 '"/blockapps/strato-getting-started/releases/tag/[^"]*' | grep -oE "[^/]+$")/docker-compose.client.yml
+  curl -fLo docker-compose.subject-signing-tool.yml https://github.com/blockapps/strato-getting-started/releases/download/$(curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | grep -om1 '"/blockapps/strato-getting-started/releases/tag/[^"]*' | grep -oE "[^/]+$")/docker-compose.subject-signing-tool.yml
   echo -e "${Yellow}docker-compose.yml downloaded successfully.${NC}"
 }
 
@@ -159,16 +162,18 @@ function fetchLogs {
   python3 fetchlogs ${withdb_flag}
 }
 
-if [ "${STRATO_MODE}" = "SERVER" ]; then
-    docker_compose_network_suffix="-server"
-    docker_compose_file_suffix=".server"
-elif [ "${STRATO_MODE}" = "CLIENT" ]; then
-    docker_compose_network_suffix="-client"
-    docker_compose_file_suffix=".client"
-else
-    docker_compose_network_suffix=""
-    docker_compose_file_suffix=""
-fi
+function setSuffixes {
+  if [ "${STRATO_MODE}" = "SERVER" ]; then
+      docker_compose_network_suffix="-server"
+      docker_compose_file_suffix=".server"
+  elif [ "${STRATO_MODE}" = "CLIENT" ]; then
+      docker_compose_network_suffix="-client"
+      docker_compose_file_suffix=".client"
+  else
+      docker_compose_network_suffix=""
+      docker_compose_file_suffix=""
+  fi
+}
 
 if [ ! -f $(pwd)/strato ]; then
     echo -e "${Red}Should be run from within the strato-getting-started directory. Exit.${NC}"
@@ -181,21 +186,26 @@ then
     exit 1
 fi
 
-if ! docker compose version  &> /dev/null && ! docker-compose -v  &> /dev/null
-then
-    echo -e "${Red}Error: docker-compose is required: https://docs.docker.com/compose/install/"
-    exit 2
-else
-  if ! docker compose version &> /dev/null
+function mkDockerComposeCommand {
+  setSuffixes
+  if ! docker compose version  &> /dev/null && ! docker-compose -v  &> /dev/null
   then
-    docker_compose="docker-compose -p strato${docker_compose_network_suffix}"
-    CNAME_SEP="_"
+      echo -e "${Red}Error: docker-compose is required: https://docs.docker.com/compose/install/"
+      exit 2
   else
-    # The `-f docker-compose.yml` is required for the command to work correctly despite it's the default (docker bug?)
-    docker_compose="docker -l error compose -p strato${docker_compose_network_suffix} -f docker-compose${docker_compose_file_suffix}.yml"
-    CNAME_SEP="-"
+    if ! docker compose version &> /dev/null
+    then
+      docker_compose="docker-compose -p strato${docker_compose_network_suffix}"
+      CNAME_SEP="_"
+    else
+      # The `-f docker-compose.yml` is required for the command to work correctly despite it's the default (docker bug?)
+      docker_compose="docker -l error compose -p strato${docker_compose_network_suffix} -f docker-compose${docker_compose_file_suffix}.yml"
+      CNAME_SEP="-"
+    fi
   fi
-fi
+}
+
+mkDockerComposeCommand
 
 while [ ${#} -gt 0 ]; do
   case "${1}" in
@@ -222,6 +232,26 @@ while [ ${#} -gt 0 ]; do
   --wipe)
     wipe
     exit 0
+    ;;
+  --wipe-all)
+    export STRATO_MOD="FULL"
+    mkDockerComposeCommand
+    wipe
+    export STRATO_MODE="CLIENT"
+    mkDockerComposeCommand
+    wipe
+    export STRATO_MODE="SERVER"
+    mkDockerComposeCommand
+    wipe
+    exit 0
+    ;;
+  --client)
+    export STRATO_MODE="CLIENT"
+    mkDockerComposeCommand
+    ;;
+  --server)
+    export STRATO_MODE="SERVER"
+    mkDockerComposeCommand
     ;;
   --single)
     node_type=single
@@ -272,14 +302,14 @@ done
 
 outputLogo
 
-if [ ! -f docker-compose.yml ]
+if [ ! -f docker-compose${docker_compose_file_suffix}.yml ]
 then
   getCompose
 else
   echo -e "${BYellow}Using the existing docker-compose${docker_compose_file_suffix}.yml (to download the most recent stable version - remove the file and restart the script)${NC}"
 fi
 
-STRATOGS_REQUIRED_VERSION=$(grep strato-getting-started-min-version docker-compose.yml | awk -F":" '{print $NF}')
+STRATOGS_REQUIRED_VERSION=$(grep strato-getting-started-min-version docker-compose${docker_compose_file_suffix}.yml | awk -F":" '{print $NF}')
 if [ ${STRATOGS_REQUIRED_VERSION} ]; then
   STRATOGS_CURRENT_VERSION=$(< VERSION)
   if ! awk -v VER=${STRATOGS_CURRENT_VERSION//.} -v REQ_VER=${STRATOGS_REQUIRED_VERSION//.} 'BEGIN {exit (VER < REQ_VER)}'
@@ -369,13 +399,13 @@ if [[ "${AUTH_MODE}" = "PEM" ]] ; then
       exit 31
     fi
   fi
-else
-  export NODE_HOST=${NODE_HOST:-localhost}
-  export NODE_NAME=${NODE_NAME:-$NODE_HOST}
 fi
 
+export NODE_HOST=${NODE_HOST:-localhost}
+export NODE_NAME=${NODE_NAME:-$NODE_HOST}
+
 # Additional env vars check for version of STRATO with marketplace
-if grep "marketplace" docker-compose.yml > /dev/null; then
+if grep "marketplace" docker-compose${docker_compose_file_suffix}.yml > /dev/null; then
   if [ "${MP_IS_BOOTNODE}" = "true" ]; then
     if [[ -z ${GLOBAL_ADMIN_NAME} || -z ${GLOBAL_ADMIN_PASSWORD} ]] ; then
       echo -e "${Red}MP_IS_BOOTNODE=true but there were no GLOBAL_ADMIN_NAME or GLOBAL_ADMIN_PASSWORD values provided\nFor additional help see './strato --help${NC}"

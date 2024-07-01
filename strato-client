@@ -1,1 +1,0 @@
-STRATO_MODE=CLIENT ./strato "$@"
