@@ -1,5 +1,14 @@
 # STRATO Getting Started release notes
 
+## 4.5.0
+
+STRATO versions supported: v11.3.1+
+
+- Renamed `stripe-ps` script to `payment-server`
+
+## 4.4.2
+- Updated the fetchlogs to include the timestamps in docker container logs
+
 ## 4.4.1
 
 STRATO versions supported: v11.0+
