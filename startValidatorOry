@@ -1,0 +1,97 @@
+
+set -e
+set -o pipefail
+
+
+#######################
+# Change these values #
+#######################
+
+adminPassword="blockapps"
+password="blockapps"
+email="test@email.com"
+
+domain_name=blockchainhaberdasher.com
+
+#########################################################
+# done modifying, don't change anything below this line #
+#########################################################
+
+base=https://${domain_name}
+
+oryBaseURL=$base:4444
+vaultURL="$base:8043"
+
+ory-init ory --ssldir=~/ssl --domainname=${domain_name}
+
+( cd ory && docker compose up -d )
+
+sleep 10
+
+########################################
+# Populate Ory, create client and user #
+########################################
+
+hydraAdminIPAddress=`docker network inspect ory_default | jq -r ' .[].Containers[] | select(.Name=="ory-hydra-1").IPv4Address ' | perl -pe "s/\/.*//"`
+kratosAdminIPAddress=`docker network inspect ory_default | jq -r ' .[].Containers[] | select(.Name=="ory-kratos-1").IPv4Address ' | perl -pe "s/\/.*//"`
+oryAdminBaseURL=http://$hydraAdminIPAddress:4445
+kratosAdminBaseURL=http://$kratosAdminIPAddress:4434
+
+echo "oryAdminBaseURL=$oryAdminBaseURL"
+echo "kratosAdminBaseURL=$kratosAdminBaseURL"
+
+
+
+curl $oryAdminBaseURL/admin/clients
+
+client=`curl -d '{"client_id": "'$domain_name'", "grant_types": ["client_credentials", "authorization_code"],"redirect_uris": ["'$base'/auth/openidc/return"], "token_endpoint_auth_method":"client_secret_basic", "scope": "openid email profile"}' $oryAdminBaseURL/admin/clients`
+
+user=`curl -d '{"credentials":{"password": {"config": {"password": "'$password'"}}}, "traits": {"email": "'$email'"}}' $kratosAdminBaseURL/admin/identities`
+
+echo "======================="
+
+echo -n "user created: "
+echo $user | jq ".credentials.password.identifiers"
+
+client_id=`echo $client | perl -pe "s/.*\"client_id\"://" | perl -pe "s/,.*//" | perl -pe "s/\"//g"`
+
+client_secret=`echo $client | perl -pe "s/.*\"client_secret\"://" | perl -pe "s/,.*//" | perl -pe "s/\"//g"`
+
+echo "client_id: $client_id"
+echo "client_secret: $client_secret"
+
+sleep 3
+
+# you can cat a token this way:
+curl --fail -u "$client_id:$client_secret" -d "grant_type=client_credentials" $oryBaseURL/oauth2/token | jq .
+
+oauthDiscovery=$oryBaseURL/.well-known/openid-configuration
+
+###############
+# Start Vault #
+###############
+
+HTTP_PORT=8000 \
+    ssl=true \
+    HTTPS_PORT=8043 \
+    INITIAL_OAUTH_DISCOVERY_URL="$oauthDiscovery" \
+    INITIAL_OAUTH_ISSUER="$oryBaseURL" \
+    PASSWORD=abcd \
+    ./vault
+
+################
+# Start STRATO #
+################
+
+sleep 10
+
+NODE_HOST="${domain_name}" \
+    ssl=true \
+    OAUTH_DISCOVERY_URL="$oauthDiscovery" \
+    OAUTH_CLIENT_ID="$client_id" \
+    OAUTH_CLIENT_SECRET="$client_secret" \
+    VAULT_URL="$vaultURL" \
+    sqlDiff=false \
+    maxConn=4 \
+    VAULT_PROXY_DEBUG=true \
+    ./strato
