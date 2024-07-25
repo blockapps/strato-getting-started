@@ -1,5 +1,11 @@
 # STRATO Getting Started release notes
 
+## 4.6.0
+
+STRATO versions supported: v11.3.1+
+
+- Added the `notification-server` script
+
 ## 4.5.0
 
 STRATO versions supported: v11.3.1+
