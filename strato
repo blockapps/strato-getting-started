@@ -56,6 +56,8 @@ blockstanbulAdmins - (default: []) Optional list of PBFT admins who can send vot
 validators         - (default: []) List of initial PBFT validators.
 ssl                - (default: false) [true|false] to run the node with SSL/TLS.
 sslCertFileType    - (default: pem) [pem|crt] the SSL certificate type and file extension (should be accessible at ./ssl/certs/server.<sslCertFileType> at deploy time.)
+STRATO_MODE                 - Flag to select STRATO mode (FULL, SERVER, and CLIENT are currently supported)
+AUTH_MODE                   - Flag to select authorization mode (OAUTH and PEM are currently supported)
 OAUTH_DISCOVERY_URL         - (can be derived by network) OAuth provider's OpenID Connect discovery URL.
 OAUTH_CLIENT_ID             - (required) Client ID of OAuth provider valid for the future STRATO url (http(s)://<NODE_HOST>:<HTTP_PORT/HTTPS_PORT>).
 OAUTH_CLIENT_SECRET         - (required) Client Secret for the client ID specified.
@@ -97,6 +99,9 @@ function start {
 function getCompose {
   echo -e "${Yellow}Downloading the latest stable version of docker-compose.yml...${NC}"
   curl -fLo docker-compose.yml https://github.com/blockapps/strato-getting-started/releases/download/$(curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | grep -om1 '"/blockapps/strato-getting-started/releases/tag/[^"]*' | grep -oE "[^/]+$")/docker-compose.yml
+  curl -fLo docker-compose.server.yml https://github.com/blockapps/strato-getting-started/releases/download/$(curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | grep -om1 '"/blockapps/strato-getting-started/releases/tag/[^"]*' | grep -oE "[^/]+$")/docker-compose.server.yml
+  curl -fLo docker-compose.client.yml https://github.com/blockapps/strato-getting-started/releases/download/$(curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | grep -om1 '"/blockapps/strato-getting-started/releases/tag/[^"]*' | grep -oE "[^/]+$")/docker-compose.client.yml
+  curl -fLo docker-compose.subject-signing-tool.yml https://github.com/blockapps/strato-getting-started/releases/download/$(curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | grep -om1 '"/blockapps/strato-getting-started/releases/tag/[^"]*' | grep -oE "[^/]+$")/docker-compose.subject-signing-tool.yml
   echo -e "${Yellow}docker-compose.yml downloaded successfully.${NC}"
 }
 
@@ -157,6 +162,19 @@ function fetchLogs {
   python3 fetchlogs ${withdb_flag}
 }
 
+function setSuffixes {
+  if [ "${STRATO_MODE}" = "SERVER" ]; then
+      docker_compose_network_suffix="-server"
+      docker_compose_file_suffix=".server"
+  elif [ "${STRATO_MODE}" = "CLIENT" ]; then
+      docker_compose_network_suffix="-client"
+      docker_compose_file_suffix=".client"
+  else
+      docker_compose_network_suffix=""
+      docker_compose_file_suffix=""
+  fi
+}
+
 if [ ! -f $(pwd)/strato ]; then
     echo -e "${Red}Should be run from within the strato-getting-started directory. Exit.${NC}"
     exit 4
@@ -168,21 +186,26 @@ then
     exit 1
 fi
 
-if ! docker compose version  &> /dev/null && ! docker-compose -v  &> /dev/null
-then
-    echo -e "${Red}Error: docker-compose is required: https://docs.docker.com/compose/install/"
-    exit 2
-else
-  if ! docker compose version &> /dev/null
+function mkDockerComposeCommand {
+  setSuffixes
+  if ! docker compose version  &> /dev/null && ! docker-compose -v  &> /dev/null
   then
-    docker_compose="docker-compose -p strato --log-level ERROR"
-    CNAME_SEP="_"
+      echo -e "${Red}Error: docker-compose is required: https://docs.docker.com/compose/install/"
+      exit 2
   else
-    # The `-f docker-compose.yml` is required for the command to work correctly despite it's the default (docker bug?)
-    docker_compose="docker -l error compose -p strato -f docker-compose.yml"
-    CNAME_SEP="-"
+    if ! docker compose version &> /dev/null
+    then
+      docker_compose="docker-compose -p strato${docker_compose_network_suffix}"
+      CNAME_SEP="_"
+    else
+      # The `-f docker-compose.yml` is required for the command to work correctly despite it's the default (docker bug?)
+      docker_compose="docker -l error compose -p strato${docker_compose_network_suffix} -f docker-compose${docker_compose_file_suffix}.yml"
+      CNAME_SEP="-"
+    fi
   fi
-fi
+}
+
+mkDockerComposeCommand
 
 while [ ${#} -gt 0 ]; do
   case "${1}" in
@@ -209,6 +232,26 @@ while [ ${#} -gt 0 ]; do
   --wipe)
     wipe
     exit 0
+    ;;
+  --wipe-all)
+    export STRATO_MOD="FULL"
+    mkDockerComposeCommand
+    wipe
+    export STRATO_MODE="CLIENT"
+    mkDockerComposeCommand
+    wipe
+    export STRATO_MODE="SERVER"
+    mkDockerComposeCommand
+    wipe
+    exit 0
+    ;;
+  --client)
+    export STRATO_MODE="CLIENT"
+    mkDockerComposeCommand
+    ;;
+  --server)
+    export STRATO_MODE="SERVER"
+    mkDockerComposeCommand
     ;;
   --single)
     node_type=single
@@ -259,24 +302,23 @@ done
 
 outputLogo
 
-if [ ! -f docker-compose.yml ]
+if [ ! -f docker-compose${docker_compose_file_suffix}.yml ]
 then
   getCompose
 else
-  echo -e "${BYellow}Using the existing docker-compose.yml (to download the most recent stable version - remove the file and restart the script)${NC}"
+  echo -e "${BYellow}Using the existing docker-compose${docker_compose_file_suffix}.yml (to download the most recent stable version - remove the file and restart the script)${NC}"
 fi
 
-STRATOGS_REQUIRED_VERSION=$(grep strato-getting-started-min-version docker-compose.yml | awk -F":" '{print $NF}')
+STRATOGS_REQUIRED_VERSION=$(grep strato-getting-started-min-version docker-compose${docker_compose_file_suffix}.yml | awk -F":" '{print $NF}')
 if [ ${STRATOGS_REQUIRED_VERSION} ]; then
   STRATOGS_CURRENT_VERSION=$(< VERSION)
   if ! awk -v VER=${STRATOGS_CURRENT_VERSION//.} -v REQ_VER=${STRATOGS_REQUIRED_VERSION//.} 'BEGIN {exit (VER < REQ_VER)}'
   then
-      echo -e "${Red}The STRATO version from docker-compose.yml is incompatible with this strato-getting-started. Please update to v${STRATOGS_REQUIRED_VERSION}."
+      echo -e "${Red}The STRATO version from docker-compose${docker_compose_file_suffix}.yml is incompatible with this strato-getting-started. Please update to v${STRATOGS_REQUIRED_VERSION}."
       exit 12
   fi
 fi
 
-export NODE_HOST=${NODE_HOST:-localhost}
 export HTTP_PORT=${HTTP_PORT:-80}
 export HTTPS_PORT=${HTTPS_PORT:-443}
 export ssl=${ssl:-false}
@@ -295,16 +337,75 @@ else
   #fi
 fi
 export sslCertFileType=${sslCertFileType:-pem}
-export NODE_NAME=${NODE_NAME:-$NODE_HOST}
 export isAdmin=${isAdmin:-true}
 
-if [[ -z ${OAUTH_CLIENT_ID} || -z ${OAUTH_CLIENT_SECRET} ]] ; then
+if [[ "${AUTH_MODE}" = "OAUTH" && (-z ${OAUTH_CLIENT_ID} || -z ${OAUTH_CLIENT_SECRET}) ]] ; then
   echo -e "${Red} OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET are required\nFor additional help see './strato --help'${NC}"
   exit 13
 fi
 
+if [[ "${AUTH_MODE}" = "PEM" ]] ; then
+  LOGNAME=$(logname)
+  DEFAULT_PEM_FILE="/home/${LOGNAME}/.ssh/strato.pem"
+  PEM_FILE=${PEM_FILE:-$DEFAULT_PEM_FILE}
+  export PEM_FILE=${PEM_FILE}
+  if [[ ! -f "${PEM_FILE}" ]]; then
+    if [ "$ssl" = true ]; then
+      if [[ -z "${NODE_HOST}" ]]; then
+	echo
+	echo -n "Please enter the server's hostname: "
+        read HOSTNAMEA
+        NODE_HOST=${HOSTNAMEA}
+        export NODE_HOST=${NODE_HOST}
+        export NODE_NAME=${NODE_NAME:-$NODE_HOST}
+      fi
+      if [[ -z "${ADMIN_EMAIL}" ]]; then
+        echo -n "Please enter the admin's email address: "
+        read ADMINEMAILA
+        ADMIN_EMAIL=${ADMINEMAILA}
+        export ADMIN_EMAIL=${ADMIN_EMAIL}
+      fi
+      sslParam="-v ./ssl/certs/server.pem:/ssl.pem"
+      git clone https://github.com/blockapps/letsencrypt-tool
+      pushd letsencrypt-tool
+      if HOST_NAME=$NODE_HOST ADMIN_EMAIL=$ADMIN_EMAIL DEST_PATHS='temp' ./get-first-cert.sh; then
+        cp letsencrypt-data/etc/letsencrypt/live/$NODE_HOST/fullchain.pem ../ssl/certs/server.pem
+        cp letsencrypt-data/etc/letsencrypt/live/$NODE_HOST/privkey.pem ../ssl/private/server.key
+        popd
+        sudo rm -rf letsencrypt-tool
+      else
+        popd
+        sudo rm -rf letsencrypt-tool
+        exit 30
+      fi
+    else
+      sslParam=""
+      if [[ -z "${MERCATA_USERNAME}" ]]; then
+        echo
+        echo -n "Please enter a username: "
+        read USERNAMEA
+        MERCATA_USERNAME=${USERNAMEA}
+        export MERCATA_USERNAME=${MERCATA_USERNAME}
+      fi
+    fi
+    echo "${PEM_FILE} does not exist, creating new private key"
+    openssl ecparam -name secp256k1 -genkey -noout -out ${PEM_FILE}
+    signedCert=$(docker run -e MERCATA_USERNAME=${MERCATA_USERNAME} -v ${PEM_FILE}:/priv.pem ${sslParam} $(cat docker-compose.subject-signing-tool.yml | grep IMAGE | cut -d '-' -f 2- | cut -d '}' -f 1))
+    echo "Registering X.509 certificate at ${idServerUrl}"
+    curlResponse=$(curl -X POST "${idServerUrl}/identity" -H 'Content-Type: application/json' -d "${signedCert}")
+    echo $curlResponse
+    if ! echo $curlResponse | grep BEGIN; then
+      echo "X.509 certificate registration failed"
+      exit 31
+    fi
+  fi
+fi
+
+export NODE_HOST=${NODE_HOST:-localhost}
+export NODE_NAME=${NODE_NAME:-$NODE_HOST}
+
 # Additional env vars check for version of STRATO with marketplace
-if grep "marketplace" docker-compose.yml > /dev/null; then
+if grep "marketplace" docker-compose${docker_compose_file_suffix}.yml > /dev/null; then
   if [ "${MP_IS_BOOTNODE}" = "true" ]; then
     if [[ -z ${GLOBAL_ADMIN_NAME} || -z ${GLOBAL_ADMIN_PASSWORD} ]] ; then
       echo -e "${Red}MP_IS_BOOTNODE=true but there were no GLOBAL_ADMIN_NAME or GLOBAL_ADMIN_PASSWORD values provided\nFor additional help see './strato --help${NC}"
@@ -320,11 +421,14 @@ echo "HTTPS_PORT: $HTTPS_PORT"
 echo "ssl: $ssl"
 echo "sslCertFileType: $sslCertFileType"
 echo "NODE_NAME: $NODE_NAME"
+echo "STRATO_MODE: ${STRATO_MODE:-FULL}"
+echo "AUTH_MODE: ${AUTH_MODE:-OAUTH}"
 echo "OAUTH_DISCOVERY_URL: ${OAUTH_DISCOVERY_URL:-not set}"
 echo "OAUTH_CLIENT_ID: $(if [ -z ${OAUTH_CLIENT_ID} ]; then echo "not set"; else echo "is set"; fi)"
 echo "OAUTH_CLIENT_SECRET: $(if [ -z ${OAUTH_CLIENT_SECRET} ]; then echo "not set"; else echo "is set"; fi)"
 echo "OAUTH_JWT_USER_ID_CLAIM: ${OAUTH_JWT_USER_ID_CLAIM:-not set (using default)}"
 echo "OAUTH_SCOPE: ${OAUTH_SCOPE:-not set (using default)}"
+echo "SERVER_NODE_URL: ${SERVER_NODE_URL:-not set}"
 echo "VAULT_URL: ${VAULT_URL}"
 
 if [ "${node_type}" == "single" ]
@@ -407,12 +511,12 @@ function cleanup {
 trap cleanup EXIT
 
 if [ "$ssl" != true ]; then
-  sed -n '/#TAG_REMOVE_WHEN_NO_SSL/!p' docker-compose.yml > docker-compose-temp.yml
+  sed -n '/#TAG_REMOVE_WHEN_NO_SSL/!p' docker-compose${docker_compose_file_suffix}.yml > docker-compose-temp.yml
 else
   if [ ${HTTPS_PORT} != "443" ]; then
-    sed -n '/#TAG_REMOVE_WHEN_SSL_CUSTOM_HTTPS_PORT/!p' docker-compose.yml > docker-compose-temp.yml
+    sed -n '/#TAG_REMOVE_WHEN_SSL_CUSTOM_HTTPS_PORT/!p' docker-compose${docker_compose_file_suffix}.yml > docker-compose-temp.yml
   else
-    cp docker-compose.yml docker-compose-temp.yml
+    cp docker-compose${docker_compose_file_suffix}.yml docker-compose-temp.yml
   fi
 fi
 # END OF COMPOSE FILE PRE-PROCESSING
