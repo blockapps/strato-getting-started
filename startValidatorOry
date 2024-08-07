@@ -11,7 +11,9 @@ adminPassword="blockapps"
 password="blockapps"
 email="test@email.com"
 
-domain_name=blockchainhaberdasher.com
+domain_name=localhost
+
+ssl_dir=~/BlockApps/strato-getting-started/ssl
 
 #########################################################
 # done modifying, don't change anything below this line #
@@ -22,7 +24,11 @@ base=https://${domain_name}
 oryBaseURL=$base:4444
 vaultURL="$base:8043"
 
-ory-init ory --ssldir=~/ssl --domainname=${domain_name}
+if [ -d ory ]; then
+  sudo rm -rf ory
+fi
+
+ory-init ory --ssldir=${ssl_dir} --domainname=${domain_name}
 
 ( cd ory && docker compose up -d )
 
