@@ -170,7 +170,7 @@ fi
 
 if ! docker compose version  &> /dev/null && ! docker-compose -v  &> /dev/null
 then
-    echo -e "${Red}Error: docker-compose is required: https://docs.docker.com/compose/install/"
+    echo -e "${Red}Error: Docker Compose is required: https://docs.docker.com/compose/install/"
     exit 2
 else
   if ! docker compose version &> /dev/null
@@ -336,15 +336,6 @@ then
   export isRootNode=true
   # Generate random networkID if not provided for --single mode
   export networkID=${networkID:-$(($RANDOM * $RANDOM * $RANDOM))}
-  
-  # TODO: Update and re-enable the in-place single node restart process
-  #if [[ $(docker ps -a | grep strato${CNAME_SEP}strato${CNAME_SEP}1) ]]; then
-  #  echo -e "${BYellow}Updating the existing STRATO Single node instance - getting it's blockstanbul variables...${NC}"
-  #  STRATO_ENV_VARS=$(docker inspect --format='{{range .Config.Env}}{{println .}}{{end}}' strato${CNAME_SEP}strato${CNAME_SEP}1)
-  #  export blockstanbulAdmins=$(echo "${STRATO_ENV_VARS}" | grep blockstanbulAdmins | awk -F"ulAdmins=" '{print $2}')
-  #  export validators=$(echo "${STRATO_ENV_VARS}" | grep validators | awk -F"alidators=" '{print $2}')
-  #  export generateKey=false
-  #fi
 
 else
   if [[ ${generateKey} = false ]]; then
