@@ -1,5 +1,11 @@
 # STRATO Getting Started release notes
 
+## 4.6.1
+
+STRATO versions supported: v11.3.1+
+
+- Updated the strato-run.sh to connect to Mercata main network
+
 ## 4.6.0
 
 STRATO versions supported: v11.3.1+
