@@ -1,4 +1,4 @@
-
+#!/bin/bash
 set -e
 set -o pipefail
 
@@ -19,10 +19,9 @@ ssl_dir=~/BlockApps/strato-getting-started/ssl
 # done modifying, don't change anything below this line #
 #########################################################
 
-base=https://${domain_name}
-
-oryBaseURL=$base:4444
-vaultURL="$base:8043"
+oryBaseURL="https://${domain_name}:8443"
+vaultURL="https://${domain_name}:8043"
+stratoURL="https://${domain_name}"
 
 if [ -d ory ]; then
   sudo rm -rf ory
@@ -50,7 +49,7 @@ echo "kratosAdminBaseURL=$kratosAdminBaseURL"
 
 curl $oryAdminBaseURL/admin/clients
 
-client=`curl -d '{"client_id": "'$domain_name'", "grant_types": ["client_credentials", "authorization_code"],"redirect_uris": ["'$base'/auth/openidc/return"], "token_endpoint_auth_method":"client_secret_basic", "scope": "openid email profile"}' $oryAdminBaseURL/admin/clients`
+client=`curl -d '{"client_id": "'$domain_name'", "grant_types": ["client_credentials", "authorization_code"], "redirect_uris": ["'$stratoURL'/auth/openidc/return"], "post_logout_redirect_uris": ["'$stratoURL'/"], "token_endpoint_auth_method":"client_secret_basic", "scope": "openid email profile"}' $oryAdminBaseURL/admin/clients`
 
 user=`curl -d '{"credentials":{"password": {"config": {"password": "'$password'"}}}, "traits": {"email": "'$email'"}}' $kratosAdminBaseURL/admin/identities`
 
