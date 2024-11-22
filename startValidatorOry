@@ -1,4 +1,5 @@
 #!/bin/bash
+
 set -e
 set -o pipefail
 
@@ -7,14 +8,16 @@ set -o pipefail
 # Change these values #
 #######################
 
-adminPassword="blockapps"
 password="blockapps"
+vaultPassword="abcd"
 email="test@email.com"
+username="testuser"
 
 domain_name=localhost
 
 ssl_dir=~/BlockApps/strato-getting-started/ssl
 
+identity_server_url="<FILL-ME-WITH-DEFAULT>"
 #########################################################
 # done modifying, don't change anything below this line #
 #########################################################
@@ -51,7 +54,7 @@ curl $oryAdminBaseURL/admin/clients
 
 client=`curl -d '{"client_id": "'$domain_name'", "grant_types": ["client_credentials", "authorization_code"], "redirect_uris": ["'$stratoURL'/auth/openidc/return"], "post_logout_redirect_uris": ["'$stratoURL'/"], "token_endpoint_auth_method":"client_secret_basic", "scope": "openid email profile"}' $oryAdminBaseURL/admin/clients`
 
-user=`curl -d '{"credentials":{"password": {"config": {"password": "'$password'"}}}, "traits": {"email": "'$email'"}}' $kratosAdminBaseURL/admin/identities`
+user=`curl -d '{"credentials":{"password": {"config": {"password": "'$password'"}}}, "traits": {"email": "'$email'", "username": "'$username'"}}' $kratosAdminBaseURL/admin/identities`
 
 echo "======================="
 
@@ -76,13 +79,15 @@ oauthDiscovery=$oryBaseURL/.well-known/openid-configuration
 # Start Vault #
 ###############
 
-HTTP_PORT=8000 \
-    ssl=true \
-    HTTPS_PORT=8043 \
-    INITIAL_OAUTH_DISCOVERY_URL="$oauthDiscovery" \
-    INITIAL_OAUTH_ISSUER="$oryBaseURL" \
-    PASSWORD=abcd \
-    ./vault
+echo "HTTP_PORT=8000 \\
+    ssl=true \\
+    HTTPS_PORT=8043 \\
+    INITIAL_OAUTH_DISCOVERY_URL='${oauthDiscovery}' \\
+    INITIAL_OAUTH_ISSUER='${oryBaseURL}' \\
+    PASSWORD='${vaultPassword}' \\
+    ./vault" > vault-run.sh
+chmod +x vault-run.sh
+./vault-run.sh
 
 ################
 # Start STRATO #
@@ -90,13 +95,39 @@ HTTP_PORT=8000 \
 
 sleep 10
 
-NODE_HOST="${domain_name}" \
-    ssl=true \
-    OAUTH_DISCOVERY_URL="$oauthDiscovery" \
-    OAUTH_CLIENT_ID="$client_id" \
-    OAUTH_CLIENT_SECRET="$client_secret" \
-    VAULT_URL="$vaultURL" \
-    sqlDiff=false \
-    maxConn=4 \
-    VAULT_PROXY_DEBUG=true \
-    ./strato
+echo "NODE_HOST='${domain_name}' \\
+  ssl="true" \\
+  OAUTH_DISCOVERY_URL='${oauthDiscovery}' \\
+  OAUTH_CLIENT_ID='${client_id}' \\
+  OAUTH_CLIENT_SECRET='${client_secret}' \\
+  VAULT_URL='${vaultURL}' \\
+  SSL_CERT='${ssl_dir}/certs/server.pem' \\
+  idServerUrl='http://172.17.0.1:8031' \\
+  ./strato" > strato-run.sh
+chmod +x strato-run.sh
+./strato-run.sh
+
+#################
+# Register Cert #
+#################
+
+sleep 10
+postIdentityReq=`docker exec strato-strato-1 x509-sign-subject -s /var/lib/strato/ssl.pem`
+nodeCert=`curl --fail "${identity_server_url}/identity" -X PUT -d "$(echo "${postIdentityReq}" | jq -c .)" -H "Content-type: application/json"`
+echo "${nodeCert}"
+###################
+# Start ID Server #
+###################
+
+sleep 10
+
+echo "${nodeCert}" | perl -pe 's/\\n/\n/g; s/"//g' > identity-provider/certs/rootCert.pem
+echo "HTTP_PORT=8031 \\
+  OAUTH_DISCOVERY_URL='${oauthDiscovery}' \\
+  OAUTH_CLIENT_ID='${client_id}' \\
+  OAUTH_CLIENT_SECRET='${client_secret}' \\
+  VAULT_URL='${vaultURL}' \\
+  NODE_URL='https://${domain_name}' \\
+  ./identity" > identity-run.sh
+chmod +x identity-run.sh
+./identity-run.sh
