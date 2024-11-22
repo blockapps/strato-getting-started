@@ -8,8 +8,8 @@ set -o pipefail
 # Change these values #
 #######################
 
-adminPassword="blockapps"
 password="blockapps"
+vaultPassword="abcd"
 email="test@email.com"
 username="testuser"
 
@@ -79,13 +79,15 @@ oauthDiscovery=$oryBaseURL/.well-known/openid-configuration
 # Start Vault #
 ###############
 
-HTTP_PORT=8000 \
-    ssl=true \
-    HTTPS_PORT=8043 \
-    INITIAL_OAUTH_DISCOVERY_URL="$oauthDiscovery" \
-    INITIAL_OAUTH_ISSUER="$oryBaseURL" \
-    PASSWORD=abcd \
-    ./vault
+echo "HTTP_PORT=8000 \\
+    ssl=true \\
+    HTTPS_PORT=8043 \\
+    INITIAL_OAUTH_DISCOVERY_URL='${oauthDiscovery}' \\
+    INITIAL_OAUTH_ISSUER='${oryBaseURL}' \\
+    PASSWORD='${vaultPassword}' \\
+    ./vault" > vault-run.sh
+chmod +x vault-run.sh
+./vault-run.sh
 
 ################
 # Start STRATO #
@@ -126,6 +128,6 @@ echo "HTTP_PORT=8031 \\
   OAUTH_CLIENT_SECRET='${client_secret}' \\
   VAULT_URL='${vaultURL}' \\
   NODE_URL='https://${domain_name}' \\
-  ./identity" > run-identity.sh
-chmod +x run-identity.sh
-./run-identity.sh
+  ./identity" > identity-run.sh
+chmod +x identity-run.sh
+./identity-run.sh
