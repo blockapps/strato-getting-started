@@ -22,6 +22,10 @@ identity_server_url="<FILL-ME-WITH-DEFAULT>"
 # done modifying, don't change anything below this line #
 #########################################################
 
+echo "##################"
+echo "# Initialize Ory #"
+echo "##################"
+
 oryBaseURL="https://${domain_name}:8443"
 vaultURL="https://${domain_name}:8043"
 stratoURL="https://${domain_name}"
@@ -30,7 +34,7 @@ if [ -d ory ]; then
   sudo rm -rf ory
 fi
 
-ory-init ory --ssldir=${ssl_dir} --domainname=${domain_name}
+ory-init ory --ssldir=${ssl_dir} --domainname=${domain_name} --identityserverurl=${identity_server_url}
 
 ( cd ory && docker compose up -d )
 
@@ -40,6 +44,10 @@ sleep 10
 # Populate Ory, create client and user #
 ########################################
 
+echo "################"
+echo "# Populate Ory #"
+echo "################"
+
 hydraAdminIPAddress=`docker network inspect ory_default | jq -r ' .[].Containers[] | select(.Name=="ory-hydra-1").IPv4Address ' | perl -pe "s/\/.*//"`
 kratosAdminIPAddress=`docker network inspect ory_default | jq -r ' .[].Containers[] | select(.Name=="ory-kratos-1").IPv4Address ' | perl -pe "s/\/.*//"`
 oryAdminBaseURL=http://$hydraAdminIPAddress:4445
@@ -48,13 +56,16 @@ kratosAdminBaseURL=http://$kratosAdminIPAddress:4434
 echo "oryAdminBaseURL=$oryAdminBaseURL"
 echo "kratosAdminBaseURL=$kratosAdminBaseURL"
 
-
-
+status_code=`curl -s -o /dev/null -w "%{http_code}" "${identity_server_url}/username-available" -d '{"username":"'${username}'"}' -H "Content-type: application/json"`
+if [[ $status_code -ge 400 ]]; then
+    echo "The username provided is already used on-chain. Please provide a different username and run this script again"
+    exit 1
+else
+    user=`curl -d '{"credentials":{"password": {"config": {"password": "'$password'"}}}, "traits": {"email": "'$email'", "username": "'$username'"}}' $kratosAdminBaseURL/admin/identities`
+fi
 curl $oryAdminBaseURL/admin/clients
 
 client=`curl -d '{"client_id": "'$domain_name'", "grant_types": ["client_credentials", "authorization_code"], "redirect_uris": ["'$stratoURL'/auth/openidc/return"], "post_logout_redirect_uris": ["'$stratoURL'/"], "token_endpoint_auth_method":"client_secret_basic", "scope": "openid email profile"}' $oryAdminBaseURL/admin/clients`
-
-user=`curl -d '{"credentials":{"password": {"config": {"password": "'$password'"}}}, "traits": {"email": "'$email'", "username": "'$username'"}}' $kratosAdminBaseURL/admin/identities`
 
 echo "======================="
 
@@ -75,9 +86,9 @@ curl --fail -u "$client_id:$client_secret" -d "grant_type=client_credentials" $o
 
 oauthDiscovery=$oryBaseURL/.well-known/openid-configuration
 
-###############
-# Start Vault #
-###############
+echo "###############"
+echo "# Start Vault #"
+echo "###############"
 
 echo "HTTP_PORT=8000 \\
     ssl=true \\
@@ -89,9 +100,9 @@ echo "HTTP_PORT=8000 \\
 chmod +x vault-run.sh
 ./vault-run.sh
 
-################
-# Start STRATO #
-################
+ehco "################"
+echo "# Start STRATO #"
+echo "################"
 
 sleep 10
 
@@ -107,17 +118,18 @@ echo "NODE_HOST='${domain_name}' \\
 chmod +x strato-run.sh
 ./strato-run.sh
 
-#################
-# Register Cert #
-#################
+echo "######################"
+echo "# Register Node Cert #"
+echo "######################"
 
 sleep 10
 postIdentityReq=`docker exec strato-strato-1 x509-sign-subject -s /var/lib/strato/ssl.pem`
 nodeCert=`curl --fail "${identity_server_url}/identity" -X PUT -d "$(echo "${postIdentityReq}" | jq -c .)" -H "Content-type: application/json"`
 echo "${nodeCert}"
-###################
-# Start ID Server #
-###################
+
+echo "###################"
+echo "# Start ID Server #"
+echo "###################"
 
 sleep 10
 

@@ -4,6 +4,8 @@ set -e
 ./strato --wipe
 
 ./vault --wipe
+
+./identity --wipe
 #docker compose --file docker-compose.vault.yml -p vault down
 
 ( cd ory && docker compose down -vt0)
