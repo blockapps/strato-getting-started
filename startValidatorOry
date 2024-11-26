@@ -18,6 +18,9 @@ domain_name=localhost
 ssl_dir=~/BlockApps/strato-getting-started/ssl
 
 identity_server_url="<FILL-ME-WITH-DEFAULT>"
+
+update_ory_init=true
+
 #########################################################
 # done modifying, don't change anything below this line #
 #########################################################
@@ -34,7 +37,28 @@ if [ -d ory ]; then
   sudo rm -rf ory
 fi
 
-ory-init ory --ssldir=${ssl_dir} --domainname=${domain_name} --identityserverurl=${identity_server_url}
+if [ "$update_ory_init" = true ]; then
+  # If no STRATO docker-compose.yml available - fetch the latest to get the image version from it
+  if [[ ! -f "docker-compose.yml" ]]; then
+    ./strato --compose
+  fi
+  # Find the cfginit image of same version as STRATO
+  strato_image="$(grep '${STRATO_IMAGE:-' docker-compose.yml | sed -n 's/.*:-\(.*\)}/\1/p')"
+  cfginit_image="${strato_image/strato:/cfginit:}"
+  if ! docker images --format "{{.Repository}}:{{.Tag}}" | grep -q "^${cfginit_image}$"; then
+    echo "Fetching the cfginit image corresponding to the version of STRATO. If it fails, your STRATO version is not compatible with Ory setup, or you don't have access to Docker Registry..."
+    docker pull ${cfginit_image}
+  fi
+  echo "Copying ory-init into the current directory..."
+  container_id=$(docker create ${cfginit_image})
+  docker cp "${container_id}":/usr/local/bin/ory-init ory-init
+  docker rm "${container_id}"
+  ORY_INIT_PATH="./ory-init"
+else
+  ORY_INIT_PATH="ory-init"
+fi
+
+$ORY_INIT_PATH ory --ssldir=${ssl_dir} --domainname=${domain_name} --identityserverurl=${identity_server_url}
 
 ( cd ory && docker compose up -d )
 
