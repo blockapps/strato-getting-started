@@ -35,19 +35,28 @@ The entrypoints are mutually exclusive.
 --pull          - pull images used in docker-compose.identity.yml.
 
 ${Yellow}Environment variables:${NC}
-HTTP_PORT           - (default: 8090) Port for HTTP traffic listener.
-HTTPS_PORT          - (default: 8093) Port for HTTPS traffic listener; only used with ssl=true.
-ssl                 - (default: false) [true|false] to run the node with SSL/TLS.
-sslCertFileType     - (default: pem) [pem|crt] the SSL certificate type and file extension (should be accessible at ./ssl/certs/server.<sslCertFileType> at deploy time.)
-VAULT_URL           - (required) The URL of STRATO Vault in the format '<protocol>://<hostname>:<port>' (e.g. https://example.com or https://example.com:8090)
-SENDGRID_APIKEY     - (optional) API key to send welcome emails after registering a user
+HTTP_PORT               - (default: 8090) Port for HTTP traffic listener.
+HTTPS_PORT              - (default: 8093) Port for HTTPS traffic listener; only used with ssl=true.
+ssl                     - (default: false) [true|false] to run the node with SSL/TLS.
+sslCertFileType         - (default: pem) [pem|crt] the SSL certificate type and file extension (should be accessible at ./ssl/certs/server.<sslCertFileType> at deploy time.)
+VAULT_URL               - (required) The URL of STRATO Vault in the format '<protocol>://<hostname>:<port>' (e.g. https://example.com or https://example.com:8090)
+OAUTH_CLIENT_ID         - (required) The client id from the OAuth2 realm associated with the server
+OAUTH_CLIENT_SECRET     - (required) client secret for the client ID specified
+OAUTH_DISCOVERY_URL     - (required) OpenID Connect discovery URL for OAuth2 provider
+NODE_URL                - (required) The url of the STRATO node to post transactions to in the format '<protocol>://<hostname>:<port>' (e.g. https://example.com or https://example.com:8090)
+FALLBACK_NODE_URL       - (optional) The url of the backup STRATO node to post transactions to, in case the first one is down
+NOTIFICATION_SERVER_URL - (optional) The url of the notification server to subscribe users to in the format '<protocol>://<hostname>:<port>' (e.g. https://example.com or https://example.com:8090)
+USER_REGISTRY_ADDRESS   - (default: 720) UserRegistry contract address (in hex)
+USER_REGISTRY_CODEHASH  - (optional) UserRegistry contract code collection hash
+USER_CONTRACT_NAME      - (default: BlockApps-UserRegistry-User) Name of the on-chain wallet contract in cirrus
+SENDGRID_APIKEY         - (optional) API key to send welcome emails after registering a user
 
 ${Yellow}Mounted volumes:${NC}
 **IMPORTANT**
 For your identity server to function properly, you must provide the following files to mount onto the docker containers
 ./identity-provider/certs/rootCert.pem
+The following file is optional to provide. If it is not included, the client credentials will be how we access the private key
 ./identity-provider/certs/rootPriv.pem
-./identity-provider/idconf.yaml
 "
 }
 
