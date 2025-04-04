@@ -326,6 +326,7 @@ echo "OAUTH_CLIENT_SECRET: $(if [ -z ${OAUTH_CLIENT_SECRET} ]; then echo "not se
 echo "OAUTH_JWT_USER_ID_CLAIM: ${OAUTH_JWT_USER_ID_CLAIM:-not set (using default)}"
 echo "OAUTH_SCOPE: ${OAUTH_SCOPE:-not set (using default)}"
 echo "VAULT_URL: ${VAULT_URL}"
+echo "useCustomGenesis": ${useCustomGenesis:-not set (using default)}
 
 if [ "${node_type}" == "single" ]
 then
