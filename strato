@@ -410,11 +410,16 @@ fi
 
 ${docker_compose} -f docker-compose-temp.yml up -d --remove-orphans
 
+
+if [[ "$useCustomGenesis" = true ]]; then
+  echo -e "${BYellow}useCustomGenesis is set to 'true' - using custom genesis block. 'strato' container will wait until the file is added. See the container log for details: \`sudo docker logs strato${CNAME_SEP}strato${CNAME_SEP}1\`${NC}"
+  exit 0
+fi
+
 # WAIT FOR STRATO TO RUN
 started=$(date +%s)
 timeout=180
-hc_container=$(${docker_compose} ps | grep '_nginx_' | awk '{print $1}')
-
+hc_container=$(${docker_compose} ps | grep "${CNAME_SEP}nginx${CNAME_SEP}" | awk '{print $1}')
 printf "Waiting for STRATO to rise and shine"
 i=0
 while ! [[ -n $(docker ps -q -f name=${hc_container} -f health=healthy) ]];  do

@@ -1,5 +1,11 @@
 # STRATO Getting Started release notes
 
+## x.y.z
+
+STRATO versions supported: v11.3.1+
+
+- Added support for custom genesis block mode - to avoid the needless delay at boot
+
 ## 4.6.1
 
 STRATO versions supported: v11.3.1+
