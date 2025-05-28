@@ -1,6 +1,13 @@
 # STRATO Getting Started release notes
 
-## x.y.z
+## 5.0.0
+
+STRATO versions supported: v15+
+
+- Removed the Markteplace as part of the STRATO Platform.
+- Removed the Identity Provider (Proxy), Payment Server, Notification Server helper scripts as obsolete for STRATO v.15+
+
+## 4.6.2
 
 STRATO versions supported: v11.3.1+
 

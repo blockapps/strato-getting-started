@@ -63,14 +63,6 @@ OAUTH_SCOPE                 - (default: 'openid email profile') The openid scope
 OAUTH_VAULT_PROXY_ALT_CLIENT_ID     - (optional) Alternative client id to use in Vault Proxy within STRATO Core for Client Credentials Grant flow (used when Identity Provider does not support multiple grant flows on a single client (e.g. AWS Cognito))
 OAUTH_VAULT_PROXY_ALT_CLIENT_SECRET - (optional) Client secret for alternative client id
 VAULT_URL                   - (default: BlockApps Vault) The URL of STRATO Vault in the format '<protocol>://<hostname>:<port>' (e.g. https://example.com or https://example.com:8090)
-
-Marketplace App variables:
-MP_IS_BOOTNODE                    - (default: false) [true|false] Whether or not to run the Markeplace in boot node mode or connect to the existing marketplace deployment based on address provided in MP_DAPP_ADDRESS
-MP_DAPP_ADDRESS                   - (default: c93f9a422a4508a6501a63537291128122f7bcf2) When in MP_IS_BOOTNODE=false mode, this address is used to connect to the existing Marketplace contract on the chain
-STRIPE_PAYMENT_SERVER_URL         - (can be derived by network) URL of payment server be used in the Marketplace App
-FILE_SERVER_URL                   - (can be derived by network) URL of file server be used in the Marketplace App
-GLOBAL_ADMIN_NAME                 - (required for STRATO versions bundled with Marketplace and running in MP_IS_BOOTNODE=true mode)
-GLOBAL_ADMIN_PASSWORD             - (required for STRATO versions bundled with Marketplace and running in MP_IS_BOOTNODE=true mode)
 "
 }
 
@@ -301,16 +293,6 @@ export isAdmin=${isAdmin:-true}
 if [[ -z ${OAUTH_CLIENT_ID} || -z ${OAUTH_CLIENT_SECRET} ]] ; then
   echo -e "${Red} OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET are required\nFor additional help see './strato --help'${NC}"
   exit 13
-fi
-
-# Additional env vars check for version of STRATO with marketplace
-if grep "marketplace" docker-compose.yml > /dev/null; then
-  if [ "${MP_IS_BOOTNODE}" = "true" ]; then
-    if [[ -z ${GLOBAL_ADMIN_NAME} || -z ${GLOBAL_ADMIN_PASSWORD} ]] ; then
-      echo -e "${Red}MP_IS_BOOTNODE=true but there were no GLOBAL_ADMIN_NAME or GLOBAL_ADMIN_PASSWORD values provided\nFor additional help see './strato --help${NC}"
-      exit 15
-    fi
-  fi
 fi
 
 echo "" && echo "*** Common Config ***"
