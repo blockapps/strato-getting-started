@@ -172,7 +172,7 @@ else
   else
     # The `-f docker-compose.yml` is required for the command to work correctly despite it's the default (docker bug?)
     docker_compose="docker -l error compose -p strato -f docker-compose.yml"
-    CNAME_SEP="-"
+    CNAME_SEP="\-"
   fi
 fi
 
@@ -403,9 +403,11 @@ fi
 started=$(date +%s)
 timeout=180
 hc_container=$(${docker_compose} ps | grep "${CNAME_SEP}nginx${CNAME_SEP}" | awk '{print $1}')
+mb_container=$(${docker_compose} ps | grep "${CNAME_SEP}mercata-backend${CNAME_SEP}" | awk '{print $1}')
+mu_container=$(${docker_compose} ps | grep "${CNAME_SEP}mercata-ui${CNAME_SEP}" | awk '{print $1}')
 printf "Waiting for STRATO to rise and shine"
 i=0
-while ! [[ -n $(docker ps -q -f name=${hc_container} -f health=healthy) ]];  do
+while [[ -z $(docker ps -q -f name=${hc_container} -f health=healthy) || -z $(docker ps -q -f name=${mb_container} -f health=healthy) || -z $(docker ps -q -f name=${mu_container} -f health=healthy) ]];  do
   if [[ $(date +%s) -ge ${started}+${timeout} ]]; then
     echo -e "\n${Red}Node did not start within ${timeout}sec. See 'docker ps' for additional info. Exit.${NC}"
     exit 22
