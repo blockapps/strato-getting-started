@@ -33,10 +33,10 @@ function checkDocker {
 function checkComposeFile {
   if [ ! -f docker-compose.yml ]
   then
-    echo -e "${Red}docker-compose.yml not found. Please download the docker-compose.yml first or build the platform (see README.md).${NC}"
-    exit 3
+    echo -e "${BYellow}docker-compose.yml not found.${NC}"
+    getCompose
   else
-    echo -e "${Yellow}Using the docker-compose.yml${NC}"
+    echo -e "${Yellow}Using the existing docker-compose.yml${NC}"
   fi
   
   if ! grep -q '^[[:space:]]*strato:' docker-compose.yml; then
@@ -54,6 +54,7 @@ The flags are mutually exclusive:
 --help|-h     - this help.
 --down        - remove strato containers and leave all volumes intact.
 --wipe        - stop and remove STRATO containers and wipe out volumes.
+--compose     - fetch the docker-compose.yml of the latest STRATO Mercata release
 --pull        - pull images used in docker-compose.yml
 --get-address - get the address of the running node.
 --get-pubkey  - get the public key of the running node.
@@ -71,6 +72,12 @@ function wipe {
 function down {
   echo -e "${Yellow}Removing STRATO containers${NC}"
   ${docker_compose} down --remove-orphans
+}
+
+function getCompose {
+  echo -e "${Yellow}Fetching the docker-compose.yml of the latest STRATO Mercata release...${NC}"
+  curl -fLo docker-compose.yml https://github.com/blockapps/strato-getting-started/releases/download/$(curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | grep -om1 '"/blockapps/strato-getting-started/releases/tag/[^"]*' | grep -oE "[^/]+$")/docker-compose.yml
+  echo -e "${Yellow}docker-compose.yml downloaded successfully.${NC}"
 }
 
 function pullImages {
@@ -144,6 +151,10 @@ while [ ${#} -gt 0 ]; do
     ;;
   --single)
     node_type=single
+    ;;
+  --compose)
+    getCompose
+    exit 0
     ;;
   --pull)
     checkDocker

@@ -18,8 +18,11 @@
 
 ### Usage
 
-- Start:
-  - Get a `docker-compose.allDocker.yml` from release assets at https://github.com/blockapps/strato-getting-started/releases (v15+ only), and save it as `strato-getting-started/docker-compose.yml`
+- Start a node:
+  - Fetch a `docker-compose.yml` of the latest STRATO Mercata release:
+    ```
+    sudo ./strato --compose
+    ```
   - Edit the `strato-run.sh`:
     ```
     NODE_HOST='your-domain-here' \
@@ -29,16 +32,17 @@
     ssl=true \
     ./strato
     ```
-    (for mainnet use `network=upquark`)
+    - Use `network='helium'` for testnet
+    - Use `network='upquark'` for mainnet
   - Replace SSL private key and cert with your own in `ssl/`
   - `sudo ./strato-run.sh`
 
-- Wipe:
+- Wipe a node:
   ```
   sudo ./strato --wipe
   ```
 
-- Help:
+- For help:
   ```
   ./strato --help
   ```
