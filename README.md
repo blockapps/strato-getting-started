@@ -1,14 +1,41 @@
 [![BlockApps logo](https://docs.blockapps.net/_images/blockapps-logo-horizontal-label.jpg)](http://blockapps.net)
 
-# STRATO - Getting Started
+# STRATO Mercata - Getting Started
 
-> For more detailed information about STRATO architecture, API and deployment steps, please refer to [STRATO Documentation](https://docs.blockapps.net)
+> A bootstrap script to deploy a STRATO Mercata node
 
-### Dependencies
+### Prerequisites
 
-**Linux/MacOS:**
-
-- [Install Docker](https://docs.docker.com) on your machine (Docker Engine v.20.10+) with Docker Compose V2 included
+- Linux/MacOS
+- [Docker](https://docs.docker.com) with Compose V2
+- Remote VM/VDS:
+  - Static IP
+  - Associated domain
+  - Inbound ports open: 443/tcp, 30303/tcp, 30303/udp
+- STRATO Mercata client credentials (OAuth2 client for node identity)
+  - Request the credentials for your domain at support.blockapps.net (Request Client Credentials)
 
 ### Usage
-For usage instructions, please refer to [STRATO Documentation - Network Setup section](https://docs.blockapps.net/deployment/network-setup/)
+
+- Start:
+  - Get a `docker-compose.allDocker.yml` from release assets at https://github.com/blockapps/strato-getting-started/releases (v15+ only), and save it as `strato-getting-started/docker-compose.yml`
+  - Edit the `strato-run.sh`:
+    ```
+    NODE_HOST='your-domain-here' \
+    network='helium' \
+    OAUTH_CLIENT_ID='client-id-here' \
+    OAUTH_CLIENT_SECRET='client-secret-here' \
+    ./strato
+    ```
+    (for mainnet use `network=upquark`)
+  - `sudo ./strato-run.sh`
+
+- Wipe:
+  ```
+  sudo ./strato --wipe
+  ```
+
+- Help:
+  ```
+  ./strato --help
+  ```

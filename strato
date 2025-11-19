@@ -7,62 +7,59 @@ Yellow='\033[0;33m'
 BYellow='\033[1;33m'
 NC='\033[0m'
 
+function checkDocker {
+  if ! docker ps &> /dev/null
+  then
+      echo -e "${Red}Error: docker is required: https://www.docker.com/ . If you have it installed - you may need to run STRATO with sudo user${NC}"
+      exit 1
+  fi
+  if ! docker compose version  &> /dev/null && ! docker-compose -v  &> /dev/null
+  then
+      echo -e "${Red}Error: Docker Compose is required: https://docs.docker.com/compose/install/"
+      exit 2
+  else
+    if ! docker compose version &> /dev/null
+    then
+      docker_compose="docker-compose -p strato --log-level ERROR - -f docker-compose.yml"
+      CNAME_SEP="_"
+    else
+      # The `-f docker-compose.yml` is required for the command to work correctly despite it's the default (docker bug?)
+      docker_compose="docker -l error compose -p strato -f docker-compose.yml"
+      CNAME_SEP="-"
+    fi
+  fi
+}
 
-function outputLogo {
-echo "
-    ____  __           __   ___                        _______________  ___  __________  
-   / __ )/ /___  _____/ /__/   |  ____  ____  _____   / ___/_  __/ __ \/   |/_  __/ __ \ 
-  / __  / / __ \/ ___/ //_/ /| | / __ \/ __ \/ ___/   \__ \ / / / /_/ / /| | / / / / / / 
- / /_/ / / /_/ / /__/ ,< / ___ |/ /_/ / /_/ (__  )   ___/ // / / _, _/ ___ |/ / / /_/ /  
-/_____/_/\____/\___/_/|_/_/  |_/ .___/ .___/____/   /____//_/ /_/ |_/_/  |_/_/  \____/   
-                              /_/   /_/                                                  
-"
+function checkComposeFile {
+  if [ ! -f docker-compose.yml ]
+  then
+    echo -e "${Red}docker-compose.yml not found. Please download the docker-compose.yml first or build the platform (see README.md).${NC}"
+    exit 3
+  else
+    echo -e "${Yellow}Using the docker-compose.yml${NC}"
+  fi
+  
+  if ! grep -q '^[[:space:]]*strato:' docker-compose.yml; then
+    echo -e "${Red}Wrong docker-compose.yml provided - no 'strato' service found in it. Use the docker-compose.allDocker.yml as the docker-compose.yml${NC}"
+    exit 4
+  fi
 }
 
 function help {
-  outputLogo
-  echo -e "${BYellow}STRATO run script${NC}
-Kickstart the STRATO node.
+  echo -e "${Yellow}STRATO Mercata run script${NC}
+Kickstart a STRATO Mercata node.
 
 ${Yellow}Optional flags:${NC}
-The entrypoints are mutually exclusive.
+The flags are mutually exclusive:
 --help|-h     - this help.
---version|-v  - show strato-getting-started script version.
---stop        - stop STRATO containers (keeps containers and volumes.)
---start       - start the existing STRATO containers after they were stopped (the opposite to --stop.)
 --down        - remove strato containers and leave all volumes intact.
 --wipe        - stop and remove STRATO containers and wipe out volumes.
---compose     - fetch the latest stable docker-compose.yml.
---pull        - pull images used in docker-compose.yml.
+--pull        - pull images used in docker-compose.yml
 --get-address - get the address of the running node.
 --get-pubkey  - get the public key of the running node.
---get-validators          - get the list of validating nodes in the network on the running node.
---get-metadata            - get the node's metadata in JSON format.
---fetch-logs          - fetch all STRATO logs into strato_logs.zip (for more info and options refer to './fetchlogs --help'.)
---fetch-logs-with-db  - fetch all STRATO logs and database dump into strato_logs.zip (WARNING: database data may be sensitive; for more info and options refer to './fetchlogs --help'.)
-
-${Yellow}Optional flags for STRATO:${NC}
---single              - run the single node.
-
-${Yellow}Environment variables:${NC}
-NODE_HOST          - (default: localhost) the hostname or IP of the machine (used for APIs and Dashboard).
-BOOT_NODE_IP       - IP address of the boot node to connect to (required for secondary node to discover other peers), ignored when used with --single flag.
-HTTP_PORT          - (default: 80) Port for HTTP traffic listener.
-HTTPS_PORT         - (default: 443) Port for HTTPS traffic listener; only used with ssl=true.
-generateKey        - (default: true) [true|false] Whether or not to generate this node's key - set this to false if migrating an old node with an existing key.
-isRootNode         - (default: false) [true|false] Whether or not to make this node the initial PBFT validator and admin.
-isAdmin            - (default: true) [true|false] Whether or not to make this node its own PBFT admin.
-blockstanbulAdmins - (default: []) Optional list of PBFT admins who can send votes to this node.
-validators         - (default: []) List of initial PBFT validators.
-ssl                - (default: false) [true|false] to run the node with SSL/TLS.
-sslCertFileType    - (default: pem) [pem|crt] the SSL certificate type and file extension (should be accessible at ./ssl/certs/server.<sslCertFileType> at deploy time.)
-OAUTH_DISCOVERY_URL         - (can be derived by network) OAuth provider's OpenID Connect discovery URL.
-OAUTH_CLIENT_ID             - (required) Client ID of OAuth provider valid for the future STRATO url (http(s)://<NODE_HOST>:<HTTP_PORT/HTTPS_PORT>).
-OAUTH_CLIENT_SECRET         - (required) Client Secret for the client ID specified.
-OAUTH_SCOPE                 - (default: 'openid email profile') The openid scopes used in session cookie verification
-OAUTH_VAULT_PROXY_ALT_CLIENT_ID     - (optional) Alternative client id to use in Vault Proxy within STRATO Core for Client Credentials Grant flow (used when Identity Provider does not support multiple grant flows on a single client (e.g. AWS Cognito))
-OAUTH_VAULT_PROXY_ALT_CLIENT_SECRET - (optional) Client secret for alternative client id
-VAULT_URL                   - (default: BlockApps Vault) The URL of STRATO Vault in the format '<protocol>://<hostname>:<port>' (e.g. https://example.com or https://example.com:8090)
+--get-validators    - get the list of validating nodes in the network on the running node.
+--get-metadata      - get the node's metadata in JSON format.
+--single            - run a single node.
 "
 }
 
@@ -74,22 +71,6 @@ function wipe {
 function down {
   echo -e "${Yellow}Removing STRATO containers${NC}"
   ${docker_compose} down --remove-orphans
-}
-
-function stop {
-  echo -e "${Yellow}Gently stopping STRATO containers${NC}"
-  ${docker_compose} stop
-}
-
-function start {
-  echo -e "${Yellow}Starting the earlier stopped STRATO containers${NC}"
-  ${docker_compose} start
-}
-
-function getCompose {
-  echo -e "${Yellow}Downloading the latest stable version of docker-compose.yml...${NC}"
-  curl -fLo docker-compose.yml https://github.com/blockapps/strato-getting-started/releases/download/$(curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | grep -om1 '"/blockapps/strato-getting-started/releases/tag/[^"]*' | grep -oE "[^/]+$")/docker-compose.yml
-  echo -e "${Yellow}docker-compose.yml downloaded successfully.${NC}"
 }
 
 function pullImages {
@@ -142,39 +123,6 @@ function getValidators {
   _outputMetadataValue validators
 }
 
-function fetchLogs {
-  if [[ "$1" = withdb ]]; then
-    withdb_flag="--db-dump"
-  fi
-  python3 fetchlogs ${withdb_flag}
-}
-
-if [ ! -f $(pwd)/strato ]; then
-    echo -e "${Red}Should be run from within the strato-getting-started directory. Exit.${NC}"
-    exit 4
-fi
-
-if ! docker ps &> /dev/null
-then
-    echo -e "${Red}Error: docker is required: https://www.docker.com/ . If you have it installed - you may need to run STRATO with sudo user${NC}"
-    exit 1
-fi
-
-if ! docker compose version  &> /dev/null && ! docker-compose -v  &> /dev/null
-then
-    echo -e "${Red}Error: Docker Compose is required: https://docs.docker.com/compose/install/"
-    exit 2
-else
-  if ! docker compose version &> /dev/null
-  then
-    docker_compose="docker-compose -p strato --log-level ERROR"
-    CNAME_SEP="_"
-  else
-    # The `-f docker-compose.yml` is required for the command to work correctly despite it's the default (docker bug?)
-    docker_compose="docker -l error compose -p strato -f docker-compose.yml"
-    CNAME_SEP="-"
-  fi
-fi
 
 while [ ${#} -gt 0 ]; do
   case "${1}" in
@@ -182,62 +130,44 @@ while [ ${#} -gt 0 ]; do
     help
     exit 0
     ;;
-  --version|-v)
-    echo "$(<VERSION)"
-    exit 0
-    ;;
-  --stop)
-    stop
-    exit 0
-    ;;
-  --start)
-    start
-    exit 0
-    ;;
   --down)
+    checkDocker
+    checkComposeFile
     down
     exit 0
     ;;
   --wipe)
+    checkDocker
+    checkComposeFile
     wipe
     exit 0
     ;;
   --single)
     node_type=single
     ;;
-  --compose)
-    getCompose
-    exit 0
-    ;;
   --pull)
+    checkDocker
+    checkComposeFile
     pullImages
     exit 0
     ;;
-  --fetch-logs)
-    fetchLogs
-    exit 0
-    ;;
-  --fetch-logs-with-db)
-    fetchLogs "withdb"
-    exit 0
-    ;;
-  --set-password)
-    echo -e "${BYellow}./strato --set-password is removed. Use ./vault --set-password for nodes with separate STRATO Vault.${NC}"
-    exit 25
-    ;;
   --get-address)
+    checkDocker
     getAddress
     exit 0
     ;;
   --get-pubkey)
+    checkDocker
     getPublicKey
     exit 0
     ;;
   --get-validators)
+    checkDocker
     getValidators
     exit 0
     ;;
   --get-metadata)
+    checkDocker
     getMetadata
     exit 0
     ;;
@@ -249,28 +179,16 @@ while [ ${#} -gt 0 ]; do
   shift 1
 done
 
-outputLogo
-
-if [ ! -f docker-compose.yml ]
-then
-  getCompose
-else
-  echo -e "${BYellow}Using the existing docker-compose.yml (to download the most recent stable version - remove the file and restart the script)${NC}"
-fi
-
-STRATOGS_REQUIRED_VERSION=$(grep strato-getting-started-min-version docker-compose.yml | awk -F":" '{print $NF}')
-if [ ${STRATOGS_REQUIRED_VERSION} ]; then
-  STRATOGS_CURRENT_VERSION=$(< VERSION)
-  if ! awk -v VER=${STRATOGS_CURRENT_VERSION//.} -v REQ_VER=${STRATOGS_REQUIRED_VERSION//.} 'BEGIN {exit (VER < REQ_VER)}'
-  then
-      echo -e "${Red}The STRATO version from docker-compose.yml is incompatible with this strato-getting-started. Please update to v${STRATOGS_REQUIRED_VERSION}."
-      exit 12
-  fi
-fi
+checkDocker
+checkComposeFile
 
 export NODE_HOST=${NODE_HOST:-localhost}
+export OAUTH_DISCOVERY_URL=${OAUTH_DISCOVERY_URL:-'https://keycloak.blockapps.net/auth/realms/mercata/.well-known/openid-configuration'}
+export network=${network:-helium}
+export VAULT_URL=${VAULT_URL:-'https://vault.blockapps.net:8093'}
 export HTTP_PORT=${HTTP_PORT:-80}
 export HTTPS_PORT=${HTTPS_PORT:-443}
+
 export ssl=${ssl:-false}
 if [ "$ssl" = true ] ; then
   http_protocol=https
@@ -278,89 +196,42 @@ if [ "$ssl" = true ] ; then
 else
   http_protocol=http
   main_port=${HTTP_PORT}
-  # To be enabled in future (pending the check finalized in the platform)
-  #if [[ ! "$VAULT_URL" == *"172.17.0.1"* ]]; then
-  #  echo "Expected VAULT_URL to start with 'https://' or 'http://172.17.0.1'"
-  #  exit 14
-  #else
-  #  echo "Running Vault on http with NODE_HOST IP 172.17.0.1(debug mode)"
-  #fi
 fi
-export sslCertFileType=${sslCertFileType:-pem}
-export NODE_NAME=${NODE_NAME:-$NODE_HOST}
-export isAdmin=${isAdmin:-true}
 
 if [[ -z ${OAUTH_CLIENT_ID} || -z ${OAUTH_CLIENT_SECRET} ]] ; then
   echo -e "${Red} OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET are required\nFor additional help see './strato --help'${NC}"
   exit 13
 fi
 
-echo "" && echo "*** Common Config ***"
+echo ""
 echo "NODE_HOST: $NODE_HOST"
 echo "HTTP_PORT: $HTTP_PORT"
 echo "HTTPS_PORT: $HTTPS_PORT"
 echo "ssl: $ssl"
-echo "sslCertFileType: $sslCertFileType"
-echo "NODE_NAME: $NODE_NAME"
-echo "OAUTH_DISCOVERY_URL: ${OAUTH_DISCOVERY_URL:-not set}"
-echo "OAUTH_CLIENT_ID: $(if [ -z ${OAUTH_CLIENT_ID} ]; then echo "not set"; else echo "is set"; fi)"
+echo "OAUTH_DISCOVERY_URL: ${OAUTH_DISCOVERY_URL}"
+echo "OAUTH_CLIENT_ID: $OAUTH_CLIENT_ID"
 echo "OAUTH_CLIENT_SECRET: $(if [ -z ${OAUTH_CLIENT_SECRET} ]; then echo "not set"; else echo "is set"; fi)"
-echo "OAUTH_JWT_USER_ID_CLAIM: ${OAUTH_JWT_USER_ID_CLAIM:-not set (using default)}"
-echo "OAUTH_SCOPE: ${OAUTH_SCOPE:-not set (using default)}"
-echo "VAULT_URL: ${VAULT_URL}"
-echo "useCustomGenesis": ${useCustomGenesis:-not set (using default)}
+echo "useCustomGenesis": ${useCustomGenesis:-false(default)}
 
 if [ "${node_type}" == "single" ]
 then
-  echo "" && echo -e "${BYellow}Running single node with PBFT-blockstanbul${NC}"
-  export blockstanbul=true
+  echo "" && echo -e "${Yellow}Starting a single node${NC}"
   export generateKey=${generateKey:-true}
-  export isAdmin=true
-  export isRootNode=true
-  # Generate random networkID if not provided for --single mode
   export networkID=${networkID:-$(($RANDOM * $RANDOM * $RANDOM))}
-
 else
   if [[ ${generateKey} = false ]]; then
     echo -e "\n${BYellow}WARNING: STRATO was started with generateKey=false. The node will not start until you manually insert a key into the vault using the migrate-nodekey script${NC}"
   fi
- 
-  export blockstanbul=true
-  export validators=${validators}
-  export blockstanbulAdmins=${blockstanbulAdmins}
-  export isAdmin=${isAdmin:-true}
-  export isRootNode=${isRootNode:-false}
   export generateKey=${generateKey:-true}
-  export numMinPeers=${numMinPeers:-5}
-  
-  
-  BOOT_NODE_IP=${BOOT_NODE_IP:-${BOOT_NODE_HOST}} # Backwards compatibility for old deprecated BOOT_NODE_HOST var name
   if [ -n "$BOOT_NODE_IP" ]
   then
     export bootnode=${BOOT_NODE_IP}
     echo "bootnode: $bootnode"
   fi
 fi
-
-echo "blockstanbul: $blockstanbul"
-echo "validators: $validators"
-echo "blockstanbulAdmins: $blockstanbulAdmins"
-echo "isAdmin: $isAdmin"
-echo "isRootNode: $isRootNode"
 echo "generateKey: $generateKey"
-echo "numMinPeers: $numMinPeers"
 echo "networkID: ${networkID:-unset - using default}"
-
-if [[ -e "genesis-block.json" && -z ${genesis+x} ]]
-then
-  export genesisBlock=$(< genesis-block.json)
-fi
-if [ -z ${genesisBlock+x} ]
-then
-  echo "Genesis block is not set (using default)"
-else
-  echo "Using genesis block from genesis-block.json"
-fi
+echo "bootnode (or BOOT_NODE_IP): ${bootnode:-unset - using default}"
 
 # PARAMETERS VALIDATION
 if [ ${HTTP_PORT} = ${HTTPS_PORT} ]; then
@@ -393,30 +264,23 @@ fi
 
 ${docker_compose} -f docker-compose-temp.yml up -d --remove-orphans
 
-
 if [[ "$useCustomGenesis" = true ]]; then
-  echo -e "${BYellow}useCustomGenesis is set to 'true' - using custom genesis block. 'strato' container will wait until the file is added. See the container log for details: \`sudo docker logs strato${CNAME_SEP}strato${CNAME_SEP}1\`${NC}"
+  echo -e "${BYellow}useCustomGenesis is set to 'true' - using custom genesis block. 'strato' container will wait until the file is added to /var/lib/strato/genesis.json within the strato container. See the container log for details: \`sudo docker logs strato${CNAME_SEP}strato${CNAME_SEP}1\`${NC}"
   exit 0
 fi
 
 # WAIT FOR STRATO TO RUN
 started=$(date +%s)
 timeout=180
-hc_container=$(${docker_compose} ps | grep "${CNAME_SEP}nginx${CNAME_SEP}" | awk '{print $1}')
-mb_container=$(${docker_compose} ps | grep "${CNAME_SEP}mercata-backend${CNAME_SEP}" | awk '{print $1}')
-mu_container=$(${docker_compose} ps | grep "${CNAME_SEP}mercata-ui${CNAME_SEP}" | awk '{print $1}')
-printf "Waiting for STRATO to rise and shine"
+hc_container=$(${docker_compose} ps | grep "\\${CNAME_SEP}nginx${CNAME_SEP}" | awk '{print $1}')
+printf "Waiting for STRATO to rise and shine..."
 i=0
-while [[ -z $(docker ps -q -f name=${hc_container} -f health=healthy) || -z $(docker ps -q -f name=${mb_container} -f health=healthy) || -z $(docker ps -q -f name=${mu_container} -f health=healthy) ]];  do
+while ! [[ -n $(docker ps -q -f name=${hc_container} -f health=healthy) ]];  do
   if [[ $(date +%s) -ge ${started}+${timeout} ]]; then
     echo -e "\n${Red}Node did not start within ${timeout}sec. See 'docker ps' for additional info. Exit.${NC}"
     exit 22
   fi
-  i=$((i + 1))
-  if [[ $((i % 4)) -eq 0 ]]; then printf '\b\b\b   \b\b\b'; else printf '.'; fi
-  sleep 0.3
 done
 printf "\n"
 
 echo -e "\n${Green}STRATO has awoken. Check ${http_protocol}://${NODE_HOST}${NC}"
-# END OF WAIT FOR STRATO TO RUN
