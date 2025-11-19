@@ -1,4 +1,4 @@
-[![BlockApps logo](https://docs.blockapps.net/_images/blockapps-logo-horizontal-label.jpg)](http://blockapps.net)
+[![STRATO Mercata logo](https://www.stratomercata.com/images/stratomercata.com/2025.10.11/strato-mercata-logo.png)](https://stratomercata.com)
 
 # STRATO Mercata - Getting Started
 
@@ -11,9 +11,10 @@
 - Remote VM/VDS:
   - Static IP
   - Associated domain
+  - SSL certificate
   - Inbound ports open: 443/tcp, 30303/tcp, 30303/udp
 - STRATO Mercata client credentials (OAuth2 client for node identity)
-  - Request the credentials for your domain at support.blockapps.net (Request Client Credentials)
+  - Request the credentials for your domain at https://support.blockapps.net (Request Client Credentials)
 
 ### Usage
 
@@ -25,9 +26,11 @@
     network='helium' \
     OAUTH_CLIENT_ID='client-id-here' \
     OAUTH_CLIENT_SECRET='client-secret-here' \
+    ssl=true \
     ./strato
     ```
     (for mainnet use `network=upquark`)
+  - Replace SSL private key and cert with your own in `ssl/`
   - `sudo ./strato-run.sh`
 
 - Wipe:
