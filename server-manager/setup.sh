@@ -78,7 +78,6 @@ cd /datadrive || exit 101
 rm -rf strato-getting-started
 git clone https://github.com/blockapps/strato-getting-started
 cd strato-getting-started || exit 102
-git checkout server-manager  # TODO: remove after testing
 
 # Download docker-compose.yml of the latest release version
 sudo ./strato --compose
