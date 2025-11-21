@@ -46,3 +46,7 @@
   ```
   ./strato --help
   ```
+
+## Server Manager
+
+For an easy way to bootstrap and manage a STRATO node on a remote server, check out the [Server Manager README](server-manager/README.md)
