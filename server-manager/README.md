@@ -5,10 +5,10 @@
 This guide will help you set up a STRATO Node on a remote virtual machine.
 
 ### Prerequisites:
-- Server with at least 2 vCPU (1 core/2 threads), 8GB RAM, 80GB SSD
+- VM with at least 2 vCPU (1 core/2 threads), 8GB RAM, 80GB SSD
 - Ubuntu LTS (24.04 recommended)
 - A domain name pointing to your server's IP address
-- Client ID/Secret from BlockApps (request at support.blockapps.net for your domain)
+- Client ID/Secret from BlockApps (request for your domain name at https://support.blockapps.net)
 - (**Optional, advanced**): separate data volume mounted to '/datadrive'
 - Firewall Settings:
   - Inbound:
