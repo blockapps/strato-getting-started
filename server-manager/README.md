@@ -1,4 +1,4 @@
-[<img src="https://www.stratomercata.com/images/stratomercata.com/2025.10.11/strato-mercata-logo.png">](https://stratomercata.com/)
+[[<img src="https://www.stratomercata.com/images/stratomercata.com/2025.10.11/strato-mercata-logo.png">](https://stratomercata.com/)](https://strato.nexus)
 
 # STRATO Node Provisioning
 
