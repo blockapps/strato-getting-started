@@ -38,7 +38,7 @@ function checkComposeFile {
   else
     echo -e "${Yellow}Using the existing docker-compose.yml${NC}"
   fi
-  
+
   if ! grep -q '^[[:space:]]*strato:' docker-compose.yml; then
     echo -e "${Red}Wrong docker-compose.yml provided - no 'strato' service found in it. Use the docker-compose.allDocker.yml as the docker-compose.yml${NC}"
     exit 4
@@ -76,7 +76,7 @@ function down {
 
 function getCompose {
   echo -e "${Yellow}Fetching the docker-compose.yml of the latest STRATO Mercata release...${NC}"
-  curl -fLo docker-compose.yml https://github.com/blockapps/strato-getting-started/releases/download/$(curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | grep -om1 '"/blockapps/strato-getting-started/releases/tag/[^"]*' | grep -oE "[^/]+$")/docker-compose.yml
+  curl -L https://github.com/blockapps/strato-getting-started/releases/latest/download/docker-compose.yml -o docker-compose.yml
   echo -e "${Yellow}docker-compose.yml downloaded successfully.${NC}"
 }
 
@@ -95,7 +95,7 @@ function getMetadata {
         ;;
       000):
         echo -e "${Red}Metadata endpoint is unreachable through strato docker network${NC}"
-        ;;      
+        ;;
       *):
         echo -e "${Red}Error: Unknown response from metadata endpoint${NC}"
         exit 24
