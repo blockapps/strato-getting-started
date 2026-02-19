@@ -1,4 +1,4 @@
-[<img src="https://strato.nexus/images/strato.nexus/2025.10.11/strato-logo.png">](https://strato.nexus)
+[<img src="https://strato.nexus/images/strato.nexus/2025.10.11/strato-logo.png" width="200">](https://strato.nexus)
 
 # STRATO Node Provisioning
 

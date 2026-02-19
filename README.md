@@ -1,8 +1,8 @@
-[![STRATO Mercata logo](https://www.stratomercata.com/images/stratomercata.com/2025.10.11/strato-mercata-logo.png)](https://stratomercata.com)
+[<img src="https://strato.nexus/images/strato.nexus/2025.10.11/strato-logo.png" width="200">](https://strato.nexus)
 
-# STRATO Mercata - Getting Started
+# STRATO - Getting Started
 
-> A bootstrap script to deploy a STRATO Mercata node
+> A bootstrap script to deploy a STRATO node
 
 ### Prerequisites
 
@@ -13,13 +13,13 @@
   - Associated domain
   - SSL certificate
   - Inbound ports open: 443/tcp, 30303/tcp, 30303/udp
-- STRATO Mercata client credentials (OAuth2 client for node identity)
+- STRATO client credentials (OAuth2 client for node identity)
   - Request the credentials for your domain at https://support.blockapps.net (Request Client Credentials)
 
 ### Usage
 
 - Start a node:
-  - Fetch a `docker-compose.yml` of the latest STRATO Mercata release:
+  - Fetch a `docker-compose.yml` of the latest STRATO release:
     ```
     sudo ./strato --compose
     ```

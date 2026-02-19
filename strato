@@ -46,15 +46,15 @@ function checkComposeFile {
 }
 
 function help {
-  echo -e "${Yellow}STRATO Mercata run script${NC}
-Kickstart a STRATO Mercata node.
+  echo -e "${Yellow}STRATO run script${NC}
+Kickstart a STRATO node.
 
 ${Yellow}Optional flags:${NC}
 The flags are mutually exclusive:
 --help|-h     - this help.
 --down        - remove strato containers and leave all volumes intact.
 --wipe        - stop and remove STRATO containers and wipe out volumes.
---compose     - fetch the docker-compose.yml of the latest STRATO Mercata release
+--compose     - fetch the docker-compose.yml of the latest STRATO release
 --pull        - pull images used in docker-compose.yml
 --get-address - get the address of the running node.
 --get-pubkey  - get the public key of the running node.
@@ -75,7 +75,7 @@ function down {
 }
 
 function getCompose {
-  echo -e "${Yellow}Fetching the docker-compose.yml of the latest STRATO Mercata release...${NC}"
+  echo -e "${Yellow}Fetching the docker-compose.yml of the latest STRATO release...${NC}"
   curl -L https://github.com/blockapps/strato-getting-started/releases/latest/download/docker-compose.yml -o docker-compose.yml
   echo -e "${Yellow}docker-compose.yml downloaded successfully.${NC}"
 }
