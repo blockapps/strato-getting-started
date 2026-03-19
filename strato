@@ -88,7 +88,7 @@ function down {
 
 function getCompose {
   echo -e "${Yellow}Fetching the docker-compose.yml of the latest STRATO release...${NC}"
-  curl -fLo docker-compose.yml https://github.com/strato-net/strato-platform/releases/download/$(curl -s -L https://github.com/strato-net/strato-platform/releases/latest | grep -om1 '"strato-net/strato-platform/releases/tag/[^"]*' | grep -oE "[^/]+$")/docker-compose.yml
+  curl -fLo docker-compose.yml https://github.com/strato-net/strato-platform/releases/download/$(curl -s -L https://github.com/strato-net/strato-platform/releases/latest | grep -om1 '"/strato-net/strato-platform/releases/tag/[^"]*' | grep -oE "[^/]+$")/docker-compose.yml
   echo -e "${Yellow}docker-compose.yml downloaded successfully.${NC}"
 }
 
