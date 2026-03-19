@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
+BOOTSTRAP_DOCKER_VERSION=2
+
 Green='\033[0;32m'
 Red='\033[0;31m'
 Yellow='\033[0;33m'
@@ -40,13 +42,22 @@ function checkComposeFile {
   fi
 
   if ! grep -q '^[[:space:]]*strato:' docker-compose.yml; then
-    echo -e "${Red}Wrong docker-compose.yml provided - no 'strato' service found in it. Use the docker-compose.allDocker.yml as the docker-compose.yml${NC}"
+    echo -e "${Red}Wrong docker-compose.yml provided - no 'strato' service found in it.${NC}"
     exit 4
+  fi
+
+  # Check bootstrap-docker version compatibility
+  min_version=$(grep -oP '#bootstrap-docker-min-version:\K.*' docker-compose.yml 2>/dev/null || true)
+  if [ -n "$min_version" ]; then
+    if [ "$(printf '%s\n' "$min_version" "$BOOTSTRAP_DOCKER_VERSION" | sort -V | head -1)" != "$min_version" ]; then
+      echo -e "${Red}This docker-compose.yml requires bootstrap-docker version >= ${min_version}, but this is version ${BOOTSTRAP_DOCKER_VERSION}. Please update the strato bootstrap scripts.${NC}"
+      exit 3
+    fi
   fi
 }
 
 function help {
-  echo -e "${Yellow}STRATO run script${NC}
+  echo -e "${Yellow}STRATO  run script${NC}
 Kickstart a STRATO node.
 
 ${Yellow}Optional flags:${NC}
@@ -67,6 +78,7 @@ The flags are mutually exclusive:
 function wipe {
   echo -e "${Yellow}Removing STRATO containers and wiping out volumes${NC}"
   ${docker_compose} down -v -t 0 --remove-orphans
+  sudo rm -rf nodedata/
 }
 
 function down {
@@ -76,7 +88,7 @@ function down {
 
 function getCompose {
   echo -e "${Yellow}Fetching the docker-compose.yml of the latest STRATO release...${NC}"
-  curl -L https://github.com/blockapps/strato-getting-started/releases/latest/download/docker-compose.yml -o docker-compose.yml
+  curl -fLo docker-compose.yml https://github.com/strato-net/strato-platform/releases/download/$(curl -s -L https://github.com/strato-net/strato-platform/releases/latest | grep -om1 '"/strato-net/strato-platform/releases/tag/[^"]*' | grep -oE "[^/]+$")/docker-compose.yml
   echo -e "${Yellow}docker-compose.yml downloaded successfully.${NC}"
 }
 
@@ -95,7 +107,7 @@ function getMetadata {
         ;;
       000):
         echo -e "${Red}Metadata endpoint is unreachable through strato docker network${NC}"
-        ;;
+        ;;      
       *):
         echo -e "${Red}Error: Unknown response from metadata endpoint${NC}"
         exit 24
@@ -191,6 +203,8 @@ while [ ${#} -gt 0 ]; do
 done
 
 checkDocker
+
+# Ensure docker-compose.yml exists (download from releases if missing)
 checkComposeFile
 
 export NODE_HOST=${NODE_HOST:-localhost}
