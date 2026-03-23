@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-BOOTSTRAP_DOCKER_VERSION=2
+BOOTSTRAP_DOCKER_VERSION=3
 
 Green='\033[0;32m'
 Red='\033[0;31m'
@@ -79,6 +79,7 @@ function wipe {
   echo -e "${Yellow}Removing STRATO containers and wiping out volumes${NC}"
   ${docker_compose} down -v -t 0 --remove-orphans
   sudo rm -rf nodedata/
+  sudo rm -rf logs/
 }
 
 function down {
@@ -270,6 +271,50 @@ if [ ${main_port} != "80" ] && [ ${main_port} != "443" ] && [[ ${NODE_HOST} != *
 fi
 ## END OF PARAMETERS VALIDATION
 
+# RUN STRATO-SETUP TO GENERATE NODE CONFIG
+if [ ! -f nodedata/.ethereumH/ethconf.yaml ]; then
+  rm -rf nodedata/
+  echo -e "${Yellow}Running strato-setup to generate node configuration...${NC}"
+
+  # Determine STRATO_IMAGE from docker-compose.yml if not set
+  if [ -z "${STRATO_IMAGE}" ]; then
+    STRATO_IMAGE=$(grep -oP 'image:\s*\${STRATO_IMAGE:-\K[^}]+' docker-compose.yml | head -1)
+    echo "Using STRATO_IMAGE from docker-compose.yml: ${STRATO_IMAGE}"
+  fi
+
+    # Extract REPO_URL from STRATO_IMAGE if not already set
+    # e.g., "406773134706.dkr.ecr.us-east-1.amazonaws.com/strato/strato:16.7-xxx" -> "406773134706.dkr.ecr.us-east-1.amazonaws.com/strato/"
+    if [ -z "${REPO_URL}" ] && [ -n "${STRATO_IMAGE}" ]; then
+      REPO_URL=$(echo "${STRATO_IMAGE}" | sed 's|strato:.*||')
+      echo "Derived REPO_URL: ${REPO_URL}"
+    fi
+  
+  # Create OAuth credentials for strato-setup
+  mkdir -p "${HOME}/.secrets"
+  cat > "${HOME}/.secrets/strato_credentials.yaml" << EOF
+discoveryUrl: "${OAUTH_DISCOVERY_URL}"
+clientId: "${OAUTH_CLIENT_ID}"
+clientSecret: "${OAUTH_CLIENT_SECRET}"
+EOF
+
+  docker run --rm \
+    --entrypoint strato-setup \
+    -v "$(pwd)":/node \
+    -v "${HOME}/.secrets:/root/.secrets:ro" \
+    ${postgres_password:+-e postgres_password="${postgres_password}"} \
+    "${STRATO_IMAGE}" \
+    /node/nodedata --dockerMode=allDocker --network="${network}" --vaultUrl="${VAULT_URL}/strato/v2.3" --repoUrl="${REPO_URL:-}" \
+    --pghost=postgres --kafkahost=kafka --redisHost=redis --apiIPAddress=0.0.0.0 --httpPort="${HTTP_PORT}"
+
+  # Fix ownership for non-root containers
+  sudo chown -R ${DOCKER_UID:-1000}:${DOCKER_GID:-1000} nodedata/ logs/ 2>/dev/null || true
+
+  # Move generated docker-compose.yml to current directory (strato-setup creates it in the node dir)
+  mv nodedata/docker-compose.yml docker-compose.yml
+
+  echo -e "${Green}Node configuration generated.${NC}"
+fi
+
 # COMPOSE FILE PRE-PROCESSING
 function cleanup {
   rm docker-compose-temp.yml
@@ -286,6 +331,9 @@ else
   fi
 fi
 # END OF COMPOSE FILE PRE-PROCESSING
+
+mkdir -p nodedata/
+mkdir -p logs/
 
 ${docker_compose} -f docker-compose-temp.yml up -d --remove-orphans
 
