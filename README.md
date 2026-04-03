@@ -2,6 +2,10 @@
 
 # STRATO - Getting Started
 
+> **DEPRECATED (April 3, 2026):** This repository is obsolete as of STRATO version 16.10 and newer. Please refer to the open-source [STRATO Platform](https://github.com/strato-net/strato-platform) repo for all operations.
+
+
+
 > A bootstrap script to deploy a STRATO node
 
 ### Prerequisites
